@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+
+<html lang="vi"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Dashboard Sinh viên - Smart Academic &amp; Lab Support</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-error-container": "#93000a",
+                      "on-tertiary": "#ffffff",
+                      "on-primary-fixed": "#131b2e",
+                      "background": "#f7f9fb",
+                      "inverse-primary": "#bec6e0",
+                      "on-background": "#191c1e",
+                      "secondary": "#0058be",
+                      "on-tertiary-fixed-variant": "#38485d",
+                      "tertiary-container": "#0b1c30",
+                      "outline": "#76777d",
+                      "primary-container": "#131b2e",
+                      "on-error": "#ffffff",
+                      "inverse-on-surface": "#eff1f3",
+                      "tertiary-fixed": "#d3e4fe",
+                      "error": "#ba1a1a",
+                      "surface-bright": "#f7f9fb",
+                      "surface-container-low": "#f2f4f6",
+                      "surface": "#f7f9fb",
+                      "on-primary": "#ffffff",
+                      "on-secondary": "#ffffff",
+                      "surface-dim": "#d8dadc",
+                      "surface-variant": "#e0e3e5",
+                      "on-surface": "#191c1e",
+                      "on-secondary-container": "#fefcff",
+                      "surface-container": "#eceef0",
+                      "secondary-fixed-dim": "#adc6ff",
+                      "tertiary-fixed-dim": "#b7c8e1",
+                      "on-secondary-fixed": "#001a42",
+                      "on-secondary-fixed-variant": "#004395",
+                      "inverse-surface": "#2d3133",
+                      "on-primary-fixed-variant": "#3f465c",
+                      "on-tertiary-container": "#75859d",
+                      "outline-variant": "#c6c6cd",
+                      "error-container": "#ffdad6",
+                      "on-primary-container": "#7c839b",
+                      "primary": "#000000",
+                      "on-tertiary-fixed": "#0b1c30",
+                      "on-surface-variant": "#45464d",
+                      "primary-fixed-dim": "#bec6e0",
+                      "primary-fixed": "#dae2fd",
+                      "surface-container-lowest": "#ffffff",
+                      "surface-tint": "#565e74",
+                      "secondary-container": "#2170e4",
+                      "secondary-fixed": "#d8e2ff",
+                      "surface-container-high": "#e6e8ea",
+                      "surface-container-highest": "#e0e3e5",
+                      "tertiary": "#000000"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "unit": "8px",
+                      "container-max": "1440px",
+                      "gutter": "24px",
+                      "margin-mobile": "16px",
+                      "margin-desktop": "32px"
+              },
+              "fontFamily": {
+                      "headline-lg-mobile": [
+                              "Inter"
+                      ],
+                      "label-md": [
+                              "Inter"
+                      ],
+                      "headline-lg": [
+                              "Inter"
+                      ],
+                      "headline-md": [
+                              "Inter"
+                      ],
+                      "headline-sm": [
+                              "Inter"
+                      ],
+                      "body-md": [
+                              "Inter"
+                      ],
+                      "body-lg": [
+                              "Inter"
+                      ]
+              },
+              "fontSize": {
+                      "headline-lg-mobile": [
+                              "24px",
+                              {
+                                      "lineHeight": "32px",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "label-md": [
+                              "12px",
+                              {
+                                      "lineHeight": "16px",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "headline-lg": [
+                              "32px",
+                              {
+                                      "lineHeight": "40px",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "headline-md": [
+                              "24px",
+                              {
+                                      "lineHeight": "32px",
+                                      "letterSpacing": "-0.01em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "headline-sm": [
+                              "20px",
+                              {
+                                      "lineHeight": "28px",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "body-md": [
+                              "14px",
+                              {
+                                      "lineHeight": "20px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "body-lg": [
+                              "16px",
+                              {
+                                      "lineHeight": "24px",
+                                      "fontWeight": "400"
+                              }
+                      ]
+              }
+      },
+          },
+        }
+    </script>
+</head>
+<body class="bg-background text-on-background font-body-md text-body-md flex min-h-screen">
+<!-- SideNavBar -->
+<nav class="hidden md:flex flex-col w-64 bg-surface-container-low dark:bg-tertiary-container fixed left-0 top-0 h-screen py-6 border-r border-outline-variant z-40">
+<div class="px-6 mb-8 flex flex-col items-center">
+<img alt="University Institutional Logo" class="w-20 h-20 rounded-full mb-4 object-cover" data-alt="A professional and sleek university institutional logo featuring a crest or modern abstract symbol in deep blue and white, set against a pristine, light-mode academic background. The logo conveys authority and trust, fitting a high-end academic laboratory support system." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBR2RbfpOzxNk8JHVb2MJdmsPxMChSUILN0p2Ww0wKGAvJWBa8PTRahJBgUZdlVaGPfAfjDqrYSrEWe2z-DbkZgvVaWBmUt8k0OxRKaAkosOtjRFNU64j2425uHEvMD4aDCm2G8SQ0ZwSzNJ2APhy7okz4KQEwYs9Og3-QCXRjwJ8_IthhDH9Bi8HSVCo_uUgSRhSl0auTgJJHgD3msMQyQ0CDzPUeTFK0OTdQSXO75xV4kRvLylDAvU76bQRa17hjvjWIYyxfW-GM"/>
+<h1 class="font-headline-sm text-headline-sm font-bold text-primary dark:text-on-primary-fixed text-center">Academic Portal</h1>
+<p class="font-label-md text-label-md text-on-surface-variant dark:text-on-tertiary-container mt-1">Lab Management System</p>
+</div>
+<div class="px-4 mb-6">
+<button class="w-full bg-secondary text-on-secondary rounded-lg py-3 px-4 font-label-md text-label-md flex items-center justify-center gap-2 hover:bg-secondary-container transition-colors shadow-sm">
+<span class="material-symbols-outlined" data-icon="add" data-weight="fill">add</span>
+                New Lab Request
+            </button>
+</div>
+<ul class="flex-1 flex flex-col gap-2 overflow-y-auto px-2">
+<!-- Active Item: Dashboard -->
+<li>
+<a class="flex items-center gap-3 px-4 py-3 bg-secondary text-on-secondary rounded-lg mx-2 scale-95 transition-transform duration-150 shadow-sm" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard" data-weight="fill" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+<span class="font-label-md text-label-md">Dashboard</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant dark:text-on-tertiary-container hover:bg-surface-container-high dark:hover:bg-on-tertiary-fixed-variant rounded-lg mx-2 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="school">school</span>
+<span class="font-label-md text-label-md">Đặt lịch cố vấn</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant dark:text-on-tertiary-container hover:bg-surface-container-high dark:hover:bg-on-tertiary-fixed-variant rounded-lg mx-2 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="history">history</span>
+<span class="font-label-md text-label-md">Lịch sử học tập</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant dark:text-on-tertiary-container hover:bg-surface-container-high dark:hover:bg-on-tertiary-fixed-variant rounded-lg mx-2 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="devices">devices</span>
+<span class="font-label-md text-label-md">Thiết bị đã mượn</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant dark:text-on-tertiary-container hover:bg-surface-container-high dark:hover:bg-on-tertiary-fixed-variant rounded-lg mx-2 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-label-md text-label-md">Hồ sơ cá nhân</span>
+</a>
+</li>
+</ul>
+<div class="mt-auto px-2 pt-4 border-t border-outline-variant dark:border-outline">
+<ul class="flex flex-col gap-2">
+<li>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant dark:text-on-tertiary-container hover:bg-surface-container-high dark:hover:bg-on-tertiary-fixed-variant rounded-lg mx-2 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="contact_support">contact_support</span>
+<span class="font-label-md text-label-md">Support</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant dark:text-on-tertiary-container hover:bg-surface-container-high dark:hover:bg-on-tertiary-fixed-variant rounded-lg mx-2 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+<span class="font-label-md text-label-md">Logout</span>
+</a>
+</li>
+</ul>
+</div>
+</nav>
+<!-- Main Content Area -->
+<div class="flex-1 md:ml-64 flex flex-col min-h-screen">
+<!-- TopNavBar -->
+<header class="flex justify-between items-center h-16 px-margin-desktop w-full sticky top-0 z-50 bg-surface dark:bg-surface-container border-b border-outline-variant dark:border-outline shadow-sm">
+<div class="flex-1 flex items-center">
+<!-- Search could go here -->
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-low dark:hover:bg-surface-container-highest rounded-full transition-colors relative">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+<span class="absolute top-1 right-1 w-2 h-2 bg-error rounded-full"></span>
+</button>
+<div class="flex items-center gap-3 ml-4 border-l border-outline-variant pl-4">
+<span class="font-label-md text-label-md font-semibold hidden md:block">Nguyễn Văn A</span>
+<img alt="User profile avatar" class="w-10 h-10 rounded-full border border-outline-variant object-cover" data-alt="A professional headshot of a university student, Nguyễn Văn A, wearing a clean, modern collared shirt. The lighting is bright and even, characteristic of a high-quality light-mode academic dashboard avatar." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAI-0VUOybcsXbMpOyIJAxsyj3uHeSbqdQXf-_8cRfyq0eSQg6QcDhKt4AVuYqdWi4XIcAOmVPfQu-v_p6DZAS0GJzCEdKP-FO6MwmIOcx9etT22Vc_9F2MdafQIuhhm9eL3l21ZE0U8bUdUSNMw8mqIz6kU7UHSaH2I7jURriBPY130RhHtskfHzcQLpueBDV9nkTpszXCKeQTZ8b0dh-EWmNgnBuCuHntC9qEHlceWCTn7x8cyEtmip4rnGAwoHNzxHcFFBh0l6U"/>
+</div>
+</div>
+</header>
+<!-- Canvas -->
+<main class="flex-1 p-margin-mobile md:p-margin-desktop max-w-container-max mx-auto w-full flex flex-col gap-6">
+<!-- Welcome Header -->
+<div class="mb-4">
+<h2 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-primary">Chào mừng sinh viên quay trở lại, Nguyễn Văn A!</h2>
+<p class="text-on-surface-variant mt-2 font-body-lg text-body-lg">Cập nhật tiến độ học tập và quản lý thiết bị của bạn.</p>
+</div>
+<!-- Bento Grid: KPI Cards & Action -->
+<div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
+<!-- KPI 1 -->
+<div class="bg-surface rounded-xl p-6 border border-outline-variant shadow-sm flex flex-col justify-between">
+<div class="flex justify-between items-start mb-4">
+<div class="p-3 bg-secondary-fixed rounded-lg text-secondary">
+<span class="material-symbols-outlined" data-icon="calendar_month">calendar_month</span>
+</div>
+</div>
+<div>
+<p class="font-label-md text-label-md text-on-surface-variant mb-1 uppercase tracking-wider">Lịch sắp tới</p>
+<p class="font-headline-lg text-headline-lg text-primary">2</p>
+</div>
+</div>
+<!-- KPI 2 -->
+<div class="bg-surface rounded-xl p-6 border border-outline-variant shadow-sm flex flex-col justify-between">
+<div class="flex justify-between items-start mb-4">
+<div class="p-3 bg-tertiary-fixed rounded-lg text-tertiary-container">
+<span class="material-symbols-outlined" data-icon="check_circle">check_circle</span>
+</div>
+</div>
+<div>
+<p class="font-label-md text-label-md text-on-surface-variant mb-1 uppercase tracking-wider">Buổi đã hoàn thành</p>
+<p class="font-headline-lg text-headline-lg text-primary">15</p>
+</div>
+</div>
+<!-- KPI 3 -->
+<div class="bg-surface rounded-xl p-6 border border-outline-variant shadow-sm flex flex-col justify-between">
+<div class="flex justify-between items-start mb-4">
+<div class="p-3 bg-primary-fixed rounded-lg text-primary-container">
+<span class="material-symbols-outlined" data-icon="biotech">biotech</span>
+</div>
+</div>
+<div>
+<p class="font-label-md text-label-md text-on-surface-variant mb-1 uppercase tracking-wider">Thiết bị đang mượn</p>
+<p class="font-headline-lg text-headline-lg text-primary">3</p>
+</div>
+</div>
+<!-- KPI 4 -->
+<div class="bg-surface rounded-xl p-6 border border-outline-variant shadow-sm flex flex-col justify-between">
+<div class="flex justify-between items-start mb-4">
+<div class="p-3 bg-surface-container-high rounded-lg text-on-surface">
+<span class="material-symbols-outlined" data-icon="folder_special">folder_special</span>
+</div>
+</div>
+<div>
+<p class="font-label-md text-label-md text-on-surface-variant mb-1 uppercase tracking-wider">Trạng thái hồ sơ</p>
+<p class="font-headline-sm text-headline-sm text-secondary-container font-semibold">Hoàn thiện</p>
+</div>
+</div>
+</div>
+<!-- Major CTA Area (Glassmorphism inspired, structural) -->
+<div class="relative w-full rounded-xl overflow-hidden bg-surface-container-low border border-outline-variant shadow-sm p-8 my-4 flex items-center justify-between flex-wrap gap-4">
+<div class="relative z-10 flex-1 min-w-[280px]">
+<h3 class="font-headline-md text-headline-md text-primary mb-2">Cần hỗ trợ học tập?</h3>
+<p class="text-on-surface-variant font-body-md text-body-md mb-6">Đặt lịch với cố vấn học tập để giải đáp thắc mắc và định hướng lộ trình.</p>
+<button class="bg-secondary text-on-secondary hover:bg-secondary-container hover:text-on-secondary-container transition-colors font-label-md text-label-md px-6 py-4 rounded-lg flex items-center gap-3 shadow-sm">
+<span class="material-symbols-outlined" data-icon="event_available">event_available</span>
+                        Đặt lịch cố vấn ngay
+                    </button>
+</div>
+<!-- Decorative background element for CTA -->
+<div class="absolute right-0 top-0 h-full w-1/3 bg-gradient-to-l from-tertiary-fixed to-transparent opacity-50 z-0"></div>
+</div>
+<!-- Two Column Layout: Recent Appointments & Borrowed Equipment -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+<!-- Column 1: Lịch hẹn gần đây -->
+<div class="bg-surface rounded-xl border border-outline-variant shadow-sm overflow-hidden flex flex-col">
+<div class="p-5 border-b border-outline-variant bg-surface-bright flex justify-between items-center">
+<h3 class="font-headline-sm text-headline-sm font-semibold text-primary">Lịch hẹn gần đây</h3>
+<button class="text-secondary hover:text-secondary-container font-label-md text-label-md">Xem tất cả</button>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-low text-on-surface-variant font-label-md text-label-md uppercase">
+<th class="py-3 px-5 border-b border-outline-variant font-semibold">Giảng viên</th>
+<th class="py-3 px-5 border-b border-outline-variant font-semibold">Ngày &amp; Giờ</th>
+<th class="py-3 px-5 border-b border-outline-variant font-semibold">Trạng thái</th>
+</tr>
+</thead>
+<tbody class="font-body-md text-body-md">
+<tr class="hover:bg-surface-container-lowest transition-colors border-b border-outline-variant last:border-b-0">
+<td class="py-4 px-5">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-primary-fixed-dim text-primary-container flex items-center justify-center font-bold">TS</div>
+<span class="font-semibold text-on-surface">TS. Trần Hữu B</span>
+</div>
+</td>
+<td class="py-4 px-5 text-on-surface-variant">15/10/2023 - 14:00</td>
+<td class="py-4 px-5">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full font-label-md text-label-md bg-tertiary-fixed text-tertiary-container">
+                                            Sắp tới
+                                        </span>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-lowest transition-colors border-b border-outline-variant last:border-b-0 bg-surface-bright">
+<td class="py-4 px-5">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-secondary-fixed text-secondary-container flex items-center justify-center font-bold">ThS</div>
+<span class="font-semibold text-on-surface">ThS. Lê Thị C</span>
+</div>
+</td>
+<td class="py-4 px-5 text-on-surface-variant">02/10/2023 - 09:30</td>
+<td class="py-4 px-5">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full font-label-md text-label-md bg-surface-container-high text-on-surface-variant">
+                                            Đã hoàn thành
+                                        </span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Column 2: Thiết bị đã mượn -->
+<div class="bg-surface rounded-xl border border-outline-variant shadow-sm overflow-hidden flex flex-col">
+<div class="p-5 border-b border-outline-variant bg-surface-bright flex justify-between items-center">
+<h3 class="font-headline-sm text-headline-sm font-semibold text-primary">Thiết bị đang mượn</h3>
+<button class="text-secondary hover:text-secondary-container font-label-md text-label-md">Chi tiết</button>
+</div>
+<div class="p-0">
+<ul class="flex flex-col">
+<li class="flex items-start gap-4 p-5 border-b border-outline-variant hover:bg-surface-container-lowest transition-colors last:border-b-0">
+<div class="p-3 bg-surface-container-highest rounded-lg text-on-surface-variant">
+<span class="material-symbols-outlined" data-icon="science">science</span>
+</div>
+<div class="flex-1">
+<h4 class="font-headline-sm text-headline-sm text-on-surface text-[16px]">Kính hiển vi quang học Leica</h4>
+<div class="flex gap-4 mt-1 font-body-md text-body-md text-on-surface-variant text-[13px]">
+<span>Ngày mượn: 10/10/2023</span>
+<span>Hạn trả: 17/10/2023</span>
+</div>
+</div>
+<div>
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full font-label-md text-label-md bg-error-container text-on-error-container border border-error-container">
+                                        Sắp đến hạn
+                                    </span>
+</div>
+</li>
+<li class="flex items-start gap-4 p-5 border-b border-outline-variant hover:bg-surface-container-lowest transition-colors last:border-b-0 bg-surface-bright">
+<div class="p-3 bg-surface-container-highest rounded-lg text-on-surface-variant">
+<span class="material-symbols-outlined" data-icon="precision_manufacturing">precision_manufacturing</span>
+</div>
+<div class="flex-1">
+<h4 class="font-headline-sm text-headline-sm text-on-surface text-[16px]">Bộ Kit Arduino Uno R3</h4>
+<div class="flex gap-4 mt-1 font-body-md text-body-md text-on-surface-variant text-[13px]">
+<span>Ngày mượn: 12/10/2023</span>
+<span>Hạn trả: 26/10/2023</span>
+</div>
+</div>
+<div>
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full font-label-md text-label-md bg-tertiary-fixed-dim text-tertiary-container">
+                                        Đang mượn
+                                    </span>
+</div>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</main>
+</div>
+<!-- Toast Notification (Fixed bottom right) -->
+<div class="fixed bottom-6 right-6 max-w-sm w-full bg-surface-container-highest border border-outline-variant shadow-lg rounded-xl p-4 flex items-start gap-3 z-50">
+<div class="text-secondary-container pt-0.5">
+<span class="material-symbols-outlined" data-icon="notifications_active" data-weight="fill">notifications_active</span>
+</div>
+<div class="flex-1">
+<h4 class="font-label-md text-label-md font-bold text-on-surface">Nhắc nhở</h4>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1">Bạn có lịch hẹn lúc 14:00 hôm nay với TS. Trần Hữu B.</p>
+</div>
+<button class="text-on-surface-variant hover:text-on-surface transition-colors">
+<span class="material-symbols-outlined" data-icon="close">close</span>
+</button>
+</div>
+</body></html>

@@ -1,0 +1,161 @@
+# TASK — CORE-05: Đặt lịch Cố vấn & Chống xung đột tài nguyên (Booking)
+# Mức độ: BẮT BUỘC — NGHIỆP VỤ CHÍNH | Phụ thuộc: CORE-01..04
+
+## ═══════════════════════════════════════════
+## MỤC TIÊU
+## ═══════════════════════════════════════════
+Sinh viên đặt lịch gặp Giảng viên theo flow:
+  Chọn Khoa → Chọn Giảng viên → Chọn ngày/giờ → Xác nhận
+
+Hệ thống PHẢI chặn:
+  (1) Đặt lịch vào khung giờ đã có người đặt (conflict)
+  (2) Đặt lịch ngày/giờ trong quá khứ
+
+## ═══════════════════════════════════════════
+## DATABASE
+## ═══════════════════════════════════════════
+
+CREATE TABLE mentoring_sessions (
+    id           BIGINT AUTO_INCREMENT PRIMARY KEY,
+    student_id   BIGINT NOT NULL,
+    lecturer_id  BIGINT NOT NULL,
+    session_date DATE NOT NULL,
+    start_time   TIME NOT NULL,
+    end_time     TIME NOT NULL,
+    status       ENUM('PENDING','CONFIRMED','COMPLETED','CANCELLED') NOT NULL DEFAULT 'PENDING',
+    note         TEXT,
+    created_at   DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (student_id) REFERENCES users(id),
+    FOREIGN KEY (lecturer_id) REFERENCES users(id),
+    -- Index để tối ưu conflict check:
+    INDEX idx_lecturer_date (lecturer_id, session_date)
+);
+
+## ═══════════════════════════════════════════
+## BOOKING FLOW — 3 BƯỚC
+## ═══════════════════════════════════════════
+
+BƯỚC 1: GET /student/booking/step1
+  - Lấy danh sách departments → model
+  - Template: dropdown chọn Khoa
+
+BƯỚC 2: GET /student/booking/step2?departmentId=X
+  - Lấy danh sách lecturers theo department_id
+  - Template: danh sách giảng viên (card hoặc table) để chọn
+
+BƯỚC 3: GET /student/booking/step3?lecturerId=Y
+  - Template: form chọn ngày, chọn slot giờ
+  - Slot giờ gợi ý: 08:00–09:00, 09:00–10:00, ... 16:00–17:00
+  - Khi chọn ngày → AJAX call GET /student/booking/available-slots?lecturerId=Y&date=Z
+    → trả về JSON danh sách slot CHƯA bị đặt
+
+BƯỚC 4: POST /student/booking/confirm
+  - Nhận BookingRequestDto
+  - Service validate + save → redirect /student/booking/success
+
+## ═══════════════════════════════════════════
+## FILES CẦN TẠO
+## ═══════════════════════════════════════════
+
+entity/
+  MentoringSession.java
+
+dto/
+  BookingRequestDto.java    ← lecturerId, sessionDate, startTime, endTime, note
+  SlotDto.java              ← startTime, endTime, available: boolean
+  LecturerSummaryDto.java   ← id, fullName, title, departmentName, bio
+
+repository/
+  MentoringSessionRepository.java
+    + existsConflict(lecturerId, date, startTime, endTime): boolean  [JPQL]
+    + findByStudentIdOrderBySessionDateDesc(Long studentId): List
+    + findByLecturerIdAndStatus(Long lecturerId, SessionStatus): List
+
+service/
+  BookingService.java
+    + getDepartments(): List<DepartmentDto>
+    + getLecturersByDepartment(Long deptId): List<LecturerSummaryDto>
+    + getAvailableSlots(Long lecturerId, LocalDate date): List<SlotDto>
+    + createBooking(BookingRequestDto dto, String studentEmail): MentoringSession
+
+controller/
+  StudentBookingController.java   ← /student/booking/**
+    + GET  step1, step2, step3
+    + GET  /available-slots (REST endpoint trả JSON)
+    + POST /confirm
+
+templates/
+  student/booking/step1-department.html
+  student/booking/step2-lecturer.html
+  student/booking/step3-slot.html
+  student/booking/success.html
+
+## ═══════════════════════════════════════════
+## LOGIC CONFLICT CHECK (QUAN TRỌNG NHẤT)
+## ═══════════════════════════════════════════
+
+// Trong MentoringSessionRepository:
+@Query("""
+    SELECT COUNT(ms) > 0 FROM MentoringSession ms
+    WHERE ms.lecturer.id = :lecturerId
+      AND ms.sessionDate = :date
+      AND ms.startTime < :endTime
+      AND ms.endTime > :startTime
+      AND ms.status NOT IN (com.platform.entity.SessionStatus.CANCELLED)
+""")
+boolean existsConflict(@Param("lecturerId") Long lecturerId,
+                        @Param("date") LocalDate date,
+                        @Param("startTime") LocalTime startTime,
+                        @Param("endTime") LocalTime endTime);
+
+// Trong BookingService.createBooking():
+// Bước 1: Kiểm tra quá khứ
+LocalDateTime bookingDateTime = LocalDateTime.of(dto.getSessionDate(), dto.getStartTime());
+if (bookingDateTime.isBefore(LocalDateTime.now())) {
+    throw new BusinessException("Không thể đặt lịch trong quá khứ");
+}
+// Bước 2: Kiểm tra conflict
+if (sessionRepo.existsConflict(dto.getLecturerId(), dto.getSessionDate(),
+                                dto.getStartTime(), dto.getEndTime())) {
+    throw new SlotConflictException("Khung giờ này đã có lịch hẹn khác");
+}
+// Bước 3: Save nếu OK
+MentoringSession session = new MentoringSession();
+// ... set fields ...
+session.setStatus(SessionStatus.PENDING);
+return sessionRepo.save(session);
+
+## ═══════════════════════════════════════════
+## AVAILABLE SLOTS ENDPOINT (AJAX/JSON)
+## ═══════════════════════════════════════════
+
+// Controller:
+@GetMapping("/available-slots")
+@ResponseBody
+public List<SlotDto> getAvailableSlots(@RequestParam Long lecturerId,
+                                        @RequestParam String date) {
+    LocalDate localDate = LocalDate.parse(date);
+    return bookingService.getAvailableSlots(lecturerId, localDate);
+}
+
+// Service logic:
+// Định nghĩa tất cả slots trong ngày:
+List<LocalTime[]> allSlots = List.of(
+    new LocalTime[]{LocalTime.of(8,0), LocalTime.of(9,0)},
+    new LocalTime[]{LocalTime.of(9,0), LocalTime.of(10,0)},
+    ... // đến 17:00
+);
+// Với mỗi slot → gọi existsConflict → đánh dấu available=false nếu conflict
+// Return List<SlotDto>
+
+## ═══════════════════════════════════════════
+## TEST CHECKLIST
+## ═══════════════════════════════════════════
+
+[ ] Chọn Khoa CNTT → chỉ hiện giảng viên khoa CNTT
+[ ] Đặt slot 09:00–10:00 ngày mai → thành công, status = PENDING trong DB
+[ ] Đặt cùng slot 09:00–10:00, cùng giảng viên → lỗi "Khung giờ đã có lịch"
+[ ] Chọn ngày hôm qua → lỗi "Không thể đặt trong quá khứ"
+[ ] Slot đã bị đặt → API /available-slots trả về available=false
+[ ] Slot sau khi hủy (CORE-09) → API trả lại available=true
+[ ] Đặt lịch thành công → xuất hiện trong /student/history

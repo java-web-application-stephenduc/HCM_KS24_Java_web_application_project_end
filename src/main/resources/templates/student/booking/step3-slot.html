@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/main-layout :: layout(~{::#main-content})}" th:with="pageTitle='Đặt lịch - Chọn thời gian'">
+<body>
+<div id="main-content" class="w-full max-w-container-max mx-auto flex flex-col gap-6">
+    <!-- Breadcrumbs -->
+    <nav class="flex items-center gap-2 text-on-surface-variant font-label-md text-label-md">
+        <a th:href="@{/dashboard}" class="hover:text-secondary transition-colors">Trang chủ</a>
+        <span class="material-symbols-outlined text-[16px]">chevron_right</span>
+        <span class="text-primary font-bold">Đặt lịch cố vấn</span>
+    </nav>
+
+    <!-- Wizard Stepper -->
+    <div class="flex items-center w-full max-w-3xl mx-auto mb-4">
+        <a th:href="@{/student/booking/step1}" class="flex flex-col items-center flex-1 relative group">
+            <div class="w-8 h-8 rounded-full bg-secondary text-on-secondary flex items-center justify-center font-label-md text-label-md mb-2 z-10">
+                <span class="material-symbols-outlined text-[18px]">check</span>
+            </div>
+            <span class="font-label-md text-label-md text-secondary group-hover:underline">Chọn Khoa</span>
+            <div class="absolute top-4 left-1/2 w-full h-[2px] bg-secondary -z-0"></div>
+        </a>
+        <a th:href="@{/student/booking/step2(departmentId=${departmentId})}" class="flex flex-col items-center flex-1 relative">
+            <div class="w-8 h-8 rounded-full bg-secondary text-on-secondary flex items-center justify-center font-label-md text-label-md mb-2 z-10">
+                <span class="material-symbols-outlined text-[18px]">check</span>
+            </div>
+            <span class="font-label-md text-label-md text-secondary">Chọn Giảng viên</span>
+            <div class="absolute top-4 right-1/2 w-full h-[2px] bg-secondary -z-0"></div>
+            <div class="absolute top-4 left-1/2 w-full h-[2px] bg-secondary -z-0"></div>
+        </a>
+        <a th:href="@{/student/booking/step3(lecturerId=${booking.lecturerId})}" class="flex flex-col items-center flex-1 relative">
+            <div class="w-8 h-8 rounded-full border-2 border-secondary bg-surface text-secondary flex items-center justify-center font-label-md text-label-md font-bold mb-2 z-10">3</div>
+            <span class="font-label-md text-label-md text-primary font-bold">Chọn Lịch</span>
+            <div class="absolute top-4 right-1/2 w-full h-[2px] bg-outline-variant -z-0"></div>
+        </a>
+    </div>
+
+    <!-- Error Banner -->
+    <div th:if="${error}" class="bg-error-container text-on-error-container p-4 rounded-lg flex items-start gap-3 border border-error/20 shadow-sm">
+        <span class="material-symbols-outlined text-error" style="font-variation-settings: 'FILL' 1;">error</span>
+        <div>
+            <h3 class="font-label-md text-label-md font-bold mb-1">Lỗi</h3>
+            <p class="font-body-md text-body-md" th:text="${error}"></p>
+        </div>
+    </div>
+
+    <form th:action="@{/student/booking/confirm}" th:object="${booking}" method="post">
+        <input type="hidden" th:field="*{lecturerId}" id="lecturerId"/>
+        <input type="hidden" id="slotsEndpoint" th:value="@{/student/booking/available-slots}"/>
+
+        <!-- Layout Content -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter items-start">
+            <!-- Left Column: Summary -->
+            <div class="lg:col-span-4 flex flex-col gap-6">
+                <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6 shadow-sm">
+                    <h2 class="font-headline-sm text-headline-sm text-primary mb-4 pb-4 border-b border-outline-variant">Thông tin đã chọn</h2>
+                    <div class="mb-6">
+                        <p class="font-label-md text-label-md text-on-surface-variant mb-1 uppercase tracking-wider">Cố vấn học tập</p>
+                        <div class="flex items-center gap-4 p-3 bg-surface-container-low rounded-lg border border-outline-variant/50">
+                            <div class="w-12 h-12 rounded-full bg-secondary text-on-secondary flex items-center justify-center text-xl font-bold uppercase shrink-0">
+                                <span id="lecturerInitial" th:text="${#strings.substring(lecturer.fullName, 0, 1)}">G</span>
+                            </div>
+                            <div>
+                                <p class="font-label-md text-label-md text-primary font-bold" id="lecturerNameDisplay" th:text="${lecturer.fullName}">Giảng viên</p>
+                                <p class="font-body-md text-body-md text-on-surface-variant text-[13px]" th:text="${lecturer.departmentName}">Khoa</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6 shadow-sm">
+                    <h3 class="font-label-md text-label-md text-on-surface-variant mb-2">Lịch hẹn dự kiến</h3>
+                    <div class="flex items-center gap-3 text-on-surface">
+                        <span class="material-symbols-outlined text-secondary">schedule</span>
+                        <span id="selectedSlotDisplay" class="font-body-md text-body-md italic text-on-surface-variant">Chưa chọn khung giờ</span>
+                    </div>
+                </div>
+
+                <div>
+                    <label for="note" class="block font-label-md text-label-md text-on-surface mb-2">Ghi chú (Tùy chọn)</label>
+                    <textarea th:field="*{note}" id="note" rows="3" class="w-full px-3 py-2.5 bg-surface-lowest border border-outline-variant rounded-lg focus:border-secondary focus:ring-1 focus:ring-secondary outline-none font-body-md text-body-md text-on-surface placeholder-on-surface-variant transition-colors" placeholder="Nhập câu hỏi hoặc nội dung bạn cần tư vấn..."></textarea>
+                    <p th:if="${#fields.hasErrors('note')}" th:errors="*{note}" class="mt-1 font-label-md text-label-md text-error"></p>
+                </div>
+            </div>
+
+            <!-- Right Column: Calendar / Slot Picker -->
+            <div class="lg:col-span-8 bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden">
+                <div class="p-6 border-b border-outline-variant flex items-center justify-between bg-surface-bright">
+                    <div class="flex flex-col">
+                        <h2 class="font-headline-sm text-headline-sm text-primary">Chọn khung giờ</h2>
+                        <p class="font-body-md text-body-md text-on-surface-variant">Chọn ngày và giờ phù hợp</p>
+                    </div>
+                </div>
+
+                <div class="p-6 border-b border-outline-variant bg-surface-container-low">
+                    <label for="sessionDate" class="block font-label-md text-label-md text-on-surface mb-2">Ngày hẹn</label>
+                    <input type="date" th:field="*{sessionDate}" id="sessionDate" class="w-full h-11 px-3 bg-surface-lowest border border-outline-variant rounded-lg focus:border-secondary focus:ring-1 focus:ring-secondary outline-none font-body-md text-body-md text-on-surface transition-colors" required onchange="fetchAvailableSlots()"/>
+                    <p th:if="${#fields.hasErrors('sessionDate')}" th:errors="*{sessionDate}" class="mt-1 font-label-md text-label-md text-error"></p>
+                </div>
+
+                <div class="p-6">
+                    <h4 class="font-label-md text-label-md text-on-surface-variant mb-4 uppercase tracking-wider">Khung giờ có sẵn</h4>
+                    <div id="slots-container" class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                        <p class="font-body-md text-body-md text-on-surface-variant col-span-full">Vui lòng chọn ngày để xem khung giờ.</p>
+                    </div>
+                    <input type="hidden" th:field="*{startTime}" id="startTime"/>
+                    <input type="hidden" th:field="*{endTime}" id="endTime"/>
+                    <p th:if="${#fields.hasErrors('startTime')}" th:errors="*{startTime}" class="mt-1 font-label-md text-label-md text-error"></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer Actions -->
+        <div class="pt-6 mt-6 border-t border-outline-variant flex justify-between items-center">
+            <a th:href="@{/student/booking/step1}" class="h-12 px-6 rounded-lg border border-secondary text-secondary font-label-md text-label-md hover:bg-secondary/5 transition-colors inline-flex items-center gap-2">
+                <span class="material-symbols-outlined text-sm">arrow_back</span> Quay lại
+            </a>
+            <div class="flex gap-4">
+                <button type="submit" class="h-12 px-8 rounded-lg bg-secondary text-on-secondary font-label-md text-label-md font-bold hover:bg-secondary-container transition-colors shadow-sm inline-flex items-center gap-2" id="submitBtn" disabled>
+                    Xác nhận đặt lịch
+                    <span class="material-symbols-outlined text-lg">check</span>
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+    function fetchAvailableSlots() {
+        const date = document.getElementById('sessionDate').value;
+        const lecturerId = document.getElementById('lecturerId').value;
+        const container = document.getElementById('slots-container');
+        const submitBtn = document.getElementById('submitBtn');
+        const endpoint = document.getElementById('slotsEndpoint').value;
+
+        document.getElementById('startTime').value = '';
+        document.getElementById('endTime').value = '';
+        document.getElementById('selectedSlotDisplay').textContent = 'Chưa chọn khung giờ';
+        document.getElementById('selectedSlotDisplay').className = 'font-body-md text-body-md italic text-on-surface-variant';
+        submitBtn.disabled = true;
+
+        if (!date || !lecturerId) {
+            container.innerHTML = '<p class="font-body-md text-body-md text-on-surface-variant col-span-full">Vui lòng chọn ngày để xem khung giờ.</p>';
+            return;
+        }
+
+        container.innerHTML = '<p class="font-body-md text-body-md text-on-surface-variant col-span-full">Đang tải...</p>';
+
+        fetch(`${endpoint}?lecturerId=${encodeURIComponent(lecturerId)}&date=${encodeURIComponent(date)}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Không thể tải khung giờ');
+                }
+                return response.json();
+            })
+            .then(data => {
+                container.innerHTML = '';
+                const available = data.filter(s => s.available);
+                if (available.length === 0) {
+                    container.innerHTML = '<p class="font-body-md text-body-md text-on-surface-variant col-span-full">Không có khung giờ trống trong ngày này.</p>';
+                    return;
+                }
+
+                const morningSlots = available.filter(s => getHour(s.startTime) < 12);
+                const afternoonSlots = available.filter(s => getHour(s.startTime) >= 12);
+
+                if (morningSlots.length > 0) {
+                    const morningHeader = document.createElement('div');
+                    morningHeader.className = 'col-span-full';
+                    morningHeader.innerHTML = '<h4 class="font-label-md text-label-md text-on-surface-variant mb-2 uppercase tracking-wider mt-2">Sáng</h4>';
+                    container.appendChild(morningHeader);
+                    morningSlots.forEach(slot => container.appendChild(createSlotButton(slot)));
+                }
+
+                if (afternoonSlots.length > 0) {
+                    const afternoonHeader = document.createElement('div');
+                    afternoonHeader.className = 'col-span-full';
+                    afternoonHeader.innerHTML = '<h4 class="font-label-md text-label-md text-on-surface-variant mb-2 uppercase tracking-wider mt-4">Chiều</h4>';
+                    container.appendChild(afternoonHeader);
+                    afternoonSlots.forEach(slot => container.appendChild(createSlotButton(slot)));
+                }
+
+                if (morningSlots.length === 0 && afternoonSlots.length === 0) {
+                    container.innerHTML = '<p class="font-body-md text-body-md text-on-surface-variant col-span-full">Không có khung giờ trống trong ngày này.</p>';
+                }
+            })
+            .catch(() => {
+                container.innerHTML = '<p class="font-body-md text-body-md text-on-surface-variant col-span-full">Lỗi khi tải khung giờ.</p>';
+            });
+    }
+
+    function normalizeTime(value) {
+        if (!value) {
+            return '';
+        }
+        if (typeof value === 'string') {
+            return value;
+        }
+        if (typeof value === 'object' && value.hour !== undefined) {
+            const hh = String(value.hour).padStart(2, '0');
+            const mm = String(value.minute || 0).padStart(2, '0');
+            return `${hh}:${mm}`;
+        }
+        return String(value);
+    }
+
+    function getHour(value) {
+        const time = normalizeTime(value);
+        return parseInt(time.substring(0, 2), 10) || 0;
+    }
+
+    function createSlotButton(slot) {
+        const formatTime = (t) => normalizeTime(t).substring(0, 5);
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'py-3 px-4 rounded-lg border border-outline-variant bg-surface-bright text-center hover:border-secondary hover:text-secondary hover:shadow-sm transition-all focus:ring-2 focus:ring-secondary focus:outline-none slot-item';
+        btn.innerHTML = '<span class="font-body-md text-body-md font-semibold">' + formatTime(slot.startTime) + ' - ' + formatTime(slot.endTime) + '</span>';
+
+        btn.onclick = function() {
+            document.querySelectorAll('.slot-item').forEach(el => {
+                el.className = 'py-3 px-4 rounded-lg border border-outline-variant bg-surface-bright text-center hover:border-secondary hover:text-secondary hover:shadow-sm transition-all focus:ring-2 focus:ring-secondary focus:outline-none slot-item';
+            });
+            btn.className = 'py-3 px-4 rounded-lg border border-secondary bg-secondary-fixed text-secondary ring-2 ring-secondary text-center transition-all slot-item';
+            document.getElementById('startTime').value = normalizeTime(slot.startTime);
+            document.getElementById('endTime').value = normalizeTime(slot.endTime);
+            document.getElementById('selectedSlotDisplay').textContent = formatTime(slot.startTime) + ' - ' + formatTime(slot.endTime);
+            document.getElementById('selectedSlotDisplay').className = 'font-body-md text-body-md text-on-surface font-semibold';
+            document.getElementById('submitBtn').disabled = false;
+        };
+        return btn;
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        if (document.getElementById('sessionDate').value) {
+            fetchAvailableSlots();
+        }
+    });
+</script>
+</body>
+</html>

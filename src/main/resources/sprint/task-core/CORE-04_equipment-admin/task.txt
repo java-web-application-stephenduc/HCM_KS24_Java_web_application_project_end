@@ -1,0 +1,111 @@
+# TASK — CORE-04: Admin quản lý Thiết bị/Tài liệu (Equipment CRUD)
+# Mức độ: BẮT BUỘC | Phụ thuộc: CORE-01, CORE-02
+
+## ═══════════════════════════════════════════
+## MỤC TIÊU
+## ═══════════════════════════════════════════
+Admin có toàn quyền Thêm / Xem / Sửa / Xóa danh mục thiết bị.
+Số lượng tồn kho được quản lý ở đây (dùng bởi CORE-08).
+Các danh mục "Khoa/Ngành" và "Loại phòng Lab" là seed data (KHÔNG có UI CRUD).
+
+## ═══════════════════════════════════════════
+## DATABASE
+## ═══════════════════════════════════════════
+
+CREATE TABLE equipments (
+    id                 BIGINT AUTO_INCREMENT PRIMARY KEY,
+    name               VARCHAR(200) NOT NULL,
+    description        TEXT,
+    category           VARCHAR(100),
+    quantity_total     INT NOT NULL DEFAULT 0,
+    quantity_available INT NOT NULL DEFAULT 0,
+    created_at         DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at         DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- Seed dữ liệu mẫu trong data.sql:
+INSERT INTO equipments (name, category, quantity_total, quantity_available) VALUES
+  ('Oscilloscope Rigol DS1054Z', 'Điện tử', 10, 10),
+  ('Arduino Mega 2560', 'Vi điều khiển', 25, 25),
+  ('Tài liệu Mạng máy tính (quyển)', 'Tài liệu', 50, 50);
+
+-- Seed loại phòng Lab (hardcode, không cần UI):
+CREATE TABLE lab_room_types (
+    id   BIGINT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL
+);
+INSERT INTO lab_room_types (name) VALUES ('Phòng thực hành Điện tử'),('Phòng thực hành Mạng'),('Phòng thực hành Cơ khí');
+
+## ═══════════════════════════════════════════
+## FILES CẦN TẠO
+## ═══════════════════════════════════════════
+
+entity/
+  Equipment.java
+
+dto/
+  EquipmentDto.java      ← id, name, description, category, quantityTotal, quantityAvailable
+
+repository/
+  EquipmentRepository.java
+    + findByNameContainingIgnoreCase(String keyword): List<Equipment>  ← search
+
+service/
+  EquipmentService.java
+    + findAll(): List<EquipmentDto>
+    + findById(Long id): EquipmentDto
+    + search(String keyword): List<EquipmentDto>
+    + create(EquipmentDto dto): void
+    + update(Long id, EquipmentDto dto): void
+    + delete(Long id): void   ← soft delete hoặc check trước nếu đang được mượn
+
+controller/
+  AdminEquipmentController.java   ← /admin/equipment/**
+
+templates/
+  admin/equipment/list.html        ← table + search bar + nút thêm
+  admin/equipment/form.html        ← form thêm/sửa (dùng chung)
+  admin/equipment/detail.html      ← xem chi tiết
+
+## ═══════════════════════════════════════════
+## LOGIC CỤ THỂ
+## ═══════════════════════════════════════════
+
+[DELETE — Soft delete]
+KHÔNG xóa vật lý nếu thiết bị đang có trong borrowing_details với status PENDING/DISPATCHED.
+Kiểm tra: borrowingDetailRepo.existsByEquipmentIdAndActiveStatus(id) → throw nếu true
+Nếu OK → xóa hoặc đánh dấu deleted=true (thêm cột deleted BOOLEAN)
+
+[UPDATE quantityTotal]
+Khi admin cập nhật quantity_total:
+  quantity_available += (newTotal - oldTotal)
+  quantity_available = MAX(0, quantity_available)  ← không cho âm
+
+[SEARCH]
+GET /admin/equipment?keyword=arduino → filter theo tên, trả về filtered list
+Dùng @RequestParam(required=false) String keyword trong controller.
+
+## ═══════════════════════════════════════════
+## UI MÔ TẢ (admin/equipment/list.html)
+## ═══════════════════════════════════════════
+
+[Search bar]          [+ Thêm thiết bị]
+
+| Tên           | Danh mục | Tổng SL | Còn lại | Hành động          |
+|---------------|----------|---------|---------|-------------------|
+| Arduino Mega  | Vi đk    | 25      | 25      | [Sửa] [Xóa]       |
+| Oscilloscope  | Điện tử  | 10      | 8       | [Sửa] [Xóa]       |
+
+Xóa → confirm dialog trước khi xóa.
+
+## ═══════════════════════════════════════════
+## TEST CHECKLIST
+## ═══════════════════════════════════════════
+
+[ ] Admin thêm thiết bị mới → xuất hiện trong list
+[ ] Admin sửa tên, số lượng → cập nhật DB
+[ ] Admin xóa thiết bị không đang mượn → thành công
+[ ] Admin xóa thiết bị đang mượn → thông báo lỗi, không xóa
+[ ] Search "arduino" → chỉ hiện dòng Arduino
+[ ] Non-admin truy cập /admin/equipment → 403
+[ ] Form để trống tên → validation error

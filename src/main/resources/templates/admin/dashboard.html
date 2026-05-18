@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/main-layout :: layout(~{::#main-content})}"
+      th:with="pageTitle='Dashboard Quản trị viên - SALSP'" xmlns:sec="http://www.thymeleaf.org/extras/springsecurity6">
+<body>
+<div id="main-content" class="w-full max-w-7xl mx-auto space-y-6">
+    <div class="bg-white rounded-2xl p-8 shadow-sm border border-slate-100 flex items-center justify-between">
+        <div>
+            <h2 class="text-2xl font-bold text-slate-800">Trang quản trị hệ thống</h2>
+            <p class="text-slate-500 mt-2">Xin chào Admin <span sec:authentication="name"></span>.</p>
+        </div>
+    </div>
+</div>
+</body>
+</html>

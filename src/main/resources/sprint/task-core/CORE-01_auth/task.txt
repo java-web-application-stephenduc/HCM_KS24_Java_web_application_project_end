@@ -1,0 +1,125 @@
+# TASK — CORE-01: Đăng ký & Đăng nhập (Authentication)
+# Mức độ: BẮT BUỘC | Ưu tiên: P0 (làm đầu tiên)
+
+## ═══════════════════════════════════════════
+## MỤC TIÊU
+## ═══════════════════════════════════════════
+Cho phép người dùng tạo tài khoản và đăng nhập an toàn.
+Mật khẩu PHẢI được hash bằng BCrypt trước khi lưu DB.
+
+## ═══════════════════════════════════════════
+## DATABASE — BẢNG CẦN TẠO
+## ═══════════════════════════════════════════
+
+CREATE TABLE users (
+    id            BIGINT AUTO_INCREMENT PRIMARY KEY,
+    email         VARCHAR(100) NOT NULL UNIQUE,
+    password_hash VARCHAR(255) NOT NULL,
+    role          ENUM('STUDENT','LECTURER','ADMIN') NOT NULL DEFAULT 'STUDENT',
+    active        BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at    DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE user_profiles (
+    id         BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id    BIGINT NOT NULL UNIQUE,
+    full_name  VARCHAR(150) NOT NULL,
+    phone      VARCHAR(20),
+    avatar_url VARCHAR(500),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+## ═══════════════════════════════════════════
+## FILES CẦN TẠO
+## ═══════════════════════════════════════════
+
+entity/
+  User.java          ← @Entity, map bảng users
+  UserProfile.java   ← @Entity, map bảng user_profiles
+
+dto/
+  RegisterDto.java   ← email, password, confirmPassword, fullName, phone
+  LoginDto.java      ← email, password (dùng Spring Security form, thường ko cần DTO riêng)
+
+repository/
+  UserRepository.java     ← extends JpaRepository<User, Long>
+                            + findByEmail(String email): Optional<User>
+  UserProfileRepository.java
+
+service/
+  AuthService.java        ← register(), findByEmail()
+  CustomUserDetailsService.java ← implements UserDetailsService (Spring Security hook)
+
+controller/
+  AuthController.java     ← GET/POST /auth/register, GET /auth/login, /auth/logout
+
+config/
+  SecurityConfig.java     ← filterChain, passwordEncoder bean
+
+templates/
+  auth/register.html      ← form đăng ký
+  auth/login.html         ← form đăng nhập
+
+## ═══════════════════════════════════════════
+## LOGIC CỤ THỂ
+## ═══════════════════════════════════════════
+
+[AuthService.register(RegisterDto dto)]
+1. Kiểm tra email chưa tồn tại → throw DuplicateEmailException nếu đã có
+2. Validate password == confirmPassword
+3. Tạo User entity: email, BCrypt.encode(password), role = STUDENT, active = true
+4. Save user → lấy id
+5. Tạo UserProfile entity với user_id → save
+6. Return void (redirect to login)
+
+[CustomUserDetailsService.loadUserByUsername(String email)]
+1. Gọi userRepo.findByEmail(email).orElseThrow(UsernameNotFoundException)
+2. Kiểm tra user.isActive() → throw DisabledException nếu false
+3. Return new org.springframework.security.core.userdetails.User(
+     email,
+     passwordHash,
+     List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()))
+   )
+
+[SecurityConfig]
+- loginPage("/auth/login")
+- loginProcessingUrl("/auth/login") — Spring Security xử lý POST tự động
+- defaultSuccessUrl → redirect tùy role (dùng AuthenticationSuccessHandler)
+- failureUrl("/auth/login?error=true")
+- logout → /auth/logout → redirect /auth/login?logout=true
+
+## ═══════════════════════════════════════════
+## VALIDATION
+## ═══════════════════════════════════════════
+
+RegisterDto:
+  @Email @NotBlank  → email
+  @Size(min=8)      → password
+  @NotBlank         → fullName
+
+Server side: BindingResult + th:errors trong template
+Client side: HTML5 required + pattern attribute
+
+## ═══════════════════════════════════════════
+## TEST CHECKLIST
+## ═══════════════════════════════════════════
+
+[ ] Đăng ký tài khoản mới → DB có bản ghi users + user_profiles
+[ ] Mật khẩu trong DB là chuỗi BCrypt ($2a$...), KHÔNG phải plain text
+[ ] Đăng ký trùng email → hiện lỗi, không crash 500
+[ ] Đăng nhập đúng → redirect đến /dashboard
+[ ] Đăng nhập sai mật khẩu → về login?error, hiện thông báo
+[ ] Truy cập /student/** khi chưa login → redirect về /auth/login
+[ ] Logout → session bị xóa, không còn truy cập được trang bảo vệ
+
+## ═══════════════════════════════════════════
+## DEPENDENCY (pom.xml cần có)
+## ═══════════════════════════════════════════
+
+spring-boot-starter-security
+spring-boot-starter-data-jpa
+spring-boot-starter-thymeleaf
+thymeleaf-extras-springsecurity6
+mysql-connector-j
+lombok
+spring-boot-starter-validation

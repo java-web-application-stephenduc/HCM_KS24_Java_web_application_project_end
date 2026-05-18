@@ -1,0 +1,334 @@
+# SKILL.TXT — Smart Academic & Lab Support Platform
+# Spring Boot + MySQL | Monolithic Architecture
+# Dùng file này để hướng dẫn AI generate code đúng stack, đúng pattern.
+
+## ═══════════════════════════════════════════════
+## 1. TECH STACK & VERSIONS
+## ═══════════════════════════════════════════════
+
+LANGUAGE       : Java 21
+FRAMEWORK      : Spring Boot 4.0.6 (Spring MVC, Spring Data JPA, Spring Security)
+TEMPLATE ENGINE: Thymeleaf (server-side rendering, no React/Vue)
+DATABASE       : MySQL 8.x
+ORM            : Hibernate 6 via Spring Data JPA (EntityManager nếu cần raw SQL)
+BUILD TOOL     : Gradel (build.Gradele, không dùng Maven)
+SERVER         : Embedded Tomcat (Spring Boot default)
+PASSWORD HASH  : BCryptPasswordEncoder (Spring Security built-in)
+VALIDATION     : Jakarta Bean Validation (javax.validation → jakarta.validation)
+TRANSACTION    : @Transactional (Spring declarative transaction)
+MIGRATION      : schema.sql + data.sql trong src/main/resources (hoặc Flyway tùy chọn)
+
+## ═══════════════════════════════════════════════
+## 2. PROJECT STRUCTURE (Gradel Standard)
+## ═══════════════════════════════════════════════
+
+src/
+├── main/
+│   ├── java/com/platform/
+│   │   ├── config/           ← SecurityConfig, WebMvcConfig
+│   │   ├── controller/       ← @Controller, @RestController (chỉ xử lý HTTP)
+│   │   ├── service/          ← @Service (toàn bộ business logic)
+│   │   ├── repository/       ← @Repository extends JpaRepository<Entity, Long>
+│   │   ├── entity/           ← @Entity, @Table — ánh xạ bảng DB
+│   │   ├── dto/              ← Plain Java class (no JPA annotation)
+│   │   ├── mapper/           ← Entity ↔ DTO conversion
+│   │   └── exception/        ← Custom exceptions + GlobalExceptionHandler
+│   └── resources/
+│       ├── templates/        ← Thymeleaf .html files
+│       │   ├── layout/       ← fragments (header, footer, nav, main-layout.html)
+│       │   ├── auth/         ← login.html, register.html
+│       │   ├── student/      ← student views
+│       │   ├── lecturer/     ← lecturer views
+│       │   └── admin/        ← admin views
+│       ├── static/           ← CSS, JS, images
+│       ├── application.properties   ← Spring Boot config
+│       └── schema.sql        ← DDL auto-run on startup (spring.sql.init.mode=always)
+
+## ═══════════════════════════════════════════════
+## 3. DATABASE — MYSQL SCHEMA CONVENTIONS
+## ═══════════════════════════════════════════════
+
+NAMING CONVENTION:
+  - Table     : snake_case, số nhiều  (users, mentoring_sessions)
+  - Column    : snake_case            (first_name, created_at)
+  - PK        : id BIGINT AUTO_INCREMENT PRIMARY KEY
+  - FK        : <table_singular>_id   (lecturer_id, student_id)
+  - Timestamps: created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+               updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+
+CORE TABLES (theo thứ tự phụ thuộc FK):
+  1. departments         (id, name, code)
+  2. users               (id, email, password_hash, role ENUM, active, created_at)
+  3. user_profiles       (id, user_id FK, full_name, phone, avatar_url, ...)
+  4. lecturers           (id, user_id FK, department_id FK, title, bio)
+  5. equipments          (id, name, description, quantity_total, quantity_available, category)
+  6. mentoring_sessions  (id, student_id FK, lecturer_id FK, session_date DATE,
+                          start_time TIME, end_time TIME, status ENUM, created_at)
+  7. academic_evaluations(id, session_id FK, score INT, feedback TEXT, evaluated_at)
+  8. borrowing_records   (id, session_id FK, status ENUM, created_at)
+  9. borrowing_details   (id, record_id FK, equipment_id FK, quantity INT)
+
+STATUS ENUMS:
+  mentoring_sessions.status : PENDING | CONFIRMED | COMPLETED | CANCELLED
+  borrowing_records.status  : PENDING_DISPATCH | DISPATCHED | RETURNED | OVERDUE
+
+ROLE ENUM:
+  users.role : STUDENT | LECTURER | ADMIN
+
+## ═══════════════════════════════════════════════
+## 4. ENTITY PATTERN (Hibernate JPA)
+## ═══════════════════════════════════════════════
+
+// Mọi Entity đều kế thừa pattern này:
+@Entity
+@Table(name = "table_name")
+@Getter @Setter @NoArgsConstructor  // Lombok
+public class EntityName {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    // FK Many-to-One:
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "fk_column_id", nullable = false)
+    private OtherEntity otherEntity;
+
+    // Timestamp tự động:
+    @Column(name = "created_at", updatable = false)
+    @CreationTimestamp
+    private LocalDateTime createdAt;
+
+    // Enum mapping:
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private StatusEnum status;
+}
+
+QUAN TRỌNG:
+  - KHÔNG dùng FetchType.EAGER cho collection (gây N+1 query)
+  - KHÔNG expose Entity ra ngoài Controller → luôn dùng DTO
+  - Equals/hashCode chỉ dựa vào id (tránh lazy load trong collection)
+
+## ═══════════════════════════════════════════════
+## 5. SERVICE LAYER PATTERN
+## ═══════════════════════════════════════════════
+
+@Service
+@RequiredArgsConstructor
+@Transactional(readOnly = true)   // default read-only, override khi write
+public class SomeService {
+
+    private final SomeRepository someRepo;
+    private final OtherRepository otherRepo;
+
+    // Write operation → override với @Transactional (readOnly = false)
+    @Transactional
+    public ResultDto saveComplexOperation(RequestDto dto) {
+        // 1. Validate business rules
+        // 2. Load entities
+        // 3. Modify state
+        // 4. Save (Spring tự commit nếu không exception)
+        // 5. Return DTO (KHÔNG trả Entity)
+    }
+}
+
+## ═══════════════════════════════════════════════
+## 6. CONTROLLER PATTERN
+## ═══════════════════════════════════════════════
+
+@Controller
+@RequestMapping("/student")
+@RequiredArgsConstructor
+public class StudentController {
+
+    private final BookingService bookingService;
+
+    // GET → render view
+    @GetMapping("/booking")
+    public String showBookingForm(Model model, @AuthenticationPrincipal UserDetails user) {
+        model.addAttribute("bookingForm", new BookingFormDto());
+        model.addAttribute("lecturers", bookingService.getAvailableLecturers());
+        return "student/booking-form";   // → templates/student/booking-form.html
+    }
+
+    // POST → redirect after success (PRG pattern)
+    @PostMapping("/booking")
+    public String submitBooking(@Valid @ModelAttribute BookingFormDto form,
+                                 BindingResult errors,
+                                 RedirectAttributes flash,
+                                 @AuthenticationPrincipal UserDetails user) {
+        if (errors.hasErrors()) return "student/booking-form";
+        bookingService.createBooking(form, user.getUsername());
+        flash.addFlashAttribute("success", "Đặt lịch thành công!");
+        return "redirect:/student/dashboard";
+    }
+}
+
+## ═══════════════════════════════════════════════
+## 7. SECURITY CONFIGURATION
+## ═══════════════════════════════════════════════
+
+@Configuration
+@EnableWebSecurity
+public class SecurityConfig {
+
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/auth/**", "/css/**", "/js/**").permitAll()
+                .requestMatchers("/admin/**").hasRole("ADMIN")
+                .requestMatchers("/lecturer/**").hasRole("LECTURER")
+                .requestMatchers("/student/**").hasRole("STUDENT")
+                .anyRequest().authenticated()
+            )
+            .formLogin(form -> form
+                .loginPage("/auth/login")
+                .defaultSuccessUrl("/dashboard", true)
+                .failureUrl("/auth/login?error")
+            )
+            .logout(logout -> logout.logoutUrl("/auth/logout").logoutSuccessUrl("/auth/login"));
+        return http.build();
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+}
+
+## ═══════════════════════════════════════════════
+## 8. THYMELEAF TEMPLATE CONVENTIONS
+## ═══════════════════════════════════════════════
+
+LAYOUT BASE (templates/layout/base.html):
+  <!DOCTYPE html>
+  <html xmlns:th="http://www.thymeleaf.org"
+        xmlns:sec="http://www.thymeleaf.org/extras/springsecurity6"
+        th:fragment="layout(title, content)">
+
+THYMELEAF SECURITY:
+  sec:authorize="hasRole('ADMIN')"       ← hiện/ẩn element theo role
+  sec:authentication="name"              ← lấy username đang đăng nhập
+
+FORM BINDING:
+  th:object="${bookingForm}"
+  th:field="*{lecturerId}"
+  th:errors="*{lecturerId}"
+
+FLASH MESSAGE:
+  th:if="${success}" th:text="${success}"
+  th:if="${error}"   th:text="${error}"
+
+## ═══════════════════════════════════════════════
+## 9. APPLICATION.YML TEMPLATE
+## ═══════════════════════════════════════════════
+
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/salsp?createDatabaseIfNotExist=true
+    username: root
+    password: 310306
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate        # production: validate | dev: update/create-drop
+    show-sql: true              # dev only, tắt production
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.MySQL8Dialect
+  sql:
+    init:
+      mode: always              # chạy schema.sql + data.sql mỗi lần start
+  thymeleaf:
+    cache: false                # dev only
+
+## ═══════════════════════════════════════════════
+## 10. TRANSACTION PATTERN — CORE RULE
+## ═══════════════════════════════════════════════
+
+// Pattern chuẩn cho CORE-06 (lưu nhiều bảng cùng lúc):
+@Transactional
+public void completeCounselingSession(Long sessionId, EvaluationDto evalDto) {
+    // Step 1: Load session, validate status
+    MentoringSession session = sessionRepo.findById(sessionId)
+        .orElseThrow(() -> new ResourceNotFoundException("Session not found"));
+    if (session.getStatus() != SessionStatus.CONFIRMED)
+        throw new BusinessException("Session is not in CONFIRMED state");
+
+    // Step 2: Update session status
+    session.setStatus(SessionStatus.COMPLETED);
+    sessionRepo.save(session);
+
+    // Step 3: Save evaluation
+    AcademicEvaluation eval = mapper.toEntity(evalDto, session);
+    evaluationRepo.save(eval);
+
+    // Step 4: Create borrowing record + details
+    BorrowingRecord record = new BorrowingRecord(session, BorrowingStatus.PENDING_DISPATCH);
+    borrowingRepo.save(record);
+
+    List<BorrowingDetail> details = evalDto.getEquipmentItems().stream()
+        .map(item -> new BorrowingDetail(record, item.getEquipmentId(), item.getQuantity()))
+        .toList();
+    borrowingDetailRepo.saveAll(details);
+
+    // Nếu bất kỳ bước nào throw RuntimeException → Spring tự Rollback toàn bộ
+}
+
+## ═══════════════════════════════════════════════
+## 11. CONFLICT CHECK PATTERN — CORE-05
+## ═══════════════════════════════════════════════
+
+// Repository method để check slot conflict:
+@Query("""
+    SELECT COUNT(ms) > 0 FROM MentoringSession ms
+    WHERE ms.lecturer.id = :lecturerId
+      AND ms.sessionDate = :date
+      AND ms.startTime < :endTime
+      AND ms.endTime > :startTime
+      AND ms.status NOT IN ('CANCELLED')
+""")
+boolean existsConflict(@Param("lecturerId") Long lecturerId,
+                        @Param("date") LocalDate date,
+                        @Param("startTime") LocalTime startTime,
+                        @Param("endTime") LocalTime endTime);
+
+// Past date check trong Service:
+if (sessionDate.isBefore(LocalDate.now()) ||
+    (sessionDate.isEqual(LocalDate.now()) && startTime.isBefore(LocalTime.now()))) {
+    throw new BusinessException("Không thể đặt lịch trong quá khứ");
+}
+
+## ═══════════════════════════════════════════════
+## 12. INVENTORY CHECK PATTERN — CORE-08
+## ═══════════════════════════════════════════════
+
+@Transactional
+public void dispatchEquipment(Long recordId) {
+    BorrowingRecord record = borrowingRepo.findById(recordId).orElseThrow(...);
+    List<BorrowingDetail> details = borrowingDetailRepo.findByRecordId(recordId);
+
+    // Kiểm tra tất cả trước khi trừ (all-or-nothing)
+    for (BorrowingDetail detail : details) {
+        Equipment eq = equipmentRepo.findByIdWithLock(detail.getEquipment().getId()); // SELECT FOR UPDATE
+        if (eq.getQuantityAvailable() < detail.getQuantity()) {
+            throw new InsufficientStockException("Thiết bị [" + eq.getName() + "] không đủ tồn kho");
+        }
+    }
+    // Trừ kho chỉ khi tất cả OK
+    for (BorrowingDetail detail : details) {
+        Equipment eq = equipmentRepo.findById(detail.getEquipment().getId()).orElseThrow();
+        eq.setQuantityAvailable(eq.getQuantityAvailable() - detail.getQuantity());
+        equipmentRepo.save(eq);
+    }
+    record.setStatus(BorrowingStatus.DISPATCHED);
+    borrowingRepo.save(record);
+}
+
+// Repository — lock row để tránh race condition:
+@Lock(LockModeType.PESSIMISTIC_WRITE)
+@Query("SELECT e FROM Equipment e WHERE e.id = :id")
+Optional<Equipment> findByIdWithLock(@Param("id") Long id);

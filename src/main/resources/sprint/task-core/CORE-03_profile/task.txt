@@ -1,0 +1,95 @@
+# TASK — CORE-03: Quản lý Hồ sơ cá nhân (Profile Management)
+# Mức độ: BẮT BUỘC | Phụ thuộc: CORE-01, CORE-02
+
+## ═══════════════════════════════════════════
+## MỤC TIÊU
+## ═══════════════════════════════════════════
+Mỗi user (Student, Lecturer, Admin) có thể xem và cập nhật thông tin
+cá nhân của mình. Lecturer có thêm thông tin chuyên môn (khoa, chức danh).
+
+## ═══════════════════════════════════════════
+## DATABASE
+## ═══════════════════════════════════════════
+
+Dùng lại bảng user_profiles từ CORE-01.
+Bổ sung bảng lecturers (nếu chưa tạo):
+
+CREATE TABLE lecturers (
+    id            BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id       BIGINT NOT NULL UNIQUE,
+    department_id BIGINT NOT NULL,
+    title         VARCHAR(100),   -- "TS.", "ThS.", "GVC."
+    bio           TEXT,
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (department_id) REFERENCES departments(id)
+);
+
+CREATE TABLE departments (
+    id   BIGINT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(150) NOT NULL,
+    code VARCHAR(20)  NOT NULL UNIQUE
+);
+
+-- Seed data (hardcode trong data.sql):
+INSERT INTO departments (name, code) VALUES
+  ('Công nghệ Thông tin', 'CNTT'),
+  ('Điện - Điện tử', 'DDT'),
+  ('Cơ khí', 'CK'),
+  ('Kinh tế', 'KT');
+
+## ═══════════════════════════════════════════
+## FILES CẦN TẠO
+## ═══════════════════════════════════════════
+
+entity/
+  UserProfile.java    ← đã có từ CORE-01
+  Lecturer.java       ← @Entity map bảng lecturers
+  Department.java     ← @Entity map bảng departments
+
+dto/
+  ProfileUpdateDto.java   ← fullName, phone (chung cho mọi role)
+  LecturerProfileDto.java ← extends ProfileUpdateDto + title, bio, departmentId
+
+service/
+  ProfileService.java
+    + getProfileByUserId(Long userId): UserProfile
+    + updateProfile(Long userId, ProfileUpdateDto dto): void
+    + getLecturerProfile(Long userId): LecturerProfileDto
+    + updateLecturerProfile(Long userId, LecturerProfileDto dto): void
+
+controller/
+  ProfileController.java   ← mapping /profile/**
+
+templates/
+  profile/view.html         ← hiện thông tin profile
+  profile/edit.html         ← form sửa thông tin
+  profile/lecturer-edit.html ← form sửa với thêm trường lecturer
+
+## ═══════════════════════════════════════════
+## LOGIC CỤ THỂ
+## ═══════════════════════════════════════════
+
+[GET /profile]
+1. Lấy email từ SecurityContext (Authentication.getName())
+2. findByEmail → User entity
+3. Load UserProfile theo user_id
+4. Nếu role == LECTURER → cũng load Lecturer entity
+5. Map sang DTO, đưa vào model → render view
+
+[POST /profile/update]
+1. Nhận ProfileUpdateDto
+2. Validate (fullName không rỗng, phone format)
+3. Cập nhật UserProfile, save
+4. Nếu là LECTURER → cũng update Lecturer entity
+5. Flash message thành công → redirect /profile
+
+## ═══════════════════════════════════════════
+## TEST CHECKLIST
+## ═══════════════════════════════════════════
+
+[ ] Student xem profile → hiện đúng thông tin đã đăng ký
+[ ] Student sửa fullName, phone → cập nhật DB, hiện flash success
+[ ] Lecturer xem profile → có thêm trường Khoa, Chức danh, Bio
+[ ] Lecturer sửa Bio → cập nhật bảng lecturers
+[ ] Không thể sửa email (field readonly trong form)
+[ ] Validate fullName rỗng → hiện lỗi, không save

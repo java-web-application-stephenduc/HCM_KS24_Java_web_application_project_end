@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+
+<html lang="vi"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Đăng nhập - Smart Academic &amp; Lab Support Platform</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-family: 'Material Symbols Outlined';
+            font-weight: normal;
+            font-style: normal;
+            font-size: 24px;
+            line-height: 1;
+            letter-spacing: normal;
+            text-transform: none;
+            display: inline-block;
+            white-space: nowrap;
+            word-wrap: normal;
+            direction: ltr;
+            -webkit-font-feature-settings: 'liga';
+            -webkit-font-smoothing: antialiased;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-error-container": "#93000a",
+                        "on-tertiary": "#ffffff",
+                        "on-primary-fixed": "#131b2e",
+                        "background": "#f7f9fb",
+                        "inverse-primary": "#bec6e0",
+                        "on-background": "#191c1e",
+                        "secondary": "#0058be",
+                        "on-tertiary-fixed-variant": "#38485d",
+                        "tertiary-container": "#0b1c30",
+                        "outline": "#76777d",
+                        "primary-container": "#131b2e",
+                        "on-error": "#ffffff",
+                        "inverse-on-surface": "#eff1f3",
+                        "tertiary-fixed": "#d3e4fe",
+                        "error": "#ba1a1a",
+                        "surface-bright": "#f7f9fb",
+                        "surface-container-low": "#f2f4f6",
+                        "surface": "#f7f9fb",
+                        "on-primary": "#ffffff",
+                        "on-secondary": "#ffffff",
+                        "surface-dim": "#d8dadc",
+                        "surface-variant": "#e0e3e5",
+                        "on-surface": "#191c1e",
+                        "on-secondary-container": "#fefcff",
+                        "surface-container": "#eceef0",
+                        "secondary-fixed-dim": "#adc6ff",
+                        "tertiary-fixed-dim": "#b7c8e1",
+                        "on-secondary-fixed": "#001a42",
+                        "on-secondary-fixed-variant": "#004395",
+                        "inverse-surface": "#2d3133",
+                        "on-primary-fixed-variant": "#3f465c",
+                        "on-tertiary-container": "#75859d",
+                        "outline-variant": "#c6c6cd",
+                        "error-container": "#ffdad6",
+                        "on-primary-container": "#7c839b",
+                        "primary": "#000000",
+                        "on-tertiary-fixed": "#0b1c30",
+                        "on-surface-variant": "#45464d",
+                        "primary-fixed-dim": "#bec6e0",
+                        "primary-fixed": "#dae2fd",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-tint": "#565e74",
+                        "secondary-container": "#2170e4",
+                        "secondary-fixed": "#d8e2ff",
+                        "surface-container-high": "#e6e8ea",
+                        "surface-container-highest": "#e0e3e5",
+                        "tertiary": "#000000"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "unit": "8px",
+                        "container-max": "1440px",
+                        "gutter": "24px",
+                        "margin-mobile": "16px",
+                        "margin-desktop": "32px"
+                    },
+                    "fontFamily": {
+                        "headline-lg-mobile": ["Inter"],
+                        "label-md": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "headline-sm": ["Inter"],
+                        "body-md": ["Inter"],
+                        "body-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-lg-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "700" }],
+                        "label-md": ["12px", { "lineHeight": "16px", "fontWeight": "600" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "headline-sm": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-surface text-on-surface font-body-md antialiased h-screen flex overflow-hidden">
+<!-- Split Screen Layout -->
+<div class="flex flex-1 w-full h-full">
+<!-- Left Column: Banner (Hidden on mobile) -->
+<div class="hidden lg:flex lg:w-1/2 relative flex-col justify-between overflow-hidden bg-tertiary-container h-full">
+<!-- Background Image -->
+<div class="absolute inset-0 bg-cover bg-center bg-no-repeat" data-alt="A brightly lit, modern university laboratory space featuring state-of-the-art scientific equipment and clean, sterile stainless steel surfaces. The environment conveys a sense of rigorous academic research and advanced technological management. The scene is styled in a crisp, high-key light mode aesthetic with cool white and subtle blue tones, emphasizing cleanliness, precision, and professional institutional authority." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuD5OMG5fWppHq3qZHNrs-XkwwjeznAWayK2C9basUbXYYX8dWOLUsvtlXm5N3GN_verMct6Rx9UuL4PbPXBwEJXPX3-230N5ZyfdOKQoSg4qPNJLzCy5KiAHJ5y38AjWUnxRaZMYQj64U6Gx2X08zHtKcDZlbqvmadpRku_EVevduvpUA0cxDCQCe9MwLfpE6kMhM2Tc_ZL-Ir_E4Ca1PDU1PAn2sQX1-r-gAEZ3vC8FFA6mu0Ve9cZJL_bqJHMjMx4rQLWuycaPfo');">
+</div>
+<!-- Gradient Overlay for text readability -->
+<div class="absolute inset-0 bg-gradient-to-t from-primary/90 via-primary/50 to-transparent"></div>
+<!-- Content Container -->
+<div class="relative z-10 flex flex-col h-full justify-between p-12">
+<!-- Brand Header -->
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-on-primary text-4xl" data-weight="fill" style="font-variation-settings: 'FILL' 1;">science</span>
+<span class="font-headline-sm text-headline-sm text-on-primary font-bold tracking-tight">Smart Academic &amp; Lab Support</span>
+</div>
+<!-- Main Copy -->
+<div class="max-w-md">
+<h1 class="font-headline-lg text-headline-lg text-on-primary mb-4 leading-tight">Nâng tầm trải nghiệm học thuật và quản lý thực hành</h1>
+<p class="font-body-lg text-body-lg text-inverse-on-surface opacity-90">Hệ thống quản lý toàn diện giúp tối ưu hóa quy trình đăng ký, giám sát và vận hành phòng thí nghiệm cho sinh viên và giảng viên.</p>
+</div>
+</div>
+</div>
+<!-- Right Column: Login Form -->
+<div class="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12 lg:p-24 bg-surface-container-low h-full overflow-y-auto">
+<div class="w-full max-w-[440px] bg-surface-container-lowest p-8 sm:p-10 rounded-2xl shadow-sm border border-outline-variant/30">
+<!-- Mobile Logo (Visible only on small screens) -->
+<div class="lg:hidden flex items-center gap-2 mb-8 justify-center">
+<span class="material-symbols-outlined text-secondary text-3xl" data-weight="fill" style="font-variation-settings: 'FILL' 1;">science</span>
+<span class="font-headline-sm text-headline-sm text-on-surface font-bold">Academic Portal</span>
+</div>
+<!-- Form Header -->
+<div class="mb-8 text-center sm:text-left">
+<h2 class="font-headline-md text-headline-md text-on-surface mb-2">Đăng nhập hệ thống</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">Vui lòng nhập thông tin xác thực để tiếp tục.</p>
+</div>
+<!-- Login Form -->
+<form class="space-y-6">
+<!-- Email / Username Input -->
+<div>
+<label class="block font-label-md text-label-md text-on-surface mb-1.5" for="username">Email hoặc Tên đăng nhập</label>
+<div class="relative">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-on-surface-variant text-xl">person</span>
+</div>
+<input class="block w-full pl-10 pr-3 py-3 border border-outline-variant rounded-lg bg-surface-container-lowest text-on-surface focus:outline-none focus:ring-1 focus:ring-secondary focus:border-secondary transition-colors" id="username" name="username" placeholder="Nhập email hoặc mã sinh viên/cán bộ" required="" type="text"/>
+</div>
+</div>
+<!-- Password Input -->
+<div>
+<label class="block font-label-md text-label-md text-on-surface mb-1.5" for="password">Mật khẩu</label>
+<div class="relative">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-on-surface-variant text-xl">lock</span>
+</div>
+<input class="block w-full pl-10 pr-10 py-3 border border-outline-variant rounded-lg bg-surface-container-lowest text-on-surface focus:outline-none focus:ring-1 focus:ring-secondary focus:border-secondary transition-colors" id="password" name="password" placeholder="••••••••" required="" type="password"/>
+</div>
+</div>
+<!-- Options Row -->
+<div class="flex items-center justify-between mt-2">
+<div class="flex items-center">
+<input class="h-4 w-4 text-secondary focus:ring-secondary border-outline-variant rounded bg-surface-container-lowest" id="remember-me" name="remember-me" type="checkbox"/>
+<label class="ml-2 block font-body-md text-body-md text-on-surface-variant" for="remember-me">
+                                Ghi nhớ đăng nhập
+                            </label>
+</div>
+<div class="text-sm">
+<a class="font-label-md text-label-md text-secondary hover:text-secondary-container transition-colors" href="#">
+                                Quên mật khẩu?
+                            </a>
+</div>
+</div>
+<!-- Submit Button -->
+<div class="pt-4">
+<button class="w-full flex justify-center items-center gap-2 bg-secondary text-on-secondary rounded-lg py-3.5 px-4 font-label-md text-label-md hover:bg-secondary-container hover:text-on-secondary-container transition-colors shadow-sm" type="submit">
+                            Đăng nhập
+                            <span class="material-symbols-outlined text-lg">arrow_forward</span>
+</button>
+</div>
+</form>
+<!-- Footer Link -->
+<div class="mt-8 text-center">
+<p class="font-body-md text-body-md text-on-surface-variant">
+                        Chưa có tài khoản? 
+                        <a class="font-label-md text-label-md text-secondary hover:underline transition-all" href="#">Đăng ký ngay</a>
+</p>
+</div>
+</div>
+</div>
+</div>
+</body></html>

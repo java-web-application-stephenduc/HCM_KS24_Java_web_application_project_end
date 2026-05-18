@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/main-layout :: layout(~{::#main-content})}" th:with="pageTitle='Hàng đợi tư vấn'">
+<body>
+<div id="main-content" class="w-full max-w-7xl mx-auto space-y-6">
+    <div class="flex items-center justify-between mb-2">
+        <h2 class="text-2xl font-bold text-slate-800">Hàng đợi & Cần đánh giá</h2>
+    </div>
+
+    <!-- Flash Messages -->
+    <div th:if="${success}" class="p-4 bg-emerald-50 text-emerald-700 rounded-lg border border-emerald-200 flex items-center gap-2 mb-6">
+        <span class="material-symbols-outlined">check_circle</span><span th:text="${success}"></span>
+    </div>
+    <div th:if="${error}" class="p-4 bg-red-50 text-red-700 rounded-lg border border-red-200 flex items-center gap-2 mb-6">
+        <span class="material-symbols-outlined">error</span><span th:text="${error}"></span>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+        <div class="overflow-x-auto w-full">
+            <table class="w-full whitespace-nowrap">
+                <thead class="bg-slate-50 border-b border-slate-200">
+                    <tr>
+                        <th class="px-5 py-3 text-left font-semibold uppercase text-xs text-slate-500 tracking-wider">Sinh viên</th>
+                        <th class="px-5 py-3 text-left font-semibold uppercase text-xs text-slate-500 tracking-wider">Ngày</th>
+                        <th class="px-5 py-3 text-left font-semibold uppercase text-xs text-slate-500 tracking-wider">Giờ</th>
+                        <th class="px-5 py-3 text-left font-semibold uppercase text-xs text-slate-500 tracking-wider">Ghi chú</th>
+                        <th class="px-5 py-3 text-left font-semibold uppercase text-xs text-slate-500 tracking-wider">Trạng thái</th>
+                        <th class="px-5 py-3 text-right font-semibold uppercase text-xs text-slate-500 tracking-wider">Hành động</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 text-sm">
+                    <tr th:if="${#lists.isEmpty(sessions)}">
+                        <td colspan="6" class="px-5 py-8 text-center text-slate-500">Không có buổi tư vấn nào cần xử lý.</td>
+                    </tr>
+                    <tr th:each="session : ${sessions}" class="hover:bg-slate-50/50 transition-colors">
+                        <td class="px-5 py-4 font-medium text-slate-800" th:text="${session.studentName}">Tên SV</td>
+                        <td class="px-5 py-4 text-slate-600" th:text="${#temporals.format(session.sessionDate, 'dd/MM/yyyy')}">12/12/2026</td>
+                        <td class="px-5 py-4 text-slate-600">
+                            <span th:text="${#temporals.format(session.startTime, 'HH:mm')}"></span> - <span th:text="${#temporals.format(session.endTime, 'HH:mm')}"></span>
+                        </td>
+                        <td class="px-5 py-4 text-slate-500 max-w-xs truncate" th:title="${session.note}" th:text="${session.note != null && !session.note.isEmpty() ? session.note : '-'}">Ghi chú</td>
+                        <td class="px-5 py-4">
+                            <span th:if="${session.status.name() == 'PENDING'}" class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800">Chờ duyệt</span>
+                            <span th:if="${session.status.name() == 'CONFIRMED'}" class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">Đã xác nhận</span>
+                            <span th:if="${session.status.name() == 'COMPLETED'}" class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">Hoàn thành</span>
+                            <span th:if="${session.status.name() == 'CANCELLED'}" class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-600">Đã hủy</span>
+                        </td>
+                        <td class="px-5 py-4 text-right">
+                            <a th:if="${session.status.name() == 'CONFIRMED' or session.status.name() == 'PENDING'}" th:href="@{/lecturer/session/{id}/evaluate(id=${session.sessionId})}" class="bg-secondary hover:bg-secondary-container text-white rounded-lg px-4 py-2 font-medium transition-colors">
+                                Đánh giá / Cấp phát
+                            </a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+</body>
+</html>

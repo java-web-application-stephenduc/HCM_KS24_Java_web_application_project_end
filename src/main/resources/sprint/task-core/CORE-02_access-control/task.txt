@@ -1,0 +1,107 @@
+# TASK — CORE-02: Kiểm soát truy cập (Access Control / Authorization)
+# Mức độ: BẮT BUỘC | Phụ thuộc: CORE-01 hoàn thành trước
+
+## ═══════════════════════════════════════════
+## MỤC TIÊU
+## ═══════════════════════════════════════════
+Phân tách không gian URL theo role. 
+Student không vào được /lecturer/** và /admin/**.
+Lecturer không vào được /admin/**.
+Admin có thể vào /admin/**.
+
+## ═══════════════════════════════════════════
+## URL MAPPING THEO ROLE
+## ═══════════════════════════════════════════
+
+PUBLIC (không cần login):
+  /auth/**           ← login, register
+  /css/**, /js/**    ← static resources
+
+STUDENT only:
+  /student/**        ← dashboard, booking, history, profile
+
+LECTURER only:
+  /lecturer/**       ← queue, evaluation form, equipment assignment
+
+ADMIN only:
+  /admin/**          ← equipment CRUD, dispatch confirmation, seed data views
+
+SHARED (bất kỳ role đã login):
+  /dashboard         ← redirect tùy role sau khi login
+  /profile/**        ← xem/sửa profile cá nhân
+
+## ═══════════════════════════════════════════
+## FILES CẦN TẠO / SỬA
+## ═══════════════════════════════════════════
+
+config/SecurityConfig.java
+  → Cập nhật authorizeHttpRequests() theo URL mapping trên
+
+config/CustomAuthSuccessHandler.java   ← NEW
+  → implements AuthenticationSuccessHandler
+  → Sau login thành công, đọc role và redirect về đúng dashboard:
+      STUDENT  → /student/dashboard
+      LECTURER → /lecturer/dashboard
+      ADMIN    → /admin/dashboard
+
+## ═══════════════════════════════════════════
+## LOGIC CUSTOM SUCCESS HANDLER
+## ═══════════════════════════════════════════
+
+@Component
+public class CustomAuthSuccessHandler implements AuthenticationSuccessHandler {
+    @Override
+    public void onAuthenticationSuccess(HttpServletRequest req,
+                                         HttpServletResponse res,
+                                         Authentication auth) throws IOException {
+        String role = auth.getAuthorities().stream()
+            .map(GrantedAuthority::getAuthority)
+            .findFirst().orElse("ROLE_STUDENT");
+
+        String redirectUrl = switch (role) {
+            case "ROLE_ADMIN"    -> "/admin/dashboard";
+            case "ROLE_LECTURER" -> "/lecturer/dashboard";
+            default              -> "/student/dashboard";
+        };
+        res.sendRedirect(req.getContextPath() + redirectUrl);
+    }
+}
+
+## ═══════════════════════════════════════════
+## THYMELEAF — PHÂN QUYỀN HIỂN THỊ
+## ═══════════════════════════════════════════
+
+<!-- Trong layout/nav.html — chỉ hiện menu tương ứng -->
+<li sec:authorize="hasRole('STUDENT')">
+  <a th:href="@{/student/booking}">Đặt lịch</a>
+</li>
+<li sec:authorize="hasRole('LECTURER')">
+  <a th:href="@{/lecturer/queue}">Danh sách chờ</a>
+</li>
+<li sec:authorize="hasRole('ADMIN')">
+  <a th:href="@{/admin/equipment}">Quản lý thiết bị</a>
+</li>
+
+## ═══════════════════════════════════════════
+## TEST CHECKLIST
+## ═══════════════════════════════════════════
+
+[ ] Login với STUDENT → redirect /student/dashboard
+[ ] Login với LECTURER → redirect /lecturer/dashboard
+[ ] Login với ADMIN → redirect /admin/dashboard
+[ ] Student truy cập /admin/equipment → nhận 403 Forbidden (không phải 500)
+[ ] Lecturer truy cập /admin/** → nhận 403
+[ ] Truy cập /student/** khi chưa login → redirect /auth/login
+[ ] Nav bar chỉ hiện menu đúng role (Thymeleaf sec:authorize)
+[ ] 403 page hiển thị thân thiện (không phải Whitelabel Error)
+
+## ═══════════════════════════════════════════
+## 403 ERROR PAGE
+## ═══════════════════════════════════════════
+
+Tạo templates/error/403.html:
+  - Thông báo "Bạn không có quyền truy cập trang này"
+  - Link quay về dashboard của role hiện tại
+
+Trong SecurityConfig:
+  .exceptionHandling(ex -> ex.accessDeniedPage("/error/403"))

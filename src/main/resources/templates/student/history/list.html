@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/main-layout :: layout(~{::#main-content})}" th:with="pageTitle='Lịch sử học tập'">
+<body>
+<div id="main-content" class="w-full max-w-container-max mx-auto flex flex-col gap-6">
+    <!-- Header -->
+    <div class="flex items-center justify-between">
+        <div>
+                    <h2 class="font-headline-md text-headline-md text-primary">Lịch sử tư vấn</h2>
+                    <p class="font-body-md text-body-md text-on-surface-variant mt-1">Theo dõi tất cả các buổi cố vấn học tập của bạn.</p>
+        </div>
+            <a th:href="@{/student/booking/step1}" class="h-10 px-4 rounded-lg bg-secondary text-on-secondary font-label-md text-label-md hover:bg-secondary-container transition-colors inline-flex items-center gap-2 shadow-sm">
+                <span class="material-symbols-outlined text-sm">add</span> Đặt lịch mới
+            </a>
+    </div>
+
+    <!-- Flash Messages -->
+    <div th:if="${success}" class="p-4 bg-tertiary-fixed text-on-tertiary-fixed-variant rounded-lg border border-tertiary-fixed-dim flex items-center gap-2">
+        <span class="material-symbols-outlined">check_circle</span><span class="font-body-md text-body-md" th:text="${success}"></span>
+    </div>
+    <div th:if="${error}" class="p-4 bg-error-container text-on-error-container rounded-lg border border-error/20 flex items-center gap-2">
+        <span class="material-symbols-outlined">error</span><span class="font-body-md text-body-md" th:text="${error}"></span>
+    </div>
+
+    <!-- Bảng lịch sử tư vấn -->
+    <div class="bg-surface rounded-xl border border-outline-variant shadow-sm overflow-hidden">
+        <div class="overflow-x-auto w-full">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-surface-container-low text-on-surface-variant font-label-md text-label-md uppercase">
+                        <th class="py-3 px-5 border-b border-outline-variant font-semibold">Giảng viên</th>
+                        <th class="py-3 px-5 border-b border-outline-variant font-semibold">Ngày</th>
+                        <th class="py-3 px-5 border-b border-outline-variant font-semibold">Giờ</th>
+                        <th class="py-3 px-5 border-b border-outline-variant font-semibold">Trạng thái</th>
+                        <th class="py-3 px-5 border-b border-outline-variant font-semibold text-right">Hành động</th>
+                    </tr>
+                </thead>
+                <tbody class="font-body-md text-body-md">
+                    <tr th:if="${#lists.isEmpty(records)}">
+                        <td colspan="5" class="py-8 px-5 text-center text-on-surface-variant">Bạn chưa có lịch sử tư vấn nào.</td>
+                    </tr>
+                    <tr th:each="record : ${records}" class="hover:bg-surface-container-lowest transition-colors border-b border-outline-variant last:border-b-0">
+                        <td class="py-4 px-5">
+                            <div class="font-semibold text-on-surface" th:text="${record.lecturerName}">Tên giảng viên</div>
+                            <div class="font-label-md text-label-md text-on-surface-variant" th:text="${record.departmentName}">Khoa</div>
+                        </td>
+                        <td class="py-4 px-5 text-on-surface-variant" th:text="${#temporals.format(record.sessionDate, 'dd/MM/yyyy')}">12/12/2026</td>
+                        <td class="py-4 px-5 text-on-surface-variant">
+                            <span th:text="${#temporals.format(record.startTime, 'HH:mm')}"></span> - <span th:text="${#temporals.format(record.endTime, 'HH:mm')}"></span>
+                        </td>
+                        <td class="py-4 px-5">
+                            <span th:if="${record.status == 'PENDING'}" class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-tertiary-fixed text-tertiary-container">Chờ duyệt</span>
+                            <span th:if="${record.status == 'CONFIRMED'}" class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-secondary-fixed text-on-secondary-fixed-variant">Đã xác nhận</span>
+                            <span th:if="${record.status == 'COMPLETED'}" class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-surface-container-high text-on-surface-variant">Hoàn thành</span>
+                            <span th:if="${record.status == 'CANCELLED'}" class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-surface-variant text-on-surface-variant">Đã hủy</span>
+                        </td>
+                        <td class="py-4 px-5 text-right">
+                            <div class="flex items-center justify-end gap-2">
+                                <a th:href="@{/student/history/{id}(id=${record.sessionId})}" class="px-3 py-1.5 rounded-lg border border-secondary text-secondary font-label-md text-label-md hover:bg-secondary hover:text-on-secondary transition-colors">Chi tiết</a>
+                                <form th:if="${record.cancellable}" th:action="@{/student/booking/{id}/cancel(id=${record.sessionId})}" method="post" onsubmit="return confirm('Bạn có chắc chắn muốn hủy lịch hẹn này?');" class="inline">
+                                    <button type="submit" class="px-3 py-1.5 rounded-lg border border-error text-error font-label-md text-label-md hover:bg-error-container transition-colors">Hủy</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Bảng thiết bị đã mượn -->
+    <div class="bg-surface rounded-xl border border-outline-variant shadow-sm overflow-hidden">
+        <div class="p-5 border-b border-outline-variant bg-surface-bright">
+            <h3 class="font-headline-sm text-headline-sm font-semibold text-primary">Danh sách thiết bị đã mượn</h3>
+        </div>
+        <div class="overflow-x-auto w-full">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-surface-container-low text-on-surface-variant font-label-md text-label-md uppercase">
+                        <th class="py-3 px-5 border-b border-outline-variant font-semibold">Mã thiết bị</th>
+                        <th class="py-3 px-5 border-b border-outline-variant font-semibold">Tên thiết bị</th>
+                        <th class="py-3 px-5 border-b border-outline-variant font-semibold">Thời gian mượn</th>
+                        <th class="py-3 px-5 border-b border-outline-variant font-semibold">Trạng thái</th>
+                        <th class="py-3 px-5 border-b border-outline-variant font-semibold">Thời gian trả</th>
+                        <th class="py-3 px-5 border-b border-outline-variant font-semibold">Ghi chú</th>
+                    </tr>
+                </thead>
+                <tbody class="font-body-md text-body-md">
+                    <tr th:if="${#lists.isEmpty(borrowedEquipments)}">
+                        <td colspan="6" class="py-8 px-5 text-center text-on-surface-variant">Bạn chưa mượn thiết bị nào.</td>
+                    </tr>
+                    <tr th:each="item : ${borrowedEquipments}" class="hover:bg-surface-container-lowest transition-colors border-b border-outline-variant last:border-b-0">
+                        <td class="py-4 px-5" th:text="${item.equipmentCode}">TB-1</td>
+                        <td class="py-4 px-5" th:text="${item.equipmentName}">Tên thiết bị</td>
+                        <td class="py-4 px-5" th:text="${item.borrowedAt != null ? #temporals.format(item.borrowedAt, 'dd/MM/yyyy HH:mm') : '--'}">--</td>
+                        <td class="py-4 px-5">
+                            <span th:if="${item.status == 'PENDING_DISPATCH'}" class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-secondary-fixed text-on-secondary-fixed-variant">Chờ xuất kho</span>
+                            <span th:if="${item.status == 'DISPATCHED'}" class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-tertiary-fixed-dim text-tertiary-container">Đang mượn</span>
+                            <span th:if="${item.status == 'RETURNED'}" class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-surface-container-high text-on-surface-variant">Đã trả</span>
+                            <span th:if="${item.status == 'OVERDUE'}" class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-error-container text-on-error-container">Quá hạn</span>
+                        </td>
+                        <td class="py-4 px-5" th:text="${item.returnedAt != null ? #temporals.format(item.returnedAt, 'dd/MM/yyyy HH:mm') : '--'}">--</td>
+                        <td class="py-4 px-5" th:text="${item.note != null && !#strings.isEmpty(item.note) ? item.note : 'Không có'}">Không có</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+</body>
+</html>

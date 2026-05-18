@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/auth-layout :: layout(~{::#main-content})}" th:with="pageTitle='Đăng nhập - SALSP'">
+<body>
+<div id="main-content" class="flex flex-1 w-full h-full">
+    <!-- Left Column: Banner -->
+    <div class="hidden lg:flex lg:w-1/2 relative flex-col justify-between overflow-hidden bg-tertiary-container h-full">
+        <div class="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-80" style="background-image: url('https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?q=80&w=2070&auto=format&fit=crop');"></div>
+        <div class="absolute inset-0 bg-gradient-to-t from-primary/90 via-primary/50 to-transparent"></div>
+        <div class="relative z-10 flex flex-col h-full justify-between p-12">
+            <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-on-primary text-4xl" style="font-variation-settings: 'FILL' 1;">science</span>
+                <span class="font-headline-sm text-headline-sm text-on-primary font-bold">Smart Academic & Lab Support</span>
+            </div>
+            <div class="max-w-md">
+                <h1 class="font-headline-lg text-headline-lg text-on-primary mb-4 leading-tight">Nâng tầm trải nghiệm học thuật và quản lý thực hành</h1>
+                <p class="font-body-lg text-body-lg text-inverse-on-surface opacity-90">Hệ thống quản lý toàn diện giúp tối ưu hóa quy trình đăng ký, giám sát và vận hành phòng thí nghiệm cho sinh viên và giảng viên.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Login Form -->
+    <div class="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12 lg:p-24 bg-surface-container-low h-full overflow-y-auto">
+        <div class="w-full max-w-[440px] bg-surface-container-lowest p-8 sm:p-10 rounded-2xl shadow-sm border border-outline-variant/30">
+            <!-- Mobile Logo -->
+            <div class="lg:hidden flex items-center gap-2 mb-8 justify-center">
+                <span class="material-symbols-outlined text-secondary text-3xl" style="font-variation-settings: 'FILL' 1;">science</span>
+                <span class="font-headline-sm text-headline-sm text-on-surface font-bold">Academic Portal</span>
+            </div>
+            <!-- Form Header -->
+            <div class="mb-8 text-center sm:text-left">
+                <h2 class="font-headline-md text-headline-md text-on-surface mb-2">Đăng nhập hệ thống</h2>
+                <p class="font-body-md text-body-md text-on-surface-variant">Vui lòng nhập thông tin xác thực để tiếp tục.</p>
+            </div>
+
+            <div th:if="${param.error}" class="mb-6 p-4 bg-error-container text-on-error-container rounded-lg border border-error/20 flex items-center gap-2">
+                <span class="material-symbols-outlined text-error">error</span>
+                <span class="font-body-md text-body-md">Tài khoản hoặc mật khẩu không chính xác!</span>
+            </div>
+            <div th:if="${param.logout}" class="mb-6 p-4 bg-tertiary-fixed text-on-tertiary-fixed-variant rounded-lg border border-tertiary-fixed-dim flex items-center gap-2">
+                <span class="material-symbols-outlined">info</span>
+                <span class="font-body-md text-body-md">Bạn đã đăng xuất thành công.</span>
+            </div>
+            <div th:if="${success}" class="mb-6 p-4 bg-tertiary-fixed text-on-tertiary-fixed-variant rounded-lg border border-tertiary-fixed-dim flex items-center gap-2">
+                <span class="material-symbols-outlined">check_circle</span>
+                <span class="font-body-md text-body-md" th:text="${success}"></span>
+            </div>
+
+            <form th:action="@{/auth/login}" method="post" class="space-y-6">
+                <div>
+                    <label class="block font-label-md text-label-md text-on-surface mb-1.5" for="username">Email hoặc Tên đăng nhập</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <span class="material-symbols-outlined text-on-surface-variant text-xl">person</span>
+                        </div>
+                        <input type="text" name="username" id="username" class="block w-full pl-10 pr-3 py-3 border border-outline-variant rounded-lg bg-surface-container-lowest text-on-surface focus:outline-none focus:ring-1 focus:ring-secondary focus:border-secondary transition-colors" placeholder="Nhập email của bạn" required/>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block font-label-md text-label-md text-on-surface mb-1.5" for="password">Mật khẩu</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <span class="material-symbols-outlined text-on-surface-variant text-xl">lock</span>
+                        </div>
+                        <input type="password" name="password" id="password" class="block w-full pl-10 pr-10 py-3 border border-outline-variant rounded-lg bg-surface-container-lowest text-on-surface focus:outline-none focus:ring-1 focus:ring-secondary focus:border-secondary transition-colors" placeholder="••••••••" required/>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between mt-2">
+                    <div class="flex items-center">
+                        <input type="checkbox" name="remember-me" id="remember-me" class="h-4 w-4 text-secondary focus:ring-secondary border-outline-variant rounded bg-surface-container-lowest"/>
+                        <label class="ml-2 block font-body-md text-body-md text-on-surface-variant" for="remember-me">Ghi nhớ đăng nhập</label>
+                    </div>
+                    <div>
+                        <a href="#" class="font-label-md text-label-md text-secondary hover:text-secondary-container transition-colors">Quên mật khẩu?</a>
+                    </div>
+                </div>
+
+                <div class="pt-4">
+                    <button type="submit" class="w-full flex justify-center items-center gap-2 bg-secondary text-on-secondary rounded-lg py-3.5 px-4 font-label-md text-label-md hover:bg-secondary-container hover:text-on-secondary-container transition-colors shadow-sm">
+                        Đăng nhập
+                        <span class="material-symbols-outlined text-lg">arrow_forward</span>
+                    </button>
+                </div>
+            </form>
+
+            <div class="mt-8 text-center">
+                <p class="font-body-md text-body-md text-on-surface-variant">
+                    Chưa có tài khoản?
+                    <a th:href="@{/auth/register}" class="font-label-md text-label-md text-secondary hover:underline transition-all">Đăng ký ngay</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

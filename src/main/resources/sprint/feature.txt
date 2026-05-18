@@ -1,0 +1,304 @@
+# FEATURE.TXT — Danh mục Tính năng Đầy đủ
+# Smart Academic & Lab Support Platform
+# Spring Boot + Thymeleaf + MySQL | Monolithic Architecture
+
+## ═══════════════════════════════════════════════════════
+## PHẦN 1: UI WEB — CÁC TRANG THYMELEAF CẦN XÂY DỰNG
+## ═══════════════════════════════════════════════════════
+
+### 1.1 AUTH (Chung mọi role)
+  /auth/login          → login.html         | Form đăng nhập, link "Quên mật khẩu" (UI only)
+  /auth/register       → register.html      | Form đăng ký (Student mặc định)
+  /auth/logout         → (POST) redirect    | Không có view
+
+### 1.2 STUDENT
+  /student/dashboard           → dashboard.html            | Tổng quan: lịch sắp tới, trạng thái phiếu mượn
+  /student/booking/step1       → step1-department.html     | Chọn Khoa/Ngành
+  /student/booking/step2       → step2-lecturer.html       | Chọn Giảng viên (card grid)
+  /student/booking/step3       → step3-slot.html           | Chọn ngày + slot giờ (calendar style)
+  /student/booking/success     → booking-success.html      | Xác nhận đặt lịch thành công
+  /student/history             → history-list.html         | Danh sách toàn bộ sessions (filter theo status)
+  /student/history/{id}        → history-detail.html       | Chi tiết 1 session: đánh giá + thiết bị mượn
+  /profile                     → profile-view.html         | Xem hồ sơ cá nhân
+  /profile/edit                → profile-edit.html         | Sửa thông tin cá nhân
+
+### 1.3 LECTURER
+  /lecturer/dashboard          → dashboard.html            | Tổng quan: slot hôm nay, số ca chờ
+  /lecturer/queue              → queue.html                | Danh sách PENDING sessions (phân trang)
+  /lecturer/session/{id}       → session-detail.html       | Xem chi tiết 1 session của sinh viên
+  /lecturer/session/{id}/evaluate → evaluation-form.html  | Form nhập điểm + chọn thiết bị cấp phát
+  /profile                     → (chung) profile-view.html
+  /profile/edit                → lecturer-profile-edit.html | Thêm trường: Khoa, Chức danh, Bio
+
+### 1.4 ADMIN
+  /admin/dashboard             → dashboard.html            | Thống kê nhanh: thiết bị đang mượn, phiếu chờ, users
+  /admin/equipment             → equipment-list.html       | Bảng thiết bị + search + thêm
+  /admin/equipment/new         → equipment-form.html       | Form thêm thiết bị
+  /admin/equipment/{id}/edit   → equipment-form.html       | Form sửa (dùng chung form)
+  /admin/dispatch              → dispatch-queue.html       | Danh sách phiếu PENDING_DISPATCH
+  /admin/dispatch/{id}         → dispatch-detail.html      | Chi tiết phiếu + nút xác nhận
+  /admin/users                 → user-list.html            | Danh sách tài khoản (xem, deactivate)
+
+### 1.5 SHARED COMPONENTS (Thymeleaf fragments)
+  layout/base.html             | HTML wrapper, <head>, CSS imports
+  layout/nav.html              | Navigation bar (hiện menu theo role qua sec:authorize)
+  layout/footer.html           | Footer
+  layout/flash-messages.html   | Flash success/error message block
+  error/403.html               | Trang lỗi quyền truy cập
+  error/404.html               | Trang không tìm thấy
+  error/500.html               | Trang lỗi server
+
+## ═══════════════════════════════════════════════════════
+## PHẦN 2: TÍNH NĂNG CHI TIẾT TỪNG USE CASE
+## ═══════════════════════════════════════════════════════
+
+### UC-01: Đăng ký tài khoản
+  Input   : email, password, confirmPassword, fullName, phone
+  Validate: email hợp lệ, không trùng, password ≥ 8 ký tự, 2 mật khẩu khớp
+  Process : Hash password BCrypt → lưu users + user_profiles
+  Output  : Redirect login với message "Đăng ký thành công"
+  Error   : Email đã tồn tại / Password không khớp / Validation lỗi
+
+### UC-02: Đăng nhập
+  Input   : email, password
+  Process : Spring Security xác thực → load UserDetails → check BCrypt
+  Output  : Redirect dashboard đúng role
+  Error   : "Email hoặc mật khẩu không đúng" / "Tài khoản đã bị vô hiệu hóa"
+
+### UC-03: Cập nhật Hồ sơ
+  Input   : fullName, phone, [title, bio, departmentId nếu Lecturer]
+  Validate: fullName không rỗng
+  Process : Update user_profiles (+ lecturers nếu là Lecturer)
+  Output  : Flash "Cập nhật thành công", redirect profile view
+  Constraint: Không sửa được email (readonly)
+
+### UC-04: Admin CRUD Thiết bị
+  CREATE  : name (required), description, category, quantityTotal, quantityAvailable
+  READ    : List với search by name; Detail view
+  UPDATE  : Mọi field, logic đồng bộ quantity_available khi đổi quantity_total
+  DELETE  : Soft delete nếu không đang mượn; Hard block nếu đang mượn active
+  Search  : GET /admin/equipment?keyword=X → filter LIKE %X%
+
+### UC-05: Đặt lịch Cố vấn
+  Step 1  : Chọn Khoa (load từ departments)
+  Step 2  : Chọn Giảng viên trong khoa (load từ lecturers JOIN users JOIN user_profiles)
+  Step 3  : Chọn ngày → AJAX load available slots (JSON) → chọn slot
+  Submit  : Tạo mentoring_sessions status=PENDING
+  Guard 1 : Không đặt ngày/giờ trong quá khứ
+  Guard 2 : Không đặt trùng slot của cùng giảng viên (time overlap check)
+  Output  : Redirect success page, lịch xuất hiện trong history
+
+### UC-06: Giảng viên hoàn tất Tư vấn
+  Input   : sessionId, score (0–10), feedback (text), list(equipmentId + quantity)
+  Validate: score required, session phải PENDING, chưa từng evaluate
+  Transaction (atomic):
+    → mentoring_sessions.status = COMPLETED
+    → INSERT academic_evaluations
+    → INSERT borrowing_records (status=PENDING_DISPATCH)
+    → INSERT borrowing_details × N
+  Rollback: Nếu bất kỳ bước nào fail → rollback toàn bộ 4 bước
+  Output  : Flash "Đã lưu đánh giá", redirect /lecturer/queue
+
+### UC-07: Sinh viên xem Hồ sơ Học thuật
+  Input   : studentId (từ session đăng nhập)
+  Query   : 1 JOIN query duy nhất (mentoring_sessions JOIN evaluations JOIN borrowing JOIN equipments)
+  Output  : List sessions với expand-collapse chi tiết từng session
+  Data    : Tên giảng viên, ngày giờ, điểm, nhận xét, danh sách thiết bị + số lượng
+  Filter  : Tùy chọn filter theo status (PENDING / COMPLETED / CANCELLED)
+
+### UC-08: Admin Xác nhận Xuất kho
+  Input   : recordId
+  Validate: record phải PENDING_DISPATCH
+  Check   : Kiểm tra quantity_available cho TẤT CẢ thiết bị trong phiếu
+  Guard   : Nếu bất kỳ thiết bị nào không đủ → block toàn bộ, hiện lỗi chi tiết
+  Process : Lock rows equipment (PESSIMISTIC_WRITE) → trừ quantity_available → DISPATCHED
+  Return  : Nút "Xác nhận trả" → RETURNED, hoàn kho
+
+### UC-09: Sinh viên Hủy lịch
+  Input   : sessionId
+  Validate: session phải PENDING + owner đúng student
+  Guard   : Thời điểm hiện tại phải < (session_datetime - 24h)
+  Process : session.status = CANCELLED
+  Auto    : Slot tự unlock (conflict query exclude CANCELLED)
+  UI      : Nút "Hủy" chỉ hiện nếu đủ điều kiện
+
+## ═══════════════════════════════════════════════════════
+## PHẦN 3: CÁC MỤC PHÁT TRIỂN KỸ THUẬT CẦN THIẾT
+## ═══════════════════════════════════════════════════════
+
+### 3.1 Infrastructure & Config
+  [ ] pom.xml với đầy đủ dependencies (xem skill.txt mục 12)
+  [ ] application.yml (dev) + application-prod.yml
+  [ ] SecurityConfig.java (filterChain + passwordEncoder + successHandler)
+  [ ] GlobalExceptionHandler.java (@ControllerAdvice)
+  [ ] Custom exception classes: BusinessException, ResourceNotFoundException,
+      SlotConflictException, InsufficientStockException, DuplicateEmailException
+  [ ] schema.sql (DDL) + data.sql (seed departments, lab_room_types, sample users)
+
+### 3.2 Database
+  [ ] 9 bảng theo schema guidelines (xem skill.txt mục 3)
+  [ ] INDEX: idx_lecturer_date trên mentoring_sessions(lecturer_id, session_date)
+  [ ] INDEX: idx_borrowing_record trên borrowing_details(record_id)
+  [ ] Seed departments (4 khoa)
+  [ ] Seed lab_room_types (3 loại)
+  [ ] Seed 3 tài khoản test (student, lecturer, admin) với BCrypt password
+
+### 3.3 Backend Layers
+  [ ] 9 Entity classes với Lombok + JPA annotations
+  [ ] 9 Repository interfaces (JpaRepository + custom JPQL)
+  [ ] Service classes: AuthService, ProfileService, BookingService, EvaluationService,
+      DispatchService, EquipmentService, StudentHistoryService, CancellationService
+  [ ] DTO classes: RegisterDto, BookingRequestDto, EvaluationFormDto, EquipmentDto,
+      AcademicRecordDto, BorrowedEquipmentDto, SlotDto, LecturerSummaryDto, DispatchQueueItemDto
+  [ ] Controller classes: AuthController, ProfileController, StudentBookingController,
+      StudentHistoryController, LecturerController, AdminEquipmentController, AdminDispatchController
+
+### 3.4 Frontend (Thymeleaf)
+  [ ] Layout fragments (base, nav với sec:authorize, footer, flash)
+  [ ] 15+ Thymeleaf templates (xem danh sách Section 1)
+  [ ] CSS: Bootstrap 5 (CDN) + custom style cho branding
+  [ ] JS: AJAX call /available-slots → dynamic slot rendering
+  [ ] JS: Confirm dialog trước delete/cancel
+  [ ] Responsive basic (Bootstrap grid)
+
+### 3.5 Validation
+  [ ] Bean Validation trên mọi DTO (@NotBlank, @Email, @Size, @Min, @Max)
+  [ ] BindingResult trong controller → trả về form với errors nếu invalid
+  [ ] th:errors trong template để hiện lỗi bên field
+  [ ] Server-side business validation trong Service (throw BusinessException)
+  [ ] Flash message cho tất cả success/error redirect
+
+## ═══════════════════════════════════════════════════════
+## PHẦN 4: OPEN EXTENSIONS — MỞ RỘNG VỀ SAU (Hiện tại nếu đọc tới đây thì vẫn chưa cần phát triển, chỉ ghi lại để tham khảo khi muốn thêm tính năng mới)
+## ═══════════════════════════════════════════════════════
+
+> Tạm thời KHÔNG phát triển. Ghi lại để tham khảo khi cần mở rộng.
+
+### EXT-01: Tích hợp Cổng thanh toán (Payment)
+  Mục tiêu : Thu phí đặt lịch hoặc đặt cọc thiết bị đắt tiền
+  Tech stack: VNPay Sandbox / PayPal SDK / Momo
+  Flow mới :
+    PENDING → CHỜ_THANH_TOÁN → [Gọi cổng thanh toán] → [Callback/Webhook] → ĐÃ_XÁC_NHẬN
+  Bảng mới :
+    payment_transactions (id, session_id, amount, currency, provider, status, txn_id, created_at)
+  Key tasks :
+    - Tích hợp VNPay SDK (hoặc tương đương)
+    - Controller nhận Callback URL từ cổng thanh toán
+    - Verify chữ ký HMAC của response
+    - Update trạng thái session sau khi payment success
+    - Xử lý timeout / failed payment → revert về PENDING hoặc CANCELLED
+  Lưu ý    : Không bao giờ trust client-side về kết quả thanh toán, chỉ trust callback
+
+### EXT-02: Bảo mật Nâng cao (Advanced Security)
+  Option A — Spring Security Nâng cao:
+    - Spring Security Method Security (@PreAuthorize) thay vì URL-based only
+    - Phân quyền đến từng method: @PreAuthorize("hasRole('ADMIN') or #userId == authentication.principal.id")
+    - Session management: maximumSessions(1) để không cho đa đăng nhập
+    - Remember-me token với database backing
+
+  Option B — JWT + REST API:
+    - Chuyển từ session-based → stateless JWT
+    - Frontend riêng (React/Vue) gọi REST API Spring Boot
+    - Access token (15 phút) + Refresh token (7 ngày)
+    - Token blacklist khi logout (Redis hoặc DB)
+    - Interceptor kiểm tra expiry
+
+  Option C — OAuth2 Login:
+    - spring-boot-starter-oauth2-client
+    - Đăng nhập bằng Google / GitHub
+    - Liên kết OAuth2 account với existing user account
+    - Auto-create profile từ Google userinfo
+
+### EXT-03: Xử lý Bất đồng bộ & Automation (Async & Cron)
+  Option A — Email tự động:
+    - Spring @Async + JavaMailSender (Gmail SMTP hoặc SendGrid)
+    - Email xác nhận sau khi đặt lịch thành công
+    - Email nhắc nhở 24h trước buổi tư vấn
+    - Email thông báo khi bị hủy lịch
+    - @EnableAsync trong config, method @Async trong EmailService
+    - Thread pool config: TaskExecutor
+
+  Option B — Background Cron Job:
+    - @EnableScheduling + @Scheduled
+    - Job chạy mỗi ngày 00:00: quét borrowing_records DISPATCHED quá X ngày → OVERDUE
+    - Job chạy mỗi giờ: auto-cancel PENDING sessions đã qua 1 giờ mà không confirm
+    - Log các job run với kết quả
+
+  Cron syntax:
+    @Scheduled(cron = "0 0 0 * * *")    ← chạy 00:00 mỗi ngày
+    @Scheduled(cron = "0 0 * * * *")    ← chạy đầu mỗi giờ
+    @Scheduled(fixedDelay = 3600000)    ← chạy mỗi 1 tiếng, sau khi lần trước xong
+
+### EXT-04: Dashboard Thống kê & Tối ưu truy vấn (Analytics)
+  Trang Admin Dashboard nâng cao:
+    - Biểu đồ: thiết bị đang mượn theo danh mục (Bar chart — dùng Chart.js)
+    - Top 5 giảng viên nhiều lượt tư vấn nhất (Horizontal bar chart)
+    - Thiết bị tồn kho thấp cảnh báo (< 20% quantity_available)
+    - Sessions theo trạng thái (Pie chart)
+    - Lọc theo tháng/quý
+
+  SQL nâng cao (không dùng for loop Java):
+    -- Top 5 giảng viên:
+    SELECT up.full_name, COUNT(ms.id) AS session_count
+    FROM mentoring_sessions ms
+    JOIN users u ON ms.lecturer_id = u.id
+    JOIN user_profiles up ON u.id = up.user_id
+    WHERE ms.status = 'COMPLETED'
+    GROUP BY ms.lecturer_id, up.full_name
+    ORDER BY session_count DESC
+    LIMIT 5;
+
+    -- Thiết bị đang mượn:
+    SELECT e.name, e.category, SUM(bd.quantity) AS borrowed_count
+    FROM borrowing_details bd
+    JOIN borrowing_records br ON bd.record_id = br.id
+    JOIN equipments e ON bd.equipment_id = e.id
+    WHERE br.status = 'DISPATCHED'
+    GROUP BY e.id, e.name, e.category
+    ORDER BY borrowed_count DESC;
+
+  Tối ưu Query:
+    - Thêm INDEX phù hợp sau khi identify slow query (EXPLAIN SELECT ...)
+    - Caching với @Cacheable (Spring Cache + Caffeine) cho data ít thay đổi (departments list)
+    - Pagination với Pageable cho các danh sách dài
+
+### EXT-05: Quản lý User Nâng cao (Admin)
+  - Admin có thể deactivate/activate tài khoản
+  - Admin tạo tài khoản Lecturer (không cho Lecturer tự đăng ký)
+  - Admin reset password cho user
+  - Admin xem activity log (audit trail)
+  - Bảng audit_logs (user_id, action, entity_type, entity_id, timestamp, ip_address)
+
+### EXT-06: Student Rating & Feedback cho Giảng viên
+  - Sau khi session COMPLETED, Student có thể rate Giảng viên (1–5 sao + comment)
+  - Giảng viên xem average rating trên profile
+  - Admin xem report rating tổng hợp
+  - Bảng: student_ratings (id, session_id, lecturer_id, student_id, rating, comment)
+
+### EXT-07: Notification System (In-app)
+  - Bảng notifications (id, user_id, type, message, read, created_at)
+  - Bell icon trên nav với badge count unread
+  - Auto-create notification khi: đặt lịch, bị hủy, cấp thiết bị, phiếu quá hạn
+  - AJAX polling mỗi 30 giây để check unread count (hoặc WebSocket nếu muốn real-time)
+
+## ═══════════════════════════════════════════════════════
+## PHẦN 5: BUILD ORDER (THỨ TỰ PHÁT TRIỂN ĐỀ XUẤT)
+## ═══════════════════════════════════════════════════════
+
+Sprint 1 — Foundation (tuần 1):
+  CORE-01 Auth → CORE-02 Access Control → CORE-03 Profile
+
+Sprint 2 — Admin & Data (tuần 2):
+  CORE-04 Equipment CRUD → Seed data → Schema migration
+
+Sprint 3 — Core Business (tuần 3):
+  CORE-05 Booking + Conflict Check → CORE-09 Cancel Slot
+
+Sprint 4 — Evaluation & Inventory (tuần 4):
+  CORE-06 Evaluation Transaction → CORE-08 Inventory Dispatch
+
+Sprint 5 — History & Polish (tuần 5):
+  CORE-07 Academic Record (JOIN query) → UI polish → Error handling → Test
+
+Sprint 6+ — Optional Extensions:
+  Chọn 1 hướng từ EXT-01..07 theo thời gian còn lại

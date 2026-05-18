@@ -1,0 +1,76 @@
+﻿<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/main-layout :: layout(~{::#main-content})}" th:with="pageTitle='Quản lý thiết bị'">
+<body>
+<div id="main-content" class="w-full max-w-7xl mx-auto space-y-6">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-2">
+        <h2 class="text-2xl font-bold text-slate-800">Danh sách thiết bị</h2>
+        <a th:href="@{/admin/equipment/new}" class="bg-secondary hover:bg-secondary-container text-white px-6 py-3 rounded-xl font-medium flex items-center justify-center gap-2 shadow-sm transition-colors">
+            <span class="material-symbols-outlined text-xl">add</span>
+            Thêm thiết bị
+        </a>
+    </div>
+
+    <div th:if="${success}" class="p-4 bg-emerald-50 text-emerald-700 rounded-lg border border-emerald-200 flex items-center gap-2 mb-6">
+        <span class="material-symbols-outlined">check_circle</span><span th:text="${success}"></span>
+    </div>
+    <div th:if="${error}" class="p-4 bg-red-50 text-red-700 rounded-lg border border-red-200 flex items-center gap-2 mb-6">
+        <span class="material-symbols-outlined">error</span><span th:text="${error}"></span>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+        <div class="p-4 border-b border-slate-200 bg-slate-50/50">
+            <form th:action="@{/admin/equipment}" method="get" class="flex gap-2 max-w-md">
+                <div class="relative flex-1">
+                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">search</span>
+                    <input type="text" name="keyword" th:value="${keyword}" placeholder="Tìm kiếm theo tên hoặc danh mục..." class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-secondary focus:border-secondary outline-none transition-all"/>
+                </div>
+                <button type="submit" class="bg-slate-800 hover:bg-slate-900 text-white px-4 py-2.5 rounded-lg font-medium transition-colors">Tìm</button>
+            </form>
+        </div>
+
+        <div class="overflow-x-auto w-full">
+            <table class="w-full whitespace-nowrap">
+                <thead class="bg-slate-50 border-b border-slate-200">
+                    <tr>
+<th class="px-5 py-3 text-left font-semibold uppercase text-xs text-slate-500 tracking-wider">Tên thiết bị</th>
+                        <th class="px-5 py-3 text-left font-semibold uppercase text-xs text-slate-500 tracking-wider">Danh mục</th>
+                        <th class="px-5 py-3 text-center font-semibold uppercase text-xs text-slate-500 tracking-wider">Tổng SL</th>
+                        <th class="px-5 py-3 text-center font-semibold uppercase text-xs text-slate-500 tracking-wider">Còn lại</th>
+                        <th class="px-5 py-3 text-right font-semibold uppercase text-xs text-slate-500 tracking-wider">Hành động</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 text-sm">
+                    <tr th:if="${#lists.isEmpty(equipments)}">
+                        <td colspan="5" class="px-5 py-8 text-center text-slate-500">Không tìm thấy thiết bị nào.</td>
+                    </tr>
+                    <tr th:each="equip : ${equipments}">
+                        <td class="px-5 py-4 font-medium text-slate-800" th:text="${equip.name}">Tên</td>
+                        <td class="px-5 py-4 text-slate-600">
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-700" th:text="${equip.category}">Danh mục</span>
+                        </td>
+                        <td class="px-5 py-4 text-center font-medium text-slate-700" th:text="${equip.quantityTotal}">10</td>
+                        <td class="px-5 py-4 text-center">
+                            <span th:classappend="${equip.quantityAvailable > 0} ? 'font-bold text-emerald-600' : 'font-bold text-red-500'" th:text="${equip.quantityAvailable}">5</span>
+                        </td>
+                        <td class="px-5 py-4 text-right">
+                            <a th:href="@{/admin/equipment/{id}(id=${equip.id})}" class="text-slate-500 hover:text-secondary transition-colors" title="Xem chi tiết">
+                                <span class="material-symbols-outlined text-[20px]">visibility</span>
+                            </a>
+                            <a th:href="@{/admin/equipment/{id}/edit(id=${equip.id})}" class="text-slate-500 hover:text-blue-600 transition-colors" title="Chỉnh sửa">
+                                <span class="material-symbols-outlined text-[20px]">edit</span>
+                            </a>
+                            <form th:action="@{/admin/equipment/{id}/delete(id=${equip.id})}" method="post" class="inline m-0" onsubmit="return confirm('Xóa thiết bị này vĩnh viễn?');">
+                                <button type="submit" class="text-slate-500 hover:text-red-600 transition-colors bg-transparent border-none p-0 cursor-pointer" title="Xóa">
+                                    <span class="material-symbols-outlined text-[20px]">delete</span>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,128 @@
+# TASK — CORE-09: Hủy lịch chủ động & Giải phóng Slot (Cancellation)
+# Mức độ: BẮT BUỘC | Phụ thuộc: CORE-05
+
+## ═══════════════════════════════════════════
+## MỤC TIÊU
+## ═══════════════════════════════════════════
+Sinh viên hủy lịch hẹn còn đang ở trạng thái PENDING, trước thời điểm
+tư vấn ít nhất 24 giờ. Slot đó ngay lập tức được "unlock" để student khác đặt vào.
+
+## ═══════════════════════════════════════════
+## BUSINESS RULES
+## ═══════════════════════════════════════════
+
+Điều kiện cho phép hủy:
+  1. session.status phải là PENDING (không hủy được COMPLETED, CANCELLED)
+  2. Thời điểm hiện tại phải ít nhất 24h trước session_date + start_time
+
+Sau khi hủy:
+  - session.status = CANCELLED
+  - Slot tự động "unlock": vì conflict check (CORE-05) đã loại bỏ status CANCELLED,
+    khung giờ đó sẽ available ngay lập tức
+  - Nếu đã có borrowing_record (chưa thể xảy ra vì chỉ tạo ở CORE-06),
+    không cần xử lý gì thêm ở đây
+
+## ═══════════════════════════════════════════
+## FILES CẦN TẠO / SỬA
+## ═══════════════════════════════════════════
+
+service/
+  CancellationService.java   (hoặc thêm method vào BookingService)
+    + cancelSession(Long sessionId, String studentEmail): void
+    + canCancel(MentoringSession session): boolean   ← helper
+
+controller/
+  StudentBookingController.java   ← thêm endpoint:
+    + POST /student/booking/{id}/cancel
+
+templates/
+  student/history/list.html       ← thêm nút "Hủy" nếu session đủ điều kiện
+
+## ═══════════════════════════════════════════
+## LOGIC CỤ THỂ
+## ═══════════════════════════════════════════
+
+@Transactional
+public void cancelSession(Long sessionId, String studentEmail) {
+
+    // 1. Load session
+    MentoringSession session = sessionRepo.findById(sessionId)
+        .orElseThrow(() -> new ResourceNotFoundException("Session not found"));
+
+    // 2. Kiểm tra ownership (chỉ student của session mới được hủy)
+    User student = userRepo.findByEmail(studentEmail).orElseThrow();
+    if (!session.getStudent().getId().equals(student.getId())) {
+        throw new AccessDeniedException("Bạn không có quyền hủy lịch này");
+    }
+
+    // 3. Kiểm tra trạng thái
+    if (session.getStatus() != SessionStatus.PENDING) {
+        throw new BusinessException(
+            "Chỉ có thể hủy lịch ở trạng thái PENDING. Trạng thái hiện tại: "
+            + session.getStatus()
+        );
+    }
+
+    // 4. Kiểm tra 24h trước
+    LocalDateTime sessionDateTime = LocalDateTime.of(session.getSessionDate(), session.getStartTime());
+    LocalDateTime cutoff = LocalDateTime.now().plusHours(24);
+    if (sessionDateTime.isBefore(cutoff)) {
+        throw new BusinessException(
+            "Chỉ có thể hủy lịch trước ít nhất 24 giờ so với thời điểm tư vấn"
+        );
+    }
+
+    // 5. Update status → CANCELLED (slot tự động unlock vì query CORE-05 exclude CANCELLED)
+    session.setStatus(SessionStatus.CANCELLED);
+    sessionRepo.save(session);
+}
+
+// Helper dùng trong Thymeleaf để ẩn/hiện nút Hủy:
+public boolean canCancel(MentoringSession session) {
+    if (session.getStatus() != SessionStatus.PENDING) return false;
+    LocalDateTime sessionDT = LocalDateTime.of(session.getSessionDate(), session.getStartTime());
+    return LocalDateTime.now().plusHours(24).isBefore(sessionDT);
+}
+
+## ═══════════════════════════════════════════
+## THYMELEAF — CONDITIONAL CANCEL BUTTON
+## ═══════════════════════════════════════════
+
+<!-- Trong student/history/list.html: -->
+<td>
+  <a th:href="@{/student/history/{id}(id=${session.id})}">Chi tiết</a>
+
+  <!-- Chỉ hiện nút Hủy nếu có thể hủy -->
+  <form th:if="${session.cancellable}"
+        th:action="@{/student/booking/{id}/cancel(id=${session.id})}"
+        method="post"
+        onsubmit="return confirm('Bạn có chắc muốn hủy lịch này?')">
+    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+    <button type="submit" class="btn btn-danger btn-sm">Hủy lịch</button>
+  </form>
+
+  <span th:if="${session.status == 'CANCELLED'}" class="badge bg-secondary">Đã hủy</span>
+</td>
+
+## ═══════════════════════════════════════════
+## LINK VỚI CORE-05 (SLOT UNLOCK TỰ ĐỘNG)
+## ═══════════════════════════════════════════
+
+Sau khi session.status = CANCELLED:
+  → Query existsConflict trong CORE-05 có điều kiện:
+    AND ms.status NOT IN ('CANCELLED')
+  → Slot đó không còn bị đếm là conflict
+  → API /available-slots sẽ trả về available=true cho slot đó
+  → Không cần code thêm gì — logic tự hoạt động qua query.
+
+## ═══════════════════════════════════════════
+## TEST CHECKLIST
+## ═══════════════════════════════════════════
+
+[ ] Student hủy lịch PENDING còn > 24h → status = CANCELLED
+[ ] Sau hủy → slot đó xuất hiện lại available=true trong /available-slots
+[ ] Student hủy lịch PENDING còn < 24h → lỗi "Không thể hủy trước 24h"
+[ ] Hủy session COMPLETED → lỗi "Chỉ hủy được PENDING"
+[ ] Student B cố hủy session của Student A → AccessDeniedException / 403
+[ ] Nút "Hủy" chỉ hiện với session đủ điều kiện (PENDING + >24h)
+[ ] CSRF token được gửi trong form hủy (kiểm tra header)

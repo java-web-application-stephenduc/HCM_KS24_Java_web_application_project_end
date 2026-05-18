@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/main-layout :: layout(~{::#main-content})}" th:with="pageTitle='Chi tiết thiết bị'">
+<body>
+<div id="main-content" class="w-full max-w-7xl mx-auto space-y-6">
+    <div class="flex items-center justify-between mb-6">
+        <div>
+            <h2 class="text-2xl font-bold text-slate-800">Chi tiết thiết bị</h2>
+        </div>
+        <a th:href="@{/admin/equipment}" class="bg-slate-100 text-slate-600 hover:bg-slate-200 rounded-lg px-4 py-2 font-medium transition-colors flex items-center gap-2">
+            <span class="material-symbols-outlined text-sm">arrow_back</span> Quay lại
+        </a>
+    </div>
+
+    <div class="bg-white rounded-2xl p-8 shadow-sm border border-slate-100 max-w-3xl mx-auto">
+        <div class="flex items-start gap-6">
+            <div class="w-24 h-24 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-400 border border-slate-100 shrink-0">
+                <span class="material-symbols-outlined text-5xl">devices_other</span>
+            </div>
+            
+            <div class="flex-1">
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <h3 class="text-2xl font-bold text-slate-800" th:text="${equipment.name}">Tên thiết bị</h3>
+                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-secondary/10 text-secondary mt-2" th:text="${equipment.category}">Danh mục</span>
+                    </div>
+                    <a th:href="@{/admin/equipment/{id}/edit(id=${equipment.id})}" class="bg-slate-100 hover:bg-slate-200 text-slate-600 px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2">
+                        <span class="material-symbols-outlined text-sm">edit</span> Sửa
+                    </a>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-6 mt-8">
+                    <div class="bg-slate-50 rounded-xl p-4 border border-slate-100">
+                        <p class="text-sm font-semibold text-slate-500 mb-1">Tổng số lượng</p>
+                        <p class="text-2xl font-bold text-slate-800" th:text="${equipment.quantityTotal}">10</p>
+                    </div>
+                    <div class="bg-slate-50 rounded-xl p-4 border border-slate-100">
+                        <p class="text-sm font-semibold text-slate-500 mb-1">Số lượng sẵn sàng</p>
+                        <p th:class="${equipment.quantityAvailable > 0 ? 'text-2xl font-bold text-emerald-600' : 'text-2xl font-bold text-red-500'}" th:text="${equipment.quantityAvailable}">5</p>
+                    </div>
+                </div>
+                
+                <div class="mt-8">
+                    <p class="text-sm font-semibold text-slate-700 mb-2">Mô tả</p>
+                    <p class="text-slate-600 leading-relaxed" th:text="${equipment.description != null && !equipment.description.isEmpty() ? equipment.description : 'Không có mô tả.'}">Mô tả chi tiết</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

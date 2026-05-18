@@ -1,0 +1,187 @@
+# TASK — CORE-06: Đánh giá & Tính toàn vẹn dữ liệu (Evaluation + Transaction)
+# Mức độ: BẮT BUỘC — TRANSACTION PHỨC TẠP | Phụ thuộc: CORE-05
+
+## ═══════════════════════════════════════════
+## MỤC TIÊU
+## ═══════════════════════════════════════════
+Giảng viên hoàn tất buổi tư vấn bằng cách:
+  1. Nhập đánh giá năng lực sinh viên (điểm + nhận xét)
+  2. Chọn thiết bị/tài liệu cần cấp cho sinh viên
+  3. Bấm Lưu
+
+TOÀN BỘ 3 thao tác phải nằm trong 1 Transaction:
+  - Update session.status = COMPLETED
+  - Insert academic_evaluations
+  - Insert borrowing_records + borrowing_details (nhiều thiết bị)
+
+Nếu bất kỳ bước nào fail → Rollback hoàn toàn.
+
+## ═══════════════════════════════════════════
+## DATABASE
+## ═══════════════════════════════════════════
+
+CREATE TABLE academic_evaluations (
+    id           BIGINT AUTO_INCREMENT PRIMARY KEY,
+    session_id   BIGINT NOT NULL UNIQUE,  -- 1 buổi chỉ 1 đánh giá
+    score        TINYINT NOT NULL,        -- 0-10
+    feedback     TEXT,
+    evaluated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (session_id) REFERENCES mentoring_sessions(id)
+);
+
+CREATE TABLE borrowing_records (
+    id         BIGINT AUTO_INCREMENT PRIMARY KEY,
+    session_id BIGINT NOT NULL,
+    status     ENUM('PENDING_DISPATCH','DISPATCHED','RETURNED','OVERDUE') DEFAULT 'PENDING_DISPATCH',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (session_id) REFERENCES mentoring_sessions(id)
+);
+
+CREATE TABLE borrowing_details (
+    id          BIGINT AUTO_INCREMENT PRIMARY KEY,
+    record_id   BIGINT NOT NULL,
+    equipment_id BIGINT NOT NULL,
+    quantity    INT NOT NULL DEFAULT 1,
+    FOREIGN KEY (record_id) REFERENCES borrowing_records(id),
+    FOREIGN KEY (equipment_id) REFERENCES equipments(id)
+);
+
+## ═══════════════════════════════════════════
+## FILES CẦN TẠO
+## ═══════════════════════════════════════════
+
+entity/
+  AcademicEvaluation.java
+  BorrowingRecord.java
+  BorrowingDetail.java
+
+dto/
+  EvaluationFormDto.java
+    - Long sessionId
+    - Integer score             (0–10)
+    - String feedback
+    - List<EquipmentItemDto> equipmentItems
+
+  EquipmentItemDto.java
+    - Long equipmentId
+    - Integer quantity
+
+  EvaluationResultDto.java    ← dùng cho response/redirect confirmation
+
+repository/
+  AcademicEvaluationRepository.java
+  BorrowingRecordRepository.java
+    + findBySessionId(Long sessionId): Optional<BorrowingRecord>
+  BorrowingDetailRepository.java
+    + findByRecordId(Long recordId): List<BorrowingDetail>
+
+service/
+  EvaluationService.java
+    + getPendingSessions(Long lecturerId): List<SessionSummaryDto>
+    + getSessionDetail(Long sessionId): SessionDetailDto
+    + completeSession(EvaluationFormDto dto): void  ← @Transactional ở đây
+
+controller/
+  LecturerController.java   ← /lecturer/**
+    + GET  /lecturer/queue                     ← danh sách PENDING sessions
+    + GET  /lecturer/session/{id}/evaluate     ← form đánh giá
+    + POST /lecturer/session/{id}/evaluate     ← submit
+
+templates/
+  lecturer/queue.html            ← table danh sách sinh viên chờ
+  lecturer/evaluation-form.html  ← form nhập điểm + chọn thiết bị (multi-select)
+
+## ═══════════════════════════════════════════
+## TRANSACTION IMPLEMENTATION (CORE PATTERN)
+## ═══════════════════════════════════════════
+
+@Service
+@RequiredArgsConstructor
+@Transactional(readOnly = true)
+public class EvaluationService {
+
+    private final MentoringSessionRepository sessionRepo;
+    private final AcademicEvaluationRepository evalRepo;
+    private final BorrowingRecordRepository borrowingRepo;
+    private final BorrowingDetailRepository detailRepo;
+
+    @Transactional   // Override: readOnly = false
+    public void completeSession(EvaluationFormDto dto) {
+
+        // ── BƯỚC 1: Load & Validate ──
+        MentoringSession session = sessionRepo.findById(dto.getSessionId())
+            .orElseThrow(() -> new ResourceNotFoundException("Session not found: " + dto.getSessionId()));
+
+        if (session.getStatus() != SessionStatus.PENDING) {
+            throw new BusinessException("Buổi tư vấn không ở trạng thái PENDING");
+        }
+        if (evalRepo.existsBySessionId(dto.getSessionId())) {
+            throw new BusinessException("Buổi này đã được đánh giá trước đó");
+        }
+
+        // ── BƯỚC 2: Update Session ──
+        session.setStatus(SessionStatus.COMPLETED);
+        sessionRepo.save(session);
+
+        // ── BƯỚC 3: Save Evaluation ──
+        AcademicEvaluation eval = AcademicEvaluation.builder()
+            .session(session)
+            .score(dto.getScore())
+            .feedback(dto.getFeedback())
+            .build();
+        evalRepo.save(eval);
+
+        // ── BƯỚC 4: Create Borrowing Record ──
+        BorrowingRecord record = BorrowingRecord.builder()
+            .session(session)
+            .status(BorrowingStatus.PENDING_DISPATCH)
+            .build();
+        borrowingRepo.save(record);
+
+        // ── BƯỚC 5: Save Borrowing Details ──
+        if (dto.getEquipmentItems() != null && !dto.getEquipmentItems().isEmpty()) {
+            List<BorrowingDetail> details = dto.getEquipmentItems().stream()
+                .map(item -> BorrowingDetail.builder()
+                    .record(record)
+                    .equipment(equipmentRepo.getReferenceById(item.getEquipmentId()))
+                    .quantity(item.getQuantity())
+                    .build())
+                .toList();
+            detailRepo.saveAll(details);
+        }
+
+        // Nếu bất kỳ RuntimeException nào được throw ở đây
+        // → Spring AOP sẽ tự động Rollback toàn bộ transaction
+    }
+}
+
+## ═══════════════════════════════════════════
+## UI — EQUIPMENT SELECTION (FORM)
+## ═══════════════════════════════════════════
+
+<!-- Trong evaluation-form.html: chọn nhiều thiết bị + số lượng -->
+<div th:each="eq, stat : ${equipmentList}">
+  <input type="checkbox" th:name="'equipmentItems[' + ${stat.index} + '].equipmentId'"
+         th:value="${eq.id}">
+  <label th:text="${eq.name}"></label>
+  <input type="number" th:name="'equipmentItems[' + ${stat.index} + '].quantity'"
+         min="1" value="1">
+</div>
+
+Lưu ý: Dùng @ModelAttribute với List<EquipmentItemDto> → cần index trong name.
+Hoặc dùng JavaScript để build JSON và submit bằng fetch/AJAX.
+
+## ═══════════════════════════════════════════
+## TEST CHECKLIST
+## ═══════════════════════════════════════════
+
+[ ] Lecturer thấy đúng danh sách PENDING sessions của mình
+[ ] Submit form đánh giá hợp lệ → DB có 4 thay đổi:
+    - mentoring_sessions.status = COMPLETED
+    - academic_evaluations có 1 row mới
+    - borrowing_records có 1 row mới (PENDING_DISPATCH)
+    - borrowing_details có N rows (1 per thiết bị chọn)
+[ ] Nếu score NULL → validation error, không save gì cả
+[ ] Test rollback: mock evalRepo.save() để throw → kiểm tra session.status vẫn là PENDING
+[ ] Lecturer không thể evaluate session của giảng viên khác
+[ ] Evaluate 2 lần cùng 1 session → lỗi "Đã được đánh giá"

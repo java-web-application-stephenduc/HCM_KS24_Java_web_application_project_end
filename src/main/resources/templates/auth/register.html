@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/auth-layout :: layout(~{::#main-content})}" th:with="pageTitle='Đăng ký - SALSP'">
+<body>
+<div id="main-content" class="flex flex-1 w-full h-full">
+    <!-- Left Column: Banner -->
+    <div class="hidden lg:flex lg:w-1/2 relative flex-col justify-between overflow-hidden bg-tertiary-container h-full">
+        <div class="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-80" style="background-image: url('https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=2070&auto=format&fit=crop');"></div>
+        <div class="absolute inset-0 bg-gradient-to-t from-primary/90 via-primary/50 to-transparent"></div>
+        <div class="relative z-10 flex flex-col h-full justify-between p-12">
+            <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-on-primary text-4xl" style="font-variation-settings: 'FILL' 1;">science</span>
+                <span class="font-headline-sm text-headline-sm text-on-primary font-bold">Smart Academic & Lab Support</span>
+            </div>
+            <div class="max-w-md">
+                <h1 class="font-headline-lg text-headline-lg text-on-primary mb-4 leading-tight">Tham gia cộng đồng học thuật thông minh</h1>
+                <p class="font-body-lg text-body-lg text-inverse-on-surface opacity-90">Đăng ký tài khoản để trải nghiệm hệ thống quản lý phòng thí nghiệm và đặt lịch cố vấn học tập toàn diện.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Register Form -->
+    <div class="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12 bg-surface-container-low h-full overflow-y-auto">
+        <div class="w-full max-w-[480px] bg-surface-container-lowest p-8 sm:p-10 rounded-2xl shadow-sm border border-outline-variant/30">
+            <!-- Mobile Logo -->
+            <div class="lg:hidden flex items-center gap-2 mb-8 justify-center">
+                <span class="material-symbols-outlined text-secondary text-3xl" style="font-variation-settings: 'FILL' 1;">science</span>
+                <span class="font-headline-sm text-headline-sm text-on-surface font-bold">Academic Portal</span>
+            </div>
+            <!-- Form Header -->
+            <div class="mb-8 text-center sm:text-left">
+                <h2 class="font-headline-md text-headline-md text-on-surface mb-2">Đăng ký tài khoản</h2>
+                <p class="font-body-md text-body-md text-on-surface-variant">Điền thông tin để bắt đầu sử dụng hệ thống.</p>
+            </div>
+
+            <form th:action="@{/auth/register}" th:object="${registerDto}" method="post" class="space-y-5">
+                <div>
+                    <label class="block font-label-md text-label-md text-on-surface mb-1" for="fullName">Họ và tên</label>
+                    <input type="text" th:field="*{fullName}" id="fullName" class="w-full h-11 px-3 bg-surface-lowest border border-outline-variant rounded-lg focus:border-secondary focus:ring-1 focus:ring-secondary outline-none font-body-md text-body-md text-on-surface placeholder-on-surface-variant transition-colors" placeholder="Nhập họ và tên" required/>
+                    <p th:if="${#fields.hasErrors('fullName')}" th:errors="*{fullName}" class="mt-1 font-label-md text-label-md text-error flex items-center gap-1">
+                        <span class="material-symbols-outlined text-[14px]">error</span><span th:text="${#fields.errors('fullName')}"></span>
+                    </p>
+                </div>
+
+                <div>
+                    <label class="block font-label-md text-label-md text-on-surface mb-1" for="email">Email</label>
+                    <input type="email" th:field="*{email}" id="email" class="w-full h-11 px-3 bg-surface-lowest border border-outline-variant rounded-lg focus:border-secondary focus:ring-1 focus:ring-secondary outline-none font-body-md text-body-md text-on-surface placeholder-on-surface-variant transition-colors" placeholder="sinhvien@school.edu.vn" required/>
+                    <p th:if="${#fields.hasErrors('email')}" th:errors="*{email}" class="mt-1 font-label-md text-label-md text-error flex items-center gap-1">
+                        <span class="material-symbols-outlined text-[14px]">error</span><span th:text="${#fields.errors('email')}"></span>
+                    </p>
+                </div>
+
+                <div>
+                    <label class="block font-label-md text-label-md text-on-surface mb-1" for="phone">Số điện thoại</label>
+                    <input type="tel" th:field="*{phone}" id="phone" class="w-full h-11 px-3 bg-surface-lowest border border-outline-variant rounded-lg focus:border-secondary focus:ring-1 focus:ring-secondary outline-none font-body-md text-body-md text-on-surface placeholder-on-surface-variant transition-colors" placeholder="Nhập số điện thoại"/>
+                    <p th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}" class="mt-1 font-label-md text-label-md text-error flex items-center gap-1">
+                        <span class="material-symbols-outlined text-[14px]">error</span><span th:text="${#fields.errors('phone')}"></span>
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block font-label-md text-label-md text-on-surface mb-1" for="password">Mật khẩu</label>
+                        <input type="password" th:field="*{password}" id="password" class="w-full h-11 px-3 bg-surface-lowest border border-outline-variant rounded-lg focus:border-secondary focus:ring-1 focus:ring-secondary outline-none font-body-md text-body-md text-on-surface placeholder-on-surface-variant transition-colors" placeholder="••••••••" required/>
+                        <p th:if="${#fields.hasErrors('password')}" th:errors="*{password}" class="mt-1 font-label-md text-label-md text-error flex items-center gap-1">
+                            <span class="material-symbols-outlined text-[14px]">error</span><span th:text="${#fields.errors('password')}"></span>
+                        </p>
+                    </div>
+                    <div>
+                        <label class="block font-label-md text-label-md text-on-surface mb-1" for="confirmPassword">Xác nhận mật khẩu</label>
+                        <input type="password" th:field="*{confirmPassword}" id="confirmPassword" class="w-full h-11 px-3 bg-surface-lowest border border-outline-variant rounded-lg focus:border-secondary focus:ring-1 focus:ring-secondary outline-none font-body-md text-body-md text-on-surface placeholder-on-surface-variant transition-colors" placeholder="••••••••" required/>
+                        <p th:if="${#fields.hasErrors('confirmPassword')}" th:errors="*{confirmPassword}" class="mt-1 font-label-md text-label-md text-error flex items-center gap-1">
+                            <span class="material-symbols-outlined text-[14px]">error</span><span th:text="${#fields.errors('confirmPassword')}"></span>
+                        </p>
+                    </div>
+                </div>
+
+                <div th:if="${#fields.hasGlobalErrors()}" class="p-4 bg-error-container text-on-error-container rounded-lg border border-error/20 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-error">error</span>
+                    <ul class="font-body-md text-body-md list-none m-0 p-0">
+                        <li th:each="err : ${#fields.errors()}" th:text="${err}"></li>
+                    </ul>
+                </div>
+
+                <button type="submit" class="w-full h-12 bg-secondary text-on-secondary rounded-lg flex items-center justify-center font-headline-sm text-headline-sm hover:bg-secondary-container transition-colors mt-6">
+                    Tạo tài khoản
+                </button>
+            </form>
+
+            <div class="mt-6 text-center">
+                <span class="font-body-md text-body-md text-on-surface-variant">Đã có tài khoản?</span>
+                <a th:href="@{/auth/login}" class="font-label-md text-label-md text-secondary hover:underline transition-all ml-1">Đăng nhập</a>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

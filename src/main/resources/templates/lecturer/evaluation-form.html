@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/main-layout :: layout(~{::#main-content})}" th:with="pageTitle='Đánh giá buổi tư vấn'">
+<body>
+<div id="main-content" class="w-full max-w-7xl mx-auto space-y-6">
+    <div class="flex items-center justify-between mb-6">
+        <div>
+            <h2 class="text-2xl font-bold text-slate-800">Đánh giá & Cấp phát</h2>
+            <p class="text-slate-500 mt-2">Đánh giá kết quả và chỉ định thiết bị mượn cho sinh viên.</p>
+        </div>
+        <a th:href="@{/lecturer/queue}" class="bg-slate-100 text-slate-600 hover:bg-slate-200 rounded-lg px-4 py-2 font-medium transition-colors flex items-center gap-2">
+            <span class="material-symbols-outlined text-sm">arrow_back</span> Quay lại
+        </a>
+    </div>
+
+    <!-- Session Info Card -->
+    <div class="bg-blue-50 rounded-2xl p-6 shadow-sm border border-blue-100 mb-6">
+        <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+            <span class="material-symbols-outlined text-secondary">info</span> Thông tin buổi hẹn
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+                <p class="text-sm font-semibold text-slate-500">Sinh viên</p>
+                <p class="text-base text-slate-800 font-medium mt-1" th:text="${session.studentName}">Tên SV</p>
+            </div>
+            <div>
+                <p class="text-sm font-semibold text-slate-500">Ngày</p>
+                <p class="text-base text-slate-800 mt-1" th:text="${#temporals.format(session.sessionDate, 'dd/MM/yyyy')}">12/12/2026</p>
+            </div>
+            <div>
+                <p class="text-sm font-semibold text-slate-500">Thời gian</p>
+                <p class="text-base text-slate-800 mt-1"><span th:text="${#temporals.format(session.startTime, 'HH:mm')}"></span> - <span th:text="${#temporals.format(session.endTime, 'HH:mm')}"></span></p>
+            </div>
+            <div>
+                <p class="text-sm font-semibold text-slate-500">Ghi chú từ SV</p>
+                <p class="text-base text-slate-800 mt-1" th:text="${session.note != null && !session.note.isEmpty() ? session.note : '-'}">-</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Evaluation Form -->
+    <form th:action="@{/lecturer/session/{id}/evaluate(id=${session.sessionId})}" th:object="${evaluation}" method="post">
+        <input type="hidden" th:field="*{sessionId}" />
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Left: Eval Fields -->
+            <div class="lg:col-span-2 space-y-6">
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+                    <h3 class="text-lg font-bold text-slate-800 mb-4">Đánh giá chung</h3>
+                    <div class="space-y-6">
+                        <div>
+                            <label for="score" class="block text-sm font-semibold text-slate-700 mb-2">Điểm đánh giá (0-10)</label>
+                            <input type="number" step="0.5" min="0" max="10" th:field="*{score}" id="score" class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-secondary focus:border-secondary outline-none transition-all" required/>
+                            <p th:if="${#fields.hasErrors('score')}" th:errors="*{score}" class="text-red-500 text-sm mt-1"></p>
+                        </div>
+                        <div>
+                            <label for="feedback" class="block text-sm font-semibold text-slate-700 mb-2">Nhận xét chi tiết</label>
+                            <textarea th:field="*{feedback}" id="feedback" rows="4" class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-secondary focus:border-secondary outline-none transition-all" placeholder="Nhập đánh giá về tiến độ và kết quả của sinh viên..."></textarea>
+                            <p th:if="${#fields.hasErrors('feedback')}" th:errors="*{feedback}" class="text-red-500 text-sm mt-1"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Equipments -->
+            <div class="space-y-6">
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+                    <h3 class="text-lg font-bold text-slate-800 mb-4">Cấp phát thiết bị mượn</h3>
+                    <p class="text-sm text-slate-500 mb-4">Chọn thiết bị và nhập số lượng để cấp phát cho sinh viên.</p>
+                    
+                    <div class="space-y-4 max-h-96 overflow-y-auto pr-2">
+                        <div th:each="eq, stat : ${equipmentList}" class="border border-slate-200 rounded-lg p-3 hover:border-secondary transition-colors">
+                            <label class="flex items-start gap-3 cursor-pointer">
+                                <!-- Checkbox quyết định item có được gửi lên. Dùng index theo stat.index để bind danh sách. -->
+                                <input type="hidden" th:name="|equipmentItems[${stat.index}].equipmentId|" th:value="${eq.id}" />
+                                <input type="checkbox" th:name="|equipmentItems[${stat.index}].selected|" class="mt-1 rounded text-secondary focus:ring-secondary w-4 h-4 equipment-cb"/>
+                                <div class="flex-1">
+                                    <p class="font-medium text-slate-800" th:text="${eq.name}">Tên TB</p>
+                                    <p class="text-xs text-slate-500 mb-2" th:text="'Sẵn sàng: ' + ${eq.quantityAvailable}">Còn: 10</p>
+                                    <input type="number" th:name="|equipmentItems[${stat.index}].quantity|" min="1" th:max="${eq.quantityAvailable}" class="w-full px-3 py-1.5 text-sm rounded border border-slate-300 focus:ring-2 focus:ring-secondary disabled:bg-slate-100 disabled:text-slate-400 qty-input" value="1" disabled/>
+                                </div>
+                            </label>
+                        </div>
+                        <div th:if="${#lists.isEmpty(equipmentList)}" class="text-sm text-slate-500 text-center py-4">
+                            Không có thiết bị nào trong kho.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="flex justify-end gap-3 mt-6">
+            <a th:href="@{/lecturer/queue}" class="bg-slate-100 text-slate-600 hover:bg-slate-200 rounded-lg px-6 py-3 font-medium transition-colors">
+                Hủy
+            </a>
+            <button type="submit" class="bg-secondary hover:bg-secondary-container text-white px-8 py-3 rounded-xl font-medium transition-colors shadow-sm">
+                Lưu đánh giá
+            </button>
+        </div>
+    </form>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const checkboxes = document.querySelectorAll('.equipment-cb');
+            checkboxes.forEach(cb => {
+                cb.addEventListener('change', function() {
+                    const container = this.closest('label');
+                    const qtyInput = container.querySelector('.qty-input');
+                    qtyInput.disabled = !this.checked;
+                });
+            });
+        });
+    </script>
+</div>
+</body>
+</html>

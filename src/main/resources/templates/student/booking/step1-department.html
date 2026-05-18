@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/main-layout :: layout(~{::#main-content})}" th:with="pageTitle='Đặt lịch - Chọn khoa'">
+<body>
+<div id="main-content" class="w-full max-w-container-max mx-auto flex flex-col gap-6">
+    <!-- Breadcrumbs -->
+    <nav class="flex items-center gap-2 text-on-surface-variant font-label-md text-label-md">
+        <a th:href="@{/dashboard}" class="hover:text-secondary transition-colors">Trang chủ</a>
+        <span class="material-symbols-outlined text-[16px]">chevron_right</span>
+        <span class="text-primary font-bold">Đặt lịch cố vấn</span>
+    </nav>
+
+    <!-- Wizard Stepper -->
+    <div class="flex items-center w-full max-w-3xl mx-auto mb-4">
+        <a th:href="@{/student/booking/step1}" class="flex flex-col items-center flex-1 relative">
+            <div class="w-8 h-8 rounded-full bg-secondary text-on-secondary flex items-center justify-center font-label-md text-label-md mb-2 z-10">
+                <span class="material-symbols-outlined text-[18px]">check</span>
+            </div>
+            <span class="font-label-md text-label-md text-secondary font-bold">Chọn Khoa</span>
+            <div class="absolute top-4 left-1/2 w-full h-[2px] bg-outline-variant -z-0"></div>
+        </a>
+        <a id="step2Link" th:href="@{/student/booking/step2}" th:data-base-url="@{/student/booking/step2}" class="flex flex-col items-center flex-1 relative">
+            <div class="w-8 h-8 rounded-full border-2 border-outline-variant bg-surface text-on-surface-variant flex items-center justify-center font-label-md text-label-md mb-2 z-10">2</div>
+            <span class="font-label-md text-label-md text-on-surface-variant">Chọn Giảng viên</span>
+            <div class="absolute top-4 right-1/2 w-full h-[2px] bg-outline-variant -z-0"></div>
+            <div class="absolute top-4 left-1/2 w-full h-[2px] bg-outline-variant -z-0"></div>
+        </a>
+        <a th:href="@{/student/booking/step3}" class="flex flex-col items-center flex-1 relative opacity-60 cursor-not-allowed">
+            <div class="w-8 h-8 rounded-full border-2 border-outline-variant bg-surface text-on-surface-variant flex items-center justify-center font-label-md text-label-md mb-2 z-10">3</div>
+            <span class="font-label-md text-label-md text-on-surface-variant">Chọn Lịch</span>
+            <div class="absolute top-4 right-1/2 w-full h-[2px] bg-outline-variant -z-0"></div>
+        </a>
+    </div>
+
+    <!-- Department Selection Card -->
+    <div class="bg-surface rounded-xl border border-outline-variant shadow-sm max-w-2xl mx-auto w-full">
+        <div class="p-6 border-b border-outline-variant bg-surface-bright rounded-t-xl">
+            <h2 class="font-headline-sm text-headline-sm text-primary">Chọn khoa</h2>
+            <p class="font-body-md text-body-md text-on-surface-variant mt-1">Vui lòng chọn khoa để xem danh sách giảng viên trực thuộc.</p>
+        </div>
+        <div class="p-6">
+            <form th:action="@{/student/booking/step2}" method="get" class="space-y-6">
+                <div>
+                    <label for="departmentId" class="block font-label-md text-label-md text-on-surface mb-2">Khoa</label>
+                    <div class="relative">
+                        <select id="departmentId" name="departmentId" class="w-full h-11 px-3 pr-10 bg-surface-lowest border border-outline-variant rounded-lg focus:border-secondary focus:ring-1 focus:ring-secondary outline-none font-body-md text-body-md text-on-surface appearance-none transition-colors cursor-pointer" required>
+                            <option value="" disabled selected>-- Chọn khoa --</option>
+                            <option th:each="dept : ${departments}" th:value="${dept.id}" th:text="${dept.name} + ' (' + ${dept.code} + ')'"></option>
+                        </select>
+                    </div>
+                </div>
+                <div class="flex justify-end gap-3 pt-4 border-t border-outline-variant">
+                    <a th:href="@{/student/dashboard}" class="h-11 px-6 rounded-lg border border-outline-variant text-on-surface font-label-md text-label-md hover:bg-surface-container transition-colors inline-flex items-center">Hủy</a>
+                    <button type="submit" class="h-11 px-8 rounded-lg bg-secondary text-on-secondary font-label-md text-label-md font-bold hover:bg-secondary-container transition-colors shadow-sm inline-flex items-center gap-2">
+                        Tiếp tục
+                        <span class="material-symbols-outlined text-lg">arrow_forward</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const select = document.getElementById('departmentId');
+        const step2Link = document.getElementById('step2Link');
+        const baseUrl = step2Link.dataset.baseUrl;
+        select.addEventListener('change', function () {
+            const departmentId = select.value;
+            if (departmentId) {
+                step2Link.href = `${baseUrl}?departmentId=${encodeURIComponent(departmentId)}`;
+            }
+        });
+    });
+</script>
+</body>
+</html>

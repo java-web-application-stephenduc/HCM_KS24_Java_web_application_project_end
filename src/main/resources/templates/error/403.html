@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/auth-layout :: layout(~{::#main-content})}" th:with="pageTitle='403 - Truy cập bị từ chối'">
+<body>
+<div id="main-content" class="flex flex-1 w-full h-full items-center justify-center bg-slate-50">
+    <div class="text-center max-w-lg">
+        <h1 class="text-9xl font-bold text-slate-200">403</h1>
+        <h2 class="text-3xl font-bold text-slate-800 mt-4">Truy cập bị từ chối</h2>
+        <p class="text-slate-500 mt-4 mb-8">Bạn không có quyền truy cập vào trang này. Vui lòng liên hệ quản trị viên nếu bạn nghĩ đây là sự nhầm lẫn.</p>
+        <a th:href="@{/}" class="inline-flex bg-secondary hover:bg-secondary-container text-white font-semibold py-3 px-6 rounded-lg items-center gap-2 transition-colors">
+            <span class="material-symbols-outlined">home</span>
+            Về trang chủ
+        </a>
+    </div>
+</div>
+</body>
+</html>

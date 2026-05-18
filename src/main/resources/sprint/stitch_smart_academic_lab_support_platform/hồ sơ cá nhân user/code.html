@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+
+<html lang="vi"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Hồ sơ cá nhân - Smart Academic &amp; Lab Support</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-error-container": "#93000a",
+                        "on-tertiary": "#ffffff",
+                        "on-primary-fixed": "#131b2e",
+                        "background": "#f7f9fb",
+                        "inverse-primary": "#bec6e0",
+                        "on-background": "#191c1e",
+                        "secondary": "#0058be",
+                        "on-tertiary-fixed-variant": "#38485d",
+                        "tertiary-container": "#0b1c30",
+                        "outline": "#76777d",
+                        "primary-container": "#131b2e",
+                        "on-error": "#ffffff",
+                        "inverse-on-surface": "#eff1f3",
+                        "tertiary-fixed": "#d3e4fe",
+                        "error": "#ba1a1a",
+                        "surface-bright": "#f7f9fb",
+                        "surface-container-low": "#f2f4f6",
+                        "surface": "#f7f9fb",
+                        "on-primary": "#ffffff",
+                        "on-secondary": "#ffffff",
+                        "surface-dim": "#d8dadc",
+                        "surface-variant": "#e0e3e5",
+                        "on-surface": "#191c1e",
+                        "on-secondary-container": "#fefcff",
+                        "surface-container": "#eceef0",
+                        "secondary-fixed-dim": "#adc6ff",
+                        "tertiary-fixed-dim": "#b7c8e1",
+                        "on-secondary-fixed": "#001a42",
+                        "on-secondary-fixed-variant": "#004395",
+                        "inverse-surface": "#2d3133",
+                        "on-primary-fixed-variant": "#3f465c",
+                        "on-tertiary-container": "#75859d",
+                        "outline-variant": "#c6c6cd",
+                        "error-container": "#ffdad6",
+                        "on-primary-container": "#7c839b",
+                        "primary": "#000000",
+                        "on-tertiary-fixed": "#0b1c30",
+                        "on-surface-variant": "#45464d",
+                        "primary-fixed-dim": "#bec6e0",
+                        "primary-fixed": "#dae2fd",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-tint": "#565e74",
+                        "secondary-container": "#2170e4",
+                        "secondary-fixed": "#d8e2ff",
+                        "surface-container-high": "#e6e8ea",
+                        "surface-container-highest": "#e0e3e5",
+                        "tertiary": "#000000"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "unit": "8px",
+                        "container-max": "1440px",
+                        "gutter": "24px",
+                        "margin-mobile": "16px",
+                        "margin-desktop": "32px"
+                    },
+                    "fontFamily": {
+                        "headline-lg-mobile": ["Inter"],
+                        "label-md": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "headline-sm": ["Inter"],
+                        "body-md": ["Inter"],
+                        "body-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-lg-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "700" }],
+                        "label-md": ["12px", { "lineHeight": "16px", "fontWeight": "600" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "headline-sm": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-background text-on-surface font-body-md h-screen overflow-hidden flex">
+<!-- SideNavBar -->
+<nav class="hidden md:flex bg-surface-container-low dark:bg-tertiary-container text-on-surface dark:text-on-tertiary-fixed fixed left-0 top-0 h-screen flex-col py-6 border-r border-outline-variant dark:border-outline z-40 w-64">
+<div class="px-6 mb-8 flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-primary-container text-on-primary flex items-center justify-center font-bold">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">account_balance</span>
+</div>
+<div>
+<div class="font-headline-sm text-headline-sm font-bold text-primary dark:text-on-primary-fixed">Academic Portal</div>
+<div class="font-label-md text-label-md text-on-surface-variant">Lab Management System</div>
+</div>
+</div>
+<div class="px-4 mb-6">
+<button class="w-full flex items-center justify-center gap-2 bg-secondary text-on-secondary rounded-lg py-3 font-label-md text-label-md hover:bg-secondary-container transition-colors">
+<span class="material-symbols-outlined text-[20px]">add</span>
+                New Lab Request
+            </button>
+</div>
+<div class="flex-1 overflow-y-auto px-2 space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant dark:text-on-tertiary-container hover:bg-surface-container-high dark:hover:bg-on-tertiary-fixed-variant rounded-lg mx-2 transition-all" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-md text-label-md">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant dark:text-on-tertiary-container hover:bg-surface-container-high dark:hover:bg-on-tertiary-fixed-variant rounded-lg mx-2 transition-all" href="#">
+<span class="material-symbols-outlined">school</span>
+<span class="font-label-md text-label-md">Academic Records</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant dark:text-on-tertiary-container hover:bg-surface-container-high dark:hover:bg-on-tertiary-fixed-variant rounded-lg mx-2 transition-all" href="#">
+<span class="material-symbols-outlined">biotech</span>
+<span class="font-label-md text-label-md">Lab Inventory</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant dark:text-on-tertiary-container hover:bg-surface-container-high dark:hover:bg-on-tertiary-fixed-variant rounded-lg mx-2 transition-all" href="#">
+<span class="material-symbols-outlined">calendar_today</span>
+<span class="font-label-md text-label-md">Lab Bookings</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 bg-secondary text-on-secondary rounded-lg mx-2 transition-transform duration-150 shadow-sm" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">group</span>
+<span class="font-label-md text-label-md">User Management</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant dark:text-on-tertiary-container hover:bg-surface-container-high dark:hover:bg-on-tertiary-fixed-variant rounded-lg mx-2 transition-all" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span class="font-label-md text-label-md">System Reports</span>
+</a>
+</div>
+<div class="mt-auto px-2 space-y-1 pt-4 border-t border-outline-variant mx-4">
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant dark:text-on-tertiary-container hover:bg-surface-container-high dark:hover:bg-on-tertiary-fixed-variant rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined">contact_support</span>
+<span class="font-label-md text-label-md">Support</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant dark:text-on-tertiary-container hover:bg-surface-container-high dark:hover:bg-on-tertiary-fixed-variant rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span class="font-label-md text-label-md">Logout</span>
+</a>
+</div>
+</nav>
+<!-- Main Content Area -->
+<div class="flex-1 flex flex-col md:ml-64 w-full h-full overflow-hidden">
+<!-- TopNavBar -->
+<header class="bg-surface dark:bg-surface-container border-b border-outline-variant dark:border-outline flex justify-between items-center h-16 px-margin-desktop w-full sticky top-0 z-50">
+<div class="flex items-center gap-4">
+<button class="md:hidden text-on-surface-variant hover:bg-surface-container-low p-2 rounded-full transition-colors">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<div class="font-headline-sm text-headline-sm font-bold text-primary dark:text-secondary-fixed hidden md:block">
+                    Smart Academic &amp; Lab Support
+                </div>
+</div>
+<div class="flex-1 max-w-md mx-4 hidden sm:block">
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+<input class="w-full bg-surface-container-low border border-outline-variant rounded-full py-2 pl-10 pr-4 text-body-md focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary transition-shadow" placeholder="Search..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<button class="text-on-surface-variant hover:bg-surface-container-low p-2 rounded-full transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="text-on-surface-variant hover:bg-surface-container-low p-2 rounded-full transition-colors">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<button class="text-on-surface-variant hover:bg-surface-container-low p-2 rounded-full transition-colors">
+<span class="material-symbols-outlined">help</span>
+</button>
+<div class="ml-2 w-8 h-8 rounded-full bg-primary-container overflow-hidden border border-outline-variant cursor-pointer">
+<img alt="User profile avatar" class="w-full h-full object-cover" data-alt="A professional headshot of an academic researcher. They are wearing a neat button-down shirt and have a friendly expression. The background is a clean, bright laboratory environment with soft white lighting. The overall mood is intelligent, approachable, and competent." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBvEXtNEr2hTGO7pCVQxcIPvkE8QT7-yZixsLlo0fN-kq70Xt-PJXcTuWebhTBN0B5Krl38-hdMZ-I9ctENqv1Nvq8X-yPiHzdO_k4Cya6k0L9wHJfOian1vuW-y0Iicu4q9El1rxctuVIXybalIZ7DYwOg5VpIuwNu7exZRrkfBikHHfYk8QOicRTcrA3ZOl7rzL0duWGGsu6nk-OJbksXEOz18OUEUScyMC3TPUnPRMN7mqqiVw7XiD0Q1evaYYRRATyI_MyfVFw"/>
+</div>
+</div>
+</header>
+<!-- Scrollable Canvas -->
+<main class="flex-1 overflow-y-auto p-margin-mobile md:p-margin-desktop bg-surface-bright">
+<div class="max-w-4xl mx-auto space-y-6">
+<!-- Page Header -->
+<div>
+<h1 class="font-headline-lg text-headline-lg text-on-surface">Hồ sơ cá nhân</h1>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1">Quản lý thông tin tài khoản và cài đặt bảo mật của bạn.</p>
+</div>
+<!-- Profile Grid Layout -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+<!-- General Information Form -->
+<div class="lg:col-span-2 space-y-6">
+<div class="bg-surface rounded-xl p-6 shadow-[0_1px_3px_rgba(0,0,0,0.1)] border border-outline-variant/30">
+<h2 class="font-headline-sm text-headline-sm text-on-surface mb-6 border-b border-surface-variant pb-2">Thông tin chung</h2>
+<div class="flex flex-col sm:flex-row gap-8 mb-8 items-start">
+<!-- Avatar Upload -->
+<div class="flex flex-col items-center gap-3">
+<div class="relative group">
+<div class="w-24 h-24 rounded-full overflow-hidden border-2 border-surface-container-high bg-surface-container">
+<img alt="Avatar" class="w-full h-full object-cover" data-alt="A professional headshot of an academic researcher. They are wearing a neat button-down shirt and have a friendly expression. The background is a clean, bright laboratory environment with soft white lighting. The overall mood is intelligent, approachable, and competent." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAAytGDv8lOg2kQJt2h7oljzgEC6GHy6_Fv6Qb4uFK1dtZ2-XdAg0lOuDPLJG5vPGZJI5niB2yVDUYjsgn0XWB5TFbNeTwDg7i0GCFC2VfALxwEHFKX51Iv1TawSR1bO3VcP0q_9R1C8dTJcBa3aYfhxZZB3y5yaqMXYxWftr6h5RAykeLNktk_jB4CEMFWQKCtvEhdaoiB_6-J1kM5xkLs65iUYcMOPqjVMbYyBTneYK225CLlY1g86jqd2N_ODUHMVC8NyLFqps4"/>
+</div>
+<button class="absolute bottom-0 right-0 w-8 h-8 bg-surface text-on-surface rounded-full shadow border border-outline-variant flex items-center justify-center hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined text-[16px]">edit</span>
+</button>
+</div>
+<span class="font-label-md text-label-md text-on-surface-variant">Ảnh đại diện</span>
+</div>
+<!-- Form Fields -->
+<div class="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+<div class="space-y-1">
+<label class="font-label-md text-label-md text-on-surface">Họ và tên</label>
+<input class="w-full bg-surface border border-outline-variant rounded-lg px-3 py-2 text-body-md text-on-surface focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary" type="text" value="Nguyễn Văn A"/>
+</div>
+<div class="space-y-1">
+<label class="font-label-md text-label-md text-on-surface">Chức danh</label>
+<input class="w-full bg-surface border border-outline-variant rounded-lg px-3 py-2 text-body-md text-on-surface focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary" type="text" value="Nghiên cứu viên chính"/>
+</div>
+<div class="space-y-1 md:col-span-2">
+<label class="font-label-md text-label-md text-on-surface">Email</label>
+<input class="w-full bg-surface border border-outline-variant rounded-lg px-3 py-2 text-body-md text-on-surface focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary" type="email" value="nguyenvana@university.edu.vn"/>
+</div>
+<div class="space-y-1">
+<label class="font-label-md text-label-md text-on-surface">Số điện thoại</label>
+<input class="w-full bg-surface border border-outline-variant rounded-lg px-3 py-2 text-body-md text-on-surface focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary" type="tel" value="0901234567"/>
+</div>
+<div class="space-y-1">
+<label class="font-label-md text-label-md text-on-surface">Khoa/Phòng ban</label>
+<select class="w-full bg-surface border border-outline-variant rounded-lg px-3 py-2 text-body-md text-on-surface focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary appearance-none">
+<option>Khoa Sinh học</option>
+<option>Khoa Hóa học</option>
+<option>Phòng Quản lý Vật tư</option>
+</select>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Security Section -->
+<div class="lg:col-span-1 space-y-6">
+<div class="bg-surface rounded-xl p-6 shadow-[0_1px_3px_rgba(0,0,0,0.1)] border border-outline-variant/30">
+<h2 class="font-headline-sm text-headline-sm text-on-surface mb-6 border-b border-surface-variant pb-2">Bảo mật</h2>
+<div class="space-y-4">
+<div class="space-y-1">
+<label class="font-label-md text-label-md text-on-surface">Mật khẩu hiện tại</label>
+<div class="relative">
+<input class="w-full bg-surface border border-outline-variant rounded-lg px-3 py-2 pr-10 text-body-md text-on-surface focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary" placeholder="••••••••" type="password"/>
+<button class="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-on-surface">
+<span class="material-symbols-outlined text-[20px]">visibility_off</span>
+</button>
+</div>
+</div>
+<div class="space-y-1">
+<label class="font-label-md text-label-md text-on-surface">Mật khẩu mới</label>
+<input class="w-full bg-surface border border-outline-variant rounded-lg px-3 py-2 text-body-md text-on-surface focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary" type="password"/>
+</div>
+<div class="space-y-1">
+<label class="font-label-md text-label-md text-on-surface">Xác nhận mật khẩu mới</label>
+<input class="w-full bg-surface border border-outline-variant rounded-lg px-3 py-2 text-body-md text-on-surface focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary" type="password"/>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Action Buttons -->
+<div class="flex justify-end gap-3 pt-4 border-t border-surface-variant">
+<button class="px-6 py-2 rounded-lg border border-outline text-on-surface font-label-md text-label-md hover:bg-surface-container-low transition-colors">
+                        Hủy bỏ
+                    </button>
+<button class="px-6 py-2 rounded-lg bg-secondary text-on-secondary font-label-md text-label-md hover:bg-secondary-container transition-colors shadow-sm">
+                        Lưu thay đổi
+                    </button>
+</div>
+</div>
+</main>
+</div>
+</body></html>

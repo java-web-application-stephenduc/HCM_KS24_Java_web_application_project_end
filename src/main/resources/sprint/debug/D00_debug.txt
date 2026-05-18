@@ -1,0 +1,328 @@
+# DEBUG.TXT — Hướng dẫn Debug & Maintain
+# Smart Academic & Lab Support Platform | Spring Boot + MySQL
+
+## ═══════════════════════════════════════════════════════
+## PHẦN 1: CẤU HÌNH DEBUG DEVELOPMENT
+## ═══════════════════════════════════════════════════════
+
+### 1.1 application.yml — Dev Profile
+
+# src/main/resources/application-dev.yml
+spring:
+  jpa:
+    show-sql: true          # In SQL ra console
+    properties:
+      hibernate:
+        format_sql: true    # SQL xuống dòng, dễ đọc
+  thymeleaf:
+    cache: false            # Hot reload template không cần restart
+
+logging:
+  level:
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE  # Hiện param binding
+    com.platform: DEBUG     # Package của project
+
+Kích hoạt profile dev khi chạy:
+  IntelliJ: Edit Run Config → Active profiles: dev
+  CLI: java -jar app.jar --spring.profiles.active=dev
+
+### 1.2 Xem SQL được sinh ra
+
+Với TRACE logging, console sẽ in:
+  Hibernate: select u1_0.id, u1_0.email, u1_0.role from users u1_0 where u1_0.email=?
+  binding parameter [1] as [VARCHAR] - [student@example.com]
+
+→ Dùng để kiểm tra: có đúng query không? Có N+1 không? JOIN đúng bảng chưa?
+
+### 1.3 H2 Console (development only — KHÔNG dùng production)
+
+spring:
+  h2:
+    console:
+      enabled: true
+  datasource:
+    url: jdbc:h2:mem:testdb  # Switch sang H2 trong memory khi cần test nhanh
+
+Truy cập: http://localhost:8080/h2-console
+
+## ═══════════════════════════════════════════════════════
+## PHẦN 2: LỖI PHỔ BIẾN & CÁCH XỬ LÝ
+## ═══════════════════════════════════════════════════════
+
+### ❌ ISSUE 1: LazyInitializationException
+Thông điệp:
+  org.hibernate.LazyInitializationException: could not initialize proxy [...] - no Session
+
+Nguyên nhân:
+  Truy cập entity.getRelation() SAU KHI đóng Hibernate session
+  (thường xảy ra khi return Entity từ Service rồi access trong Controller/Template)
+
+Giải pháp:
+  A) Dùng JOIN FETCH trong JPQL:
+     @Query("SELECT ms FROM MentoringSession ms JOIN FETCH ms.student WHERE ms.id = :id")
+
+  B) Dùng @Transactional trên method Service để session không đóng sớm
+
+  C) KHÔNG trả Entity ra ngoài Service → map sang DTO trong Service (best practice)
+
+  D) Dùng DTO Projection thay vì Entity với LazyLoad:
+     @Query("SELECT new com.platform.dto.SessionDto(ms.id, ms.sessionDate, u.email) FROM ...")
+
+### ❌ ISSUE 2: StackOverflowError trong JSON serialization
+Thông điệp:
+  StackOverflowError or Infinite recursion (StackOverflowError)
+
+Nguyên nhân:
+  Entity A có @OneToMany → Entity B, Entity B có @ManyToOne → Entity A
+  Khi Jackson serialize → vòng lặp vô tận
+
+Giải pháp:
+  A) KHÔNG dùng @ResponseBody với Entity → luôn dùng DTO
+  B) Nếu bắt buộc dùng Entity → thêm @JsonIgnore ở một phía:
+     @JsonIgnore
+     @ManyToOne
+     private MentoringSession session;
+
+### ❌ ISSUE 3: Transaction không Rollback
+Thông điệp:
+  Dữ liệu bị lưu một phần (ví dụ: session COMPLETED nhưng evaluation chưa có)
+
+Nguyên nhân:
+  @Transactional không hoạt động khi:
+  - Method private (Spring AOP không proxy được)
+  - Gọi method @Transactional từ bên trong cùng class (self-invocation)
+  - Throw checked Exception (Spring chỉ rollback với RuntimeException mặc định)
+
+Giải pháp:
+  A) @Transactional chỉ dùng trên public method
+  B) Không gọi this.method() → inject bean vào chính nó hoặc tách class
+  C) Chỉ throw RuntimeException (hoặc config rollbackFor):
+     @Transactional(rollbackFor = Exception.class)
+  D) Test: kiểm tra DB sau mock exception xem có rollback chưa
+
+### ❌ ISSUE 4: CSRF Token Missing (403 trên form POST)
+Thông điệp:
+  HTTP 403 Forbidden khi submit form
+
+Nguyên nhân:
+  Spring Security bật CSRF protection mặc định.
+  Form không gửi CSRF token.
+
+Giải pháp:
+  Thêm vào mọi form POST trong Thymeleaf:
+  <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
+  Hoặc dùng th:action (Thymeleaf tự inject CSRF):
+  <form th:action="@{/student/booking/confirm}" method="post">  ← tự động có CSRF
+
+### ❌ ISSUE 5: BCrypt Password không match
+Thông điệp:
+  Bad credentials (login thất bại dù đúng mật khẩu)
+
+Nguyên nhân:
+  Lưu password plain text hoặc hash 2 lần
+
+Kiểm tra:
+  Chạy trong DB: SELECT password_hash FROM users WHERE email = 'test@example.com';
+  Kết quả phải bắt đầu bằng $2a$10$ (BCrypt format)
+
+Test trong Java:
+  BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+  System.out.println(encoder.matches("plainPassword", storedHash));  // phải true
+
+### ❌ ISSUE 6: N+1 Query Problem
+Triệu chứng:
+  Trang danh sách 20 sessions → log hiện 21 query (1 list + 20 detail)
+
+Phát hiện:
+  Đếm số query trong log khi load trang → nếu = N + 1 là có vấn đề
+
+Giải pháp:
+  A) JOIN FETCH trong JPQL:
+     @Query("SELECT ms FROM MentoringSession ms JOIN FETCH ms.lecturer JOIN FETCH ms.student")
+
+  B) @EntityGraph trên Repository method:
+     @EntityGraph(attributePaths = {"lecturer", "lecturer.userProfile"})
+     List<MentoringSession> findByStudentId(Long studentId);
+
+  C) Dùng DTO Projection với native query (lấy đúng cột cần thiết)
+
+### ❌ ISSUE 7: Optimistic Lock / Race Condition (Inventory)
+Triệu chứng:
+  2 Admin bấm "Xác nhận xuất kho" cùng lúc → tồn kho âm
+
+Giải pháp đã implement trong CORE-08:
+  @Lock(LockModeType.PESSIMISTIC_WRITE) trên findByIdWithLock()
+  → MySQL sẽ chạy SELECT ... FOR UPDATE
+  → Transaction thứ 2 phải chờ transaction thứ 1 commit xong
+
+Kiểm tra trong MySQL:
+  SHOW ENGINE INNODB STATUS;  -- xem lock info
+
+### ❌ ISSUE 8: Thymeleaf Template Not Found
+Thông điệp:
+  TemplateInputException: Error resolving template [student/booking]
+
+Nguyên nhân:
+  - File không tồn tại trong src/main/resources/templates/
+  - Đặt sai path trong controller (phải không có dấu / đầu và không có .html)
+
+Đúng:
+  return "student/booking-form";   // → templates/student/booking-form.html
+
+Sai:
+  return "/student/booking-form";  // dấu / đầu
+  return "student/booking-form.html"; // .html suffix
+
+## ═══════════════════════════════════════════════════════
+## PHẦN 3: DEBUG TOOLS & COMMANDS
+## ═══════════════════════════════════════════════════════
+
+### 3.1 MySQL Debugging
+
+-- Xem tất cả sessions của student:
+SELECT ms.*, up.full_name as lecturer_name
+FROM mentoring_sessions ms
+JOIN users u ON ms.lecturer_id = u.id
+JOIN user_profiles up ON u.id = up.user_id
+WHERE ms.student_id = 1
+ORDER BY ms.session_date DESC;
+
+-- Kiểm tra tồn kho:
+SELECT name, quantity_total, quantity_available FROM equipments;
+
+-- Kiểm tra conflict (copy từ business logic):
+SELECT * FROM mentoring_sessions
+WHERE lecturer_id = 2
+  AND session_date = '2025-09-15'
+  AND start_time < '10:00:00'
+  AND end_time > '09:00:00'
+  AND status != 'CANCELLED';
+
+-- Xem borrowing_records + details:
+SELECT br.id, br.status, e.name, bd.quantity
+FROM borrowing_records br
+JOIN borrowing_details bd ON br.id = bd.record_id
+JOIN equipments e ON bd.equipment_id = e.id
+WHERE br.session_id = 5;
+
+### 3.2 Spring Boot Actuator (dev only)
+
+Thêm vào pom.xml:
+  <dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-actuator</artifactId>
+  </dependency>
+
+application-dev.yml:
+  management:
+    endpoints:
+      web:
+        exposure:
+          include: health,info,beans,mappings,env
+
+Truy cập:
+  http://localhost:8080/actuator/health     ← health check
+  http://localhost:8080/actuator/mappings   ← toàn bộ URL routes
+  http://localhost:8080/actuator/beans      ← tất cả Spring beans
+
+### 3.3 IntelliJ Debug Tips
+
+Breakpoint trong Service → Run in Debug mode:
+  Kiểm tra giá trị session.getStatus() trước và sau save()
+  Kiểm tra transaction commit bằng cách inspect Hibernate Session
+
+Database View trong IntelliJ:
+  View → Tool Windows → Database → Add MySQL datasource
+  → Chạy query trực tiếp trong IDE
+
+## ═══════════════════════════════════════════════════════
+## PHẦN 4: MAINTENANCE CHECKLIST
+## ═══════════════════════════════════════════════════════
+
+### 4.1 Trước khi push code
+
+[ ] Tắt show-sql trong application.yml (production profile)
+[ ] Không có System.out.println → dùng SLF4J Logger
+[ ] Không hard-code password/secret trong code (dùng env variable)
+[ ] DDL-auto = validate (không phải create-drop hay update trong production)
+[ ] Kiểm tra @Transactional đúng chỗ
+[ ] Không có Entity leak ra Controller/Template
+
+### 4.2 Log thay vì printStackTrace
+
+// SAI:
+try {
+    service.doSomething();
+} catch (Exception e) {
+    e.printStackTrace();   // Không log structured, bị mất trong production
+}
+
+// ĐÚNG:
+private static final Logger log = LoggerFactory.getLogger(MyClass.class);
+try {
+    service.doSomething();
+} catch (BusinessException e) {
+    log.warn("Business rule violated: {}", e.getMessage());
+} catch (Exception e) {
+    log.error("Unexpected error in doSomething", e);
+    throw e;
+}
+
+### 4.3 Global Exception Handler
+
+@ControllerAdvice
+public class GlobalExceptionHandler {
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public String handleNotFound(ResourceNotFoundException ex, Model model) {
+        model.addAttribute("errorMessage", ex.getMessage());
+        return "error/404";
+    }
+
+    @ExceptionHandler(BusinessException.class)
+    public String handleBusiness(BusinessException ex, RedirectAttributes flash,
+                                  HttpServletRequest request) {
+        flash.addFlashAttribute("error", ex.getMessage());
+        return "redirect:" + request.getHeader("Referer");
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public String handleForbidden() {
+        return "error/403";
+    }
+}
+
+### 4.4 Database Backup (Production)
+
+# Backup MySQL daily:
+mysqldump -u root -p smart_academic_db > backup_$(date +%Y%m%d).sql
+
+# Restore:
+mysql -u root -p smart_academic_db < backup_20250915.sql
+
+### 4.5 Schema Migration về sau (nếu dùng Flyway)
+
+Sau khi project stable, chuyển từ schema.sql sang Flyway:
+  src/main/resources/db/migration/
+    V1__initial_schema.sql
+    V2__add_lab_room_types.sql
+    V3__add_index_lecturer_date.sql
+
+Tuyệt đối KHÔNG sửa file Vx__ đã chạy → chỉ tạo file Vy__ mới để migrate.
+
+## ═══════════════════════════════════════════════════════
+## PHẦN 5: CHECKLIST TRƯỚC KHI NỘP / DEMO
+## ═══════════════════════════════════════════════════════
+
+[ ] Seed data đủ: departments, lab_room_types, ít nhất 2 giảng viên, 5 thiết bị
+[ ] Có tài khoản test sẵn: student@test.com / lecturer@test.com / admin@test.com (password: Test@1234)
+[ ] Toàn bộ CORE-01 → CORE-09 chạy được flow end-to-end
+[ ] Không có lỗi 500 (NullPointerException) khi dùng bình thường
+[ ] Form validation hoạt động (không để empty fields trống)
+[ ] Thông báo lỗi/thành công hiển thị rõ ràng (flash message)
+[ ] Không có SQL trực tiếp trong Controller
+[ ] Mật khẩu trong DB là BCrypt hash
+[ ] CSRF token có trong mọi form POST
+[ ] show-sql=false trong production build (hoặc ít nhất tắt TRACE logging)

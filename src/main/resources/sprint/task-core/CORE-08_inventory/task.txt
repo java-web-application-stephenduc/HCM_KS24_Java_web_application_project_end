@@ -1,0 +1,140 @@
+# TASK — CORE-08: Cấp phát Thiết bị & Quản lý Tồn kho (Inventory Dispatch)
+# Mức độ: BẮT BUỘC | Phụ thuộc: CORE-06
+
+## ═══════════════════════════════════════════
+## MỤC TIÊU
+## ═══════════════════════════════════════════
+Sau khi Giảng viên tạo phiếu mượn (CORE-06), Admin xác nhận xuất kho.
+Khi xác nhận:
+  - Kiểm tra tồn kho từng thiết bị trong phiếu
+  - Nếu ĐỦ hết: trừ quantity_available, cập nhật phiếu → DISPATCHED
+  - Nếu BẤT KỲ thiết bị nào KHÔNG ĐỦ: chặn toàn bộ, thông báo lỗi
+
+Dùng Pessimistic Lock (SELECT FOR UPDATE) để tránh race condition khi nhiều Admin xác nhận cùng lúc.
+
+## ═══════════════════════════════════════════
+## FILES CẦN TẠO / SỬA
+## ═══════════════════════════════════════════
+
+entity/
+  BorrowingRecord.java   ← đã có từ CORE-06
+  Equipment.java         ← đã có từ CORE-04
+
+dto/
+  DispatchQueueItemDto.java
+    - Long recordId
+    - String studentName
+    - LocalDate sessionDate
+    - List<String> equipmentSummary   ← "Arduino x2, Oscilloscope x1"
+    - String status
+
+repository/
+  EquipmentRepository.java   ← thêm method:
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT e FROM Equipment e WHERE e.id = :id")
+    Optional<Equipment> findByIdWithLock(@Param("id") Long id);
+
+  BorrowingRecordRepository.java   ← thêm:
+    + findByStatus(BorrowingStatus status): List<BorrowingRecord>
+    + findPendingDispatchWithDetails(): List (JOIN fetch details)
+
+service/
+  DispatchService.java
+    + getPendingDispatchQueue(): List<DispatchQueueItemDto>
+    + dispatchEquipment(Long recordId): void    ← @Transactional + lock
+    + returnEquipment(Long recordId): void      ← DISPATCHED → RETURNED, hoàn trả tồn kho
+
+controller/
+  AdminDispatchController.java   ← /admin/dispatch/**
+    + GET  /admin/dispatch              ← danh sách phiếu PENDING_DISPATCH
+    + POST /admin/dispatch/{id}/confirm ← xác nhận xuất kho
+    + POST /admin/dispatch/{id}/return  ← xác nhận trả thiết bị (bonus)
+
+templates/
+  admin/dispatch/queue.html       ← bảng danh sách phiếu chờ
+  admin/dispatch/detail.html      ← chi tiết phiếu trước khi xác nhận
+
+## ═══════════════════════════════════════════
+## DISPATCH LOGIC (PESSIMISTIC LOCK)
+## ═══════════════════════════════════════════
+
+@Transactional
+public void dispatchEquipment(Long recordId) {
+
+    // 1. Load record, validate trạng thái
+    BorrowingRecord record = borrowingRepo.findById(recordId)
+        .orElseThrow(() -> new ResourceNotFoundException("Record not found"));
+    if (record.getStatus() != BorrowingStatus.PENDING_DISPATCH) {
+        throw new BusinessException("Phiếu này không ở trạng thái chờ cấp phát");
+    }
+
+    List<BorrowingDetail> details = detailRepo.findByRecordId(recordId);
+
+    // 2. Kiểm tra tồn kho TRƯỚC (all-or-nothing)
+    //    Dùng PESSIMISTIC_WRITE để lock rows equipment trong suốt transaction
+    List<String> insufficientItems = new ArrayList<>();
+    for (BorrowingDetail detail : details) {
+        Equipment eq = equipmentRepo.findByIdWithLock(detail.getEquipment().getId())
+            .orElseThrow();
+        if (eq.getQuantityAvailable() < detail.getQuantity()) {
+            insufficientItems.add(String.format(
+                "%s (cần %d, còn %d)",
+                eq.getName(), detail.getQuantity(), eq.getQuantityAvailable()
+            ));
+        }
+    }
+    // Nếu có bất kỳ thiếu hụt nào → throw (rollback, không trừ gì cả)
+    if (!insufficientItems.isEmpty()) {
+        throw new InsufficientStockException(
+            "Không đủ tồn kho: " + String.join(", ", insufficientItems)
+        );
+    }
+
+    // 3. Trừ kho (chỉ đến đây nếu tất cả OK)
+    for (BorrowingDetail detail : details) {
+        Equipment eq = equipmentRepo.findByIdWithLock(detail.getEquipment().getId())
+            .orElseThrow();
+        eq.setQuantityAvailable(eq.getQuantityAvailable() - detail.getQuantity());
+        equipmentRepo.save(eq);
+    }
+
+    // 4. Cập nhật trạng thái phiếu
+    record.setStatus(BorrowingStatus.DISPATCHED);
+    borrowingRepo.save(record);
+}
+
+## ═══════════════════════════════════════════
+## RETURN LOGIC
+## ═══════════════════════════════════════════
+
+@Transactional
+public void returnEquipment(Long recordId) {
+    BorrowingRecord record = borrowingRepo.findById(recordId).orElseThrow();
+    if (record.getStatus() != BorrowingStatus.DISPATCHED) {
+        throw new BusinessException("Chỉ hoàn trả phiếu đang ở trạng thái DISPATCHED");
+    }
+    List<BorrowingDetail> details = detailRepo.findByRecordId(recordId);
+    for (BorrowingDetail detail : details) {
+        Equipment eq = equipmentRepo.findById(detail.getEquipment().getId()).orElseThrow();
+        eq.setQuantityAvailable(eq.getQuantityAvailable() + detail.getQuantity());
+        // KHÔNG vượt quantity_total:
+        if (eq.getQuantityAvailable() > eq.getQuantityTotal()) {
+            eq.setQuantityAvailable(eq.getQuantityTotal());
+        }
+        equipmentRepo.save(eq);
+    }
+    record.setStatus(BorrowingStatus.RETURNED);
+    borrowingRepo.save(record);
+}
+
+## ═══════════════════════════════════════════
+## TEST CHECKLIST
+## ═══════════════════════════════════════════
+
+[ ] Admin thấy danh sách phiếu PENDING_DISPATCH
+[ ] Xác nhận phiếu đủ tồn kho → status = DISPATCHED, quantity_available giảm đúng
+[ ] Xác nhận phiếu thiếu tồn kho → lỗi, trạng thái phiếu KHÔNG thay đổi
+[ ] Xác nhận phiếu thiếu 1 trong 3 thiết bị → tất cả 3 không bị trừ (all-or-nothing)
+[ ] Trả thiết bị → quantity_available tăng lại đúng, status = RETURNED
+[ ] quantity_available không vượt quantity_total sau khi trả
+[ ] Non-admin truy cập /admin/dispatch → 403

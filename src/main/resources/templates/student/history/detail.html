@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/main-layout :: layout(~{::#main-content})}" th:with="pageTitle='Chi tiết lịch sử'">
+<div id="main-content">
+    <h2 class="mb-4">Chi tiết buổi tư vấn</h2>
+    <div th:if="${record != null}">
+        <p><strong>Giảng viên:</strong> <span th:text="${record.lecturerName}"></span></p>
+        <p><strong>Khoa:</strong> <span th:text="${record.departmentName}"></span></p>
+        <p><strong>Ngày:</strong> <span th:text="${#temporals.format(record.sessionDate, 'dd/MM/yyyy')}"></span></p>
+        <p><strong>Giờ:</strong> <span th:text="${#temporals.format(record.startTime, 'HH:mm')} + ' - ' + ${#temporals.format(record.endTime, 'HH:mm')}"></span></p>
+        <p><strong>Trạng thái:</strong> <span th:text="${record.status}"></span></p>
+        <p><strong>Ghi chú:</strong> <span th:text="${record.note != null && !#strings.isEmpty(record.note) ? record.note : 'Không có'}"></span></p>
+        <div class="border rounded p-3 mb-3">
+            <h5>Đánh giá</h5>
+            <p><strong>Điểm:</strong> <span th:text="${record.score != null ? record.score : 'Chưa có'}"></span></p>
+            <p><strong>Nhận xét:</strong> <span th:text="${record.feedback != null && !#strings.isEmpty(record.feedback) ? record.feedback : 'Chưa có'}"></span></p>
+        </div>
+        <div class="border rounded p-3">
+            <h5>Thiết bị đã mượn</h5>
+            <ul th:if="${!#lists.isEmpty(record.equipments)}">
+                <li th:each="eq : ${record.equipments}" th:text="${eq.equipmentName} + ' x' + ${eq.quantity}"></li>
+            </ul>
+            <div th:if="${#lists.isEmpty(record.equipments)}" class="text-muted">Không có thiết bị</div>
+        </div>
+    </div>
+    <a class="inline-flex items-center justify-center gap-2 px-4 py-2 bg-surface-container-high text-on-surface rounded-lg font-label-md hover:bg-surface-container-highest transition-colors border border-outline-variant mt-3" th:href="@{/student/history}">Quay lại</a>
+</div>
+</html>
+
+
+
+

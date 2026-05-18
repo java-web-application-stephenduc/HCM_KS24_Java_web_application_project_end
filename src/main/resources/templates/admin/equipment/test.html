@@ -1,0 +1,12 @@
+﻿<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/main-layout :: layout(~{::#main-content})}" th:with="pageTitle='Test'">
+<body>
+<div id="main-content" class="w-full max-w-7xl mx-auto space-y-6">
+    <h2>Test th:each</h2>
+    <ul>
+        <li th:each="x : ${equipments}" th:text="${x.name}">item</li>
+    </ul>
+</div>
+</body>
+</html>

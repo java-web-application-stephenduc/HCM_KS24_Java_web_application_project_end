@@ -1,0 +1,149 @@
+# TASK — CORE-07: Tra cứu Hồ sơ Học thuật Liên kết (Academic Record / History)
+# Mức độ: BẮT BUỘC | Phụ thuộc: CORE-05, CORE-06
+
+## ═══════════════════════════════════════════
+## MỤC TIÊU
+## ═══════════════════════════════════════════
+Sinh viên xem lại lịch sử toàn bộ các lần tư vấn.
+Mỗi record phải hiển thị "Hồ sơ học tập" đầy đủ:
+  - Tên giảng viên + Khoa
+  - Ngày/giờ buổi tư vấn
+  - Điểm đánh giá + Nhận xét (nếu đã hoàn thành)
+  - Danh sách thiết bị đã mượn + số lượng (nếu có)
+
+Đây là yêu cầu JOIN nhiều bảng — KHÔNG được loop trong Java để lấy data.
+
+## ═══════════════════════════════════════════
+## QUERY CẦN VIẾT
+## ═══════════════════════════════════════════
+
+-- Full JOIN để lấy hồ sơ một lần:
+SELECT
+    ms.id            AS session_id,
+    ms.session_date,
+    ms.start_time,
+    ms.end_time,
+    ms.status,
+    up.full_name     AS lecturer_name,
+    d.name           AS department_name,
+    ae.score,
+    ae.feedback,
+    br.id            AS record_id,
+    br.status        AS borrow_status,
+    e.name           AS equipment_name,
+    bd.quantity
+FROM mentoring_sessions ms
+    JOIN users u            ON ms.lecturer_id = u.id
+    JOIN user_profiles up   ON u.id = up.user_id
+    JOIN lecturers l        ON u.id = l.user_id
+    JOIN departments d      ON l.department_id = d.id
+    LEFT JOIN academic_evaluations ae ON ms.id = ae.session_id
+    LEFT JOIN borrowing_records br    ON ms.id = br.session_id
+    LEFT JOIN borrowing_details bd    ON br.id = bd.record_id
+    LEFT JOIN equipments e            ON bd.equipment_id = e.id
+WHERE ms.student_id = :studentId
+ORDER BY ms.session_date DESC, ms.start_time DESC;
+
+## ═══════════════════════════════════════════
+## FILES CẦN TẠO
+## ═══════════════════════════════════════════
+
+dto/
+  AcademicRecordDto.java           ← DTO tổng hợp cho 1 session
+    - Long sessionId
+    - LocalDate sessionDate
+    - LocalTime startTime, endTime
+    - String status
+    - String lecturerName, departmentName
+    - Integer score
+    - String feedback
+    - List<BorrowedEquipmentDto> equipments
+
+  BorrowedEquipmentDto.java
+    - String equipmentName
+    - Integer quantity
+
+repository/
+  MentoringSessionRepository.java   ← thêm method:
+    + findStudentAcademicHistory(Long studentId): List<Object[]>  [native query]
+    hoặc dùng Projection interface
+
+  -- Cách 1: Native Query + Projection:
+  @Query(value = """
+    SELECT ms.id as sessionId, ms.session_date as sessionDate, ...
+    FROM mentoring_sessions ms JOIN ...
+    WHERE ms.student_id = :studentId
+    ORDER BY ms.session_date DESC
+  """, nativeQuery = true)
+  List<AcademicHistoryProjection> findAcademicHistory(@Param("studentId") Long studentId);
+
+  -- Projection interface:
+  public interface AcademicHistoryProjection {
+      Long getSessionId();
+      LocalDate getSessionDate();
+      String getLecturerName();
+      Integer getScore();
+      String getFeedback();
+      String getEquipmentName();
+      Integer getQuantity();
+  }
+
+service/
+  StudentHistoryService.java
+    + getAcademicHistory(Long studentId): List<AcademicRecordDto>
+    -- Logic: Query trả về flat rows (nhiều row cùng session nếu có nhiều thiết bị)
+    -- Group by sessionId, gộp equipment list
+
+controller/
+  StudentHistoryController.java    ← /student/history
+    + GET /student/history         ← hiện danh sách
+    + GET /student/history/{id}    ← xem chi tiết 1 session
+
+templates/
+  student/history/list.html       ← danh sách sessions + summary
+  student/history/detail.html     ← chi tiết đầy đủ 1 session
+
+## ═══════════════════════════════════════════
+## DATA GROUPING LOGIC (Java Service)
+## ═══════════════════════════════════════════
+
+// Flat rows từ DB → Map<Long, AcademicRecordDto>
+// Vì LEFT JOIN borrowing_details có thể sinh nhiều row cho 1 session
+
+public List<AcademicRecordDto> getAcademicHistory(Long studentId) {
+    List<AcademicHistoryProjection> rows = sessionRepo.findAcademicHistory(studentId);
+
+    // Group rows by sessionId
+    Map<Long, AcademicRecordDto> grouped = new LinkedHashMap<>();
+    for (AcademicHistoryProjection row : rows) {
+        AcademicRecordDto dto = grouped.computeIfAbsent(row.getSessionId(), id ->
+            AcademicRecordDto.builder()
+                .sessionId(row.getSessionId())
+                .sessionDate(row.getSessionDate())
+                .lecturerName(row.getLecturerName())
+                .score(row.getScore())
+                .feedback(row.getFeedback())
+                .equipments(new ArrayList<>())
+                .build()
+        );
+        // Thêm equipment nếu có (LEFT JOIN có thể null)
+        if (row.getEquipmentName() != null) {
+            dto.getEquipments().add(new BorrowedEquipmentDto(
+                row.getEquipmentName(), row.getQuantity()
+            ));
+        }
+    }
+    return new ArrayList<>(grouped.values());
+}
+
+## ═══════════════════════════════════════════
+## TEST CHECKLIST
+## ═══════════════════════════════════════════
+
+[ ] Student có 3 sessions → hiện đúng 3 card/row trong list
+[ ] Session COMPLETED hiện điểm + nhận xét
+[ ] Session PENDING hiện "Đang chờ xác nhận" (không có điểm)
+[ ] Session có 3 thiết bị → hiện đúng 3 dòng trong detail
+[ ] Session không có thiết bị → hiện "Không có thiết bị"
+[ ] Không hiện sessions của student khác (chỉ filter student_id đúng)
+[ ] Query là 1 JOIN duy nhất (kiểm tra log SQL với show-sql: true)

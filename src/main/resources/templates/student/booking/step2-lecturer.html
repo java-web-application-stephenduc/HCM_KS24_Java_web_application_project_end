@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/main-layout :: layout(~{::#main-content})}" th:with="pageTitle='Đặt lịch - Chọn giảng viên'">
+<body>
+<div id="main-content" class="w-full max-w-container-max mx-auto flex flex-col gap-6">
+    <!-- Breadcrumbs -->
+    <nav class="flex items-center gap-2 text-on-surface-variant font-label-md text-label-md">
+        <a th:href="@{/dashboard}" class="hover:text-secondary transition-colors">Trang chủ</a>
+        <span class="material-symbols-outlined text-[16px]">chevron_right</span>
+        <span  class="text-primary font-bold">Đặt lịch cố vấn</span>
+    </nav>
+
+    <!-- Wizard Stepper -->
+    <div class="flex items-center w-full max-w-3xl mx-auto mb-4">
+        <a th:href="@{/student/booking/step1}" class="flex flex-col items-center flex-1 relative group">
+            <div class="w-8 h-8 rounded-full bg-secondary text-on-secondary flex items-center justify-center font-label-md text-label-md mb-2 z-10">
+                <span class="material-symbols-outlined text-[18px]">check</span>
+            </div>
+            <span class="font-label-md text-label-md text-secondary group-hover:underline">Chọn Khoa</span>
+            <div class="absolute top-4 left-1/2 w-full h-[2px] bg-secondary -z-0"></div>
+        </a>
+        <a th:href="@{/student/booking/step2(departmentId=${departmentId})}" class="flex flex-col items-center flex-1 relative">
+            <div class="w-8 h-8 rounded-full bg-secondary text-on-secondary flex items-center justify-center font-label-md text-label-md mb-2 z-10">
+                <span class="material-symbols-outlined text-[18px]">check</span>
+            </div>
+            <span class="font-label-md text-label-md text-secondary font-bold">Chọn Giảng viên</span>
+            <div class="absolute top-4 right-1/2 w-full h-[2px] bg-secondary -z-0"></div>
+            <div class="absolute top-4 left-1/2 w-full h-[2px] bg-outline-variant -z-0"></div>
+        </a>
+        <a th:href="@{/student/booking/step3}" class="flex flex-col items-center flex-1 relative opacity-60 cursor-not-allowed">
+            <div class="w-8 h-8 rounded-full border-2 border-outline-variant bg-surface text-on-surface-variant flex items-center justify-center font-label-md text-label-md mb-2 z-10">3</div>
+            <span class="font-label-md text-label-md text-on-surface-variant">Chọn Lịch</span>
+            <div class="absolute top-4 right-1/2 w-full h-[2px] bg-outline-variant -z-0"></div>
+        </a>
+    </div>
+
+    <!-- Header -->
+    <div class="flex items-center justify-between">
+        <div>
+            <h2 class="font-headline-md text-headline-md text-primary">Chọn giảng viên</h2>
+            <p class="font-body-md text-body-md text-on-surface-variant mt-1">Vui lòng chọn giảng viên bạn muốn đặt lịch tư vấn.</p>
+        </div>
+        <a th:href="@{/student/booking/step1}" class="h-10 px-4 rounded-lg border border-outline-variant text-on-surface font-label-md text-label-md hover:bg-surface-container transition-colors inline-flex items-center gap-2">
+            <span class="material-symbols-outlined text-sm">arrow_back</span> Quay lại
+        </a>
+    </div>
+
+    <!-- Empty State -->
+    <div th:if="${#lists.isEmpty(lecturers)}" class="bg-surface rounded-xl p-12 border border-outline-variant text-center shadow-sm">
+        <div class="w-20 h-20 bg-surface-container-high rounded-full flex items-center justify-center mx-auto mb-4 text-on-surface-variant">
+            <span class="material-symbols-outlined text-4xl">group_off</span>
+        </div>
+        <h3 class="font-headline-sm text-headline-sm text-primary">Không tìm thấy dữ liệu</h3>
+        <p class="font-body-md text-body-md text-on-surface-variant mt-2">Chưa có giảng viên nào trong khoa này.</p>
+    </div>
+
+    <!-- Grid -->
+    <div th:unless="${#lists.isEmpty(lecturers)}" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div th:each="lecturer : ${lecturers}" class="bg-surface rounded-xl p-6 border border-outline-variant shadow-sm flex flex-col items-center text-center hover:shadow-md transition-shadow">
+            <div class="w-20 h-20 rounded-full bg-secondary text-on-secondary flex items-center justify-center text-3xl font-bold mb-4 uppercase">
+                <span th:text="${#strings.substring(lecturer.fullName, 0, 1)}">A</span>
+            </div>
+            <h3 class="font-headline-sm text-headline-sm text-primary mb-1" th:text="${lecturer.fullName}">Tên giảng viên</h3>
+            <p class="font-label-md text-label-md text-secondary mb-1" th:text="${lecturer.title}">Chức danh</p>
+            <p class="font-body-md text-body-md text-on-surface-variant mb-4" th:text="${lecturer.departmentName}">Khoa</p>
+            <p class="font-body-md text-body-md text-on-surface-variant mb-6 flex-1 line-clamp-3" th:text="${lecturer.bio != null ? lecturer.bio : 'Chưa có thông tin giới thiệu.'}"></p>
+
+            <a th:href="@{/student/booking/step3(lecturerId=${lecturer.id})}" class="w-full bg-secondary text-on-secondary hover:bg-secondary-container hover:text-on-secondary-container transition-colors font-label-md text-label-md py-3 rounded-lg inline-flex items-center justify-center shadow-sm">
+                Chọn
+            </a>
+        </div>
+    </div>
+</div>
+</body>
+</html>
