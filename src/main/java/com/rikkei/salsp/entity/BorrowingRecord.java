@@ -1,5 +1,6 @@
 package com.rikkei.salsp.entity;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -51,7 +52,12 @@ public class BorrowingRecord {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    @OneToMany(mappedBy = "record")
+    /**
+     * Danh sách chi tiết thiết bị trong phiếu mượn.
+     * cascade = ALL: lưu/xóa BorrowingRecord sẽ tự động lưu/xóa các BorrowingDetail con.
+     * orphanRemoval = true: xóa detail khỏi list sẽ xóa khỏi DB, tránh FK constraint khi delete record.
+     */
+    @OneToMany(mappedBy = "record", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<BorrowingDetail> details = new ArrayList<>();
 }
 

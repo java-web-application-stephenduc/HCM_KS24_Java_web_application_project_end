@@ -7,6 +7,7 @@ import com.rikkei.salsp.dto.SlotDto;
 import com.rikkei.salsp.entity.MentoringSession;
 import com.rikkei.salsp.entity.SessionStatus;
 import com.rikkei.salsp.entity.User;
+import com.rikkei.salsp.entity.UserRole;
 import com.rikkei.salsp.exception.BusinessException;
 import com.rikkei.salsp.exception.ResourceNotFoundException;
 import com.rikkei.salsp.exception.SlotConflictException;
@@ -109,6 +110,12 @@ public class BookingService {
 
     @Transactional
     public MentoringSession createBooking(BookingRequestDto dto, String studentEmail) {
+        // Bug #32: Validate thời gian hợp lệ trước khi lưu.
+        if (dto.getStartTime() != null && dto.getEndTime() != null
+                && !dto.getStartTime().isBefore(dto.getEndTime())) {
+            throw new BusinessException("Giờ kết thúc phải sau giờ bắt đầu");
+        }
+
         // Kiểm tra thời gian không ở quá khứ.
         LocalDateTime bookingDateTime = LocalDateTime.of(dto.getSessionDate(), dto.getStartTime());
         if (bookingDateTime.isBefore(LocalDateTime.now())) {
@@ -123,8 +130,15 @@ public class BookingService {
 
         User student = userRepository.findByEmail(studentEmail)
             .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sinh viên"));
+
+        // Bug #10: Verify lecturerId thuộc về tài khoản có role LECTURER.
+        // Nếu không kiểm tra, hàm userRepository.findById có thể trả về bất kỳ User nào (STUDENT/ADMIN)
+        // khiến session được gán sai giảng viên.
         User lecturer = userRepository.findById(dto.getLecturerId())
             .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy giảng viên"));
+        if (lecturer.getRole() != UserRole.LECTURER) {
+            throw new BusinessException("ID được cung cấp không phải là giảng viên");
+        }
 
         MentoringSession session = new MentoringSession();
         session.setStudent(student);

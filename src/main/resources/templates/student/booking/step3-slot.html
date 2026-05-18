@@ -10,8 +10,9 @@
         <span class="text-primary font-bold">Đặt lịch cố vấn</span>
     </nav>
 
-    <!-- Wizard Stepper -->
+    <!-- Wizard Stepper: dùng thẻ <a> cho tất cả các bước để hỗ trợ điều hướng -->
     <div class="flex items-center w-full max-w-3xl mx-auto mb-4">
+        <!-- Bước 1: đã hoàn thành -->
         <a th:href="@{/student/booking/step1}" class="flex flex-col items-center flex-1 relative group">
             <div class="w-8 h-8 rounded-full bg-secondary text-on-secondary flex items-center justify-center font-label-md text-label-md mb-2 z-10">
                 <span class="material-symbols-outlined text-[18px]">check</span>
@@ -19,6 +20,7 @@
             <span class="font-label-md text-label-md text-secondary group-hover:underline">Chọn Khoa</span>
             <div class="absolute top-4 left-1/2 w-full h-[2px] bg-secondary -z-0"></div>
         </a>
+        <!-- Bước 2: đã hoàn thành, có thể quay lại với departmentId -->
         <a th:href="@{/student/booking/step2(departmentId=${departmentId})}" class="flex flex-col items-center flex-1 relative">
             <div class="w-8 h-8 rounded-full bg-secondary text-on-secondary flex items-center justify-center font-label-md text-label-md mb-2 z-10">
                 <span class="material-symbols-outlined text-[18px]">check</span>
@@ -27,6 +29,7 @@
             <div class="absolute top-4 right-1/2 w-full h-[2px] bg-secondary -z-0"></div>
             <div class="absolute top-4 left-1/2 w-full h-[2px] bg-secondary -z-0"></div>
         </a>
+        <!-- Bước 3: đang active -->
         <a th:href="@{/student/booking/step3(lecturerId=${booking.lecturerId})}" class="flex flex-col items-center flex-1 relative">
             <div class="w-8 h-8 rounded-full border-2 border-secondary bg-surface text-secondary flex items-center justify-center font-label-md text-label-md font-bold mb-2 z-10">3</div>
             <span class="font-label-md text-label-md text-primary font-bold">Chọn Lịch</span>
@@ -46,10 +49,12 @@
     <form th:action="@{/student/booking/confirm}" th:object="${booking}" method="post">
         <input type="hidden" th:field="*{lecturerId}" id="lecturerId"/>
         <input type="hidden" id="slotsEndpoint" th:value="@{/student/booking/available-slots}"/>
+        <!-- Lưu departmentId để nút quay lại trỏ đúng về step2 với khoa đã chọn -->
+        <input type="hidden" id="departmentIdValue" th:value="${departmentId}"/>
 
         <!-- Layout Content -->
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter items-start">
-            <!-- Left Column: Summary -->
+            <!-- Left Column: Tóm tắt thông tin đã chọn -->
             <div class="lg:col-span-4 flex flex-col gap-6">
                 <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6 shadow-sm">
                     <h2 class="font-headline-sm text-headline-sm text-primary mb-4 pb-4 border-b border-outline-variant">Thông tin đã chọn</h2>
@@ -82,7 +87,7 @@
                 </div>
             </div>
 
-            <!-- Right Column: Calendar / Slot Picker -->
+            <!-- Right Column: Lịch và chọn khung giờ -->
             <div class="lg:col-span-8 bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden">
                 <div class="p-6 border-b border-outline-variant flex items-center justify-between bg-surface-bright">
                     <div class="flex flex-col">
@@ -93,7 +98,14 @@
 
                 <div class="p-6 border-b border-outline-variant bg-surface-container-low">
                     <label for="sessionDate" class="block font-label-md text-label-md text-on-surface mb-2">Ngày hẹn</label>
-                    <input type="date" th:field="*{sessionDate}" id="sessionDate" class="w-full h-11 px-3 bg-surface-lowest border border-outline-variant rounded-lg focus:border-secondary focus:ring-1 focus:ring-secondary outline-none font-body-md text-body-md text-on-surface transition-colors" required onchange="fetchAvailableSlots()"/>
+                    <!--
+                        Không dùng inline onchange/oninput để tránh lỗi CSP.
+                        Sự kiện được đăng ký qua addEventListener trong script bên dưới.
+                        Hỗ trợ cả Chrome (input event) và Firefox/Safari (change event).
+                    -->
+                    <input type="date" th:field="*{sessionDate}" id="sessionDate"
+                           class="w-full h-11 px-3 bg-surface-lowest border border-outline-variant rounded-lg focus:border-secondary focus:ring-1 focus:ring-secondary outline-none font-body-md text-body-md text-on-surface transition-colors"
+                           required/>
                     <p th:if="${#fields.hasErrors('sessionDate')}" th:errors="*{sessionDate}" class="mt-1 font-label-md text-label-md text-error"></p>
                 </div>
 
@@ -111,129 +123,228 @@
 
         <!-- Footer Actions -->
         <div class="pt-6 mt-6 border-t border-outline-variant flex justify-between items-center">
-            <a th:href="@{/student/booking/step1}" class="h-12 px-6 rounded-lg border border-secondary text-secondary font-label-md text-label-md hover:bg-secondary/5 transition-colors inline-flex items-center gap-2">
+            <!-- Nút quay lại trỏ đúng về step2 với departmentId đã chọn trước đó -->
+            <a th:href="@{/student/booking/step2(departmentId=${departmentId})}"
+               class="h-12 px-6 rounded-lg border border-secondary text-secondary font-label-md text-label-md hover:bg-secondary/5 transition-colors inline-flex items-center gap-2">
                 <span class="material-symbols-outlined text-sm">arrow_back</span> Quay lại
             </a>
             <div class="flex gap-4">
-                <button type="submit" class="h-12 px-8 rounded-lg bg-secondary text-on-secondary font-label-md text-label-md font-bold hover:bg-secondary-container transition-colors shadow-sm inline-flex items-center gap-2" id="submitBtn" disabled>
+                <button type="submit"
+                        class="h-12 px-8 rounded-lg bg-secondary text-on-secondary font-label-md text-label-md font-bold hover:bg-secondary-container transition-colors shadow-sm inline-flex items-center gap-2"
+                        id="submitBtn" disabled>
                     Xác nhận đặt lịch
                     <span class="material-symbols-outlined text-lg">check</span>
                 </button>
             </div>
         </div>
     </form>
-</div>
-
-<script>
-    function fetchAvailableSlots() {
-        const date = document.getElementById('sessionDate').value;
-        const lecturerId = document.getElementById('lecturerId').value;
-        const container = document.getElementById('slots-container');
-        const submitBtn = document.getElementById('submitBtn');
-        const endpoint = document.getElementById('slotsEndpoint').value;
-
-        document.getElementById('startTime').value = '';
-        document.getElementById('endTime').value = '';
-        document.getElementById('selectedSlotDisplay').textContent = 'Chưa chọn khung giờ';
-        document.getElementById('selectedSlotDisplay').className = 'font-body-md text-body-md italic text-on-surface-variant';
-        submitBtn.disabled = true;
-
-        if (!date || !lecturerId) {
-            container.innerHTML = '<p class="font-body-md text-body-md text-on-surface-variant col-span-full">Vui lòng chọn ngày để xem khung giờ.</p>';
-            return;
+    <script>
+        /**
+         * Chuẩn hóa giá trị thời gian từ nhiều định dạng về chuỗi HH:mm.
+         * Jackson (Spring Boot) có thể trả về LocalTime dưới các dạng:
+         *   - Chuỗi: "08:00:00" (khi write-dates-as-timestamps=false, mặc định Spring Boot)
+         *   - Mảng: [8, 0, 0] (khi write-dates-as-timestamps=true)
+         *   - Object: {hour: 8, minute: 0, second: 0, nano: 0}
+         *
+         * @param {string|Array|object} value - Giá trị thời gian cần chuẩn hóa
+         * @returns {string} Chuỗi HH:mm hoặc rỗng nếu không hợp lệ
+         */
+        function normalizeTime(value) {
+            if (value === null || value === undefined || value === '') {
+                return '';
+            }
+            // Định dạng chuỗi: "08:00:00" hoặc "08:00"
+            if (typeof value === 'string') {
+                return value.substring(0, 5);
+            }
+            // Định dạng mảng: [8, 0, 0] (timestamp mode)
+            if (Array.isArray(value)) {
+                const hh = String(value[0] || 0).padStart(2, '0');
+                const mm = String(value[1] || 0).padStart(2, '0');
+                return hh + ':' + mm;
+            }
+            // Định dạng object: {hour: 8, minute: 0, second: 0, nano: 0}
+            if (typeof value === 'object' && value.hour !== undefined) {
+                const hh = String(value.hour).padStart(2, '0');
+                const mm = String(value.minute || 0).padStart(2, '0');
+                return hh + ':' + mm;
+            }
+            return String(value).substring(0, 5);
         }
 
-        container.innerHTML = '<p class="font-body-md text-body-md text-on-surface-variant col-span-full">Đang tải...</p>';
+        /**
+         * Lấy giờ (0–23) từ giá trị thời gian bất kỳ định dạng để phân loại sáng/chiều.
+         *
+         * @param {string|Array|object} value - Giá trị thời gian
+         * @returns {number} Giờ trong ngày (0–23)
+         */
+        function getHour(value) {
+            const time = normalizeTime(value);
+            if (!time) return 0;
+            return parseInt(time.substring(0, 2), 10) || 0;
+        }
 
-        fetch(`${endpoint}?lecturerId=${encodeURIComponent(lecturerId)}&date=${encodeURIComponent(date)}`)
-            .then(response => {
+        /**
+         * Tạo nút bấm để chọn một khung giờ cụ thể.
+         * Khi được click, nút sẽ:
+         *   1. Bỏ highlight các slot khác
+         *   2. Highlight slot đang chọn
+         *   3. Gán startTime/endTime vào hidden inputs
+         *   4. Kích hoạt nút "Xác nhận đặt lịch"
+         *
+         * @param {object} slot - Đối tượng slot {startTime, endTime, available}
+         * @returns {HTMLButtonElement} Nút đã được tạo
+         */
+        function createSlotButton(slot) {
+            const startFormatted = normalizeTime(slot.startTime);
+            const endFormatted = normalizeTime(slot.endTime);
+
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'py-3 px-4 rounded-lg border border-outline-variant bg-surface-bright text-center hover:border-secondary hover:text-secondary hover:shadow-sm transition-all focus:ring-2 focus:ring-secondary focus:outline-none slot-item';
+            btn.innerHTML = '<span class="font-body-md text-body-md font-semibold">' + startFormatted + ' - ' + endFormatted + '</span>';
+
+            btn.addEventListener('click', function () {
+                // Bỏ highlight tất cả slot khác
+                document.querySelectorAll('.slot-item').forEach(function (el) {
+                    el.className = 'py-3 px-4 rounded-lg border border-outline-variant bg-surface-bright text-center hover:border-secondary hover:text-secondary hover:shadow-sm transition-all focus:ring-2 focus:ring-secondary focus:outline-none slot-item';
+                });
+                // Highlight slot đang chọn
+                btn.className = 'py-3 px-4 rounded-lg border border-secondary bg-secondary-fixed text-secondary ring-2 ring-secondary text-center transition-all slot-item';
+                // Gán giá trị HH:mm vào hidden inputs (Spring MVC dùng @DateTimeFormat ISO.TIME đọc "HH:mm")
+                document.getElementById('startTime').value = startFormatted;
+                document.getElementById('endTime').value = endFormatted;
+                // Cập nhật hiển thị slot đã chọn
+                document.getElementById('selectedSlotDisplay').textContent = startFormatted + ' - ' + endFormatted;
+                document.getElementById('selectedSlotDisplay').className = 'font-body-md text-body-md text-on-surface font-semibold';
+                // Kích hoạt nút submit
+                document.getElementById('submitBtn').disabled = false;
+            });
+
+            return btn;
+        }
+
+        /**
+         * Gọi API /student/booking/available-slots để lấy danh sách khung giờ trống
+         * của giảng viên đã chọn trong ngày được chỉ định.
+         *
+         * Xử lý đầy đủ các trường hợp:
+         *   - Không có ngày hoặc lecturerId: hiển thị hướng dẫn
+         *   - Đang tải: hiển thị spinner
+         *   - Không có slot trống: thông báo rõ ràng
+         *   - Lỗi mạng/server: hiển thị thông báo lỗi
+         *   - Phân chia sáng/chiều cho dễ nhìn
+         */
+        function fetchAvailableSlots() {
+            var dateEl = document.getElementById('sessionDate');
+            var date = dateEl ? dateEl.value : '';
+            var lecturerId = document.getElementById('lecturerId').value;
+            var container = document.getElementById('slots-container');
+            var submitBtn = document.getElementById('submitBtn');
+            var endpoint = document.getElementById('slotsEndpoint').value;
+
+            // Reset trạng thái lựa chọn cũ
+            document.getElementById('startTime').value = '';
+            document.getElementById('endTime').value = '';
+            document.getElementById('selectedSlotDisplay').textContent = 'Chưa chọn khung giờ';
+            document.getElementById('selectedSlotDisplay').className = 'font-body-md text-body-md italic text-on-surface-variant';
+            submitBtn.disabled = true;
+
+            // Validate đầu vào trước khi gọi API
+            if (!date || !lecturerId) {
+                container.innerHTML = '<p class="font-body-md text-body-md text-on-surface-variant col-span-full">Vui lòng chọn ngày để xem khung giờ.</p>';
+                return;
+            }
+
+            // Hiển thị trạng thái loading
+            container.innerHTML = '<p class="font-body-md text-body-md text-on-surface-variant col-span-full">Đang tải khung giờ...</p>';
+
+            // Gọi API lấy danh sách slot
+            var url = endpoint + '?lecturerId=' + encodeURIComponent(lecturerId) + '&date=' + encodeURIComponent(date);
+
+            fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                credentials: 'same-origin'
+            })
+            .then(function (response) {
                 if (!response.ok) {
-                    throw new Error('Không thể tải khung giờ');
+                    throw new Error('Server trả về lỗi: ' + response.status);
                 }
                 return response.json();
             })
-            .then(data => {
+            .then(function (data) {
                 container.innerHTML = '';
-                const available = data.filter(s => s.available);
-                if (available.length === 0) {
-                    container.innerHTML = '<p class="font-body-md text-body-md text-on-surface-variant col-span-full">Không có khung giờ trống trong ngày này.</p>';
+
+                // Kiểm tra dữ liệu hợp lệ
+                if (!Array.isArray(data)) {
+                    container.innerHTML = '<p class="font-body-md text-body-md text-on-surface-variant col-span-full">Dữ liệu không hợp lệ. Vui lòng thử lại.</p>';
                     return;
                 }
 
-                const morningSlots = available.filter(s => getHour(s.startTime) < 12);
-                const afternoonSlots = available.filter(s => getHour(s.startTime) >= 12);
+                // Lọc chỉ lấy slot còn trống
+                var available = data.filter(function (s) { return s.available === true; });
+
+                if (available.length === 0) {
+                    container.innerHTML = '<p class="font-body-md text-body-md text-on-surface-variant col-span-full">Không có khung giờ trống trong ngày này. Vui lòng chọn ngày khác.</p>';
+                    return;
+                }
+
+                // Phân loại buổi sáng (< 12:00) và buổi chiều (>= 12:00)
+                var morningSlots = available.filter(function (s) { return getHour(s.startTime) < 12; });
+                var afternoonSlots = available.filter(function (s) { return getHour(s.startTime) >= 12; });
 
                 if (morningSlots.length > 0) {
-                    const morningHeader = document.createElement('div');
+                    var morningHeader = document.createElement('div');
                     morningHeader.className = 'col-span-full';
-                    morningHeader.innerHTML = '<h4 class="font-label-md text-label-md text-on-surface-variant mb-2 uppercase tracking-wider mt-2">Sáng</h4>';
+                    morningHeader.innerHTML = '<h4 class="font-label-md text-label-md text-on-surface-variant mb-2 uppercase tracking-wider mt-2">Buổi sáng</h4>';
                     container.appendChild(morningHeader);
-                    morningSlots.forEach(slot => container.appendChild(createSlotButton(slot)));
+                    morningSlots.forEach(function (slot) { container.appendChild(createSlotButton(slot)); });
                 }
 
                 if (afternoonSlots.length > 0) {
-                    const afternoonHeader = document.createElement('div');
+                    var afternoonHeader = document.createElement('div');
                     afternoonHeader.className = 'col-span-full';
-                    afternoonHeader.innerHTML = '<h4 class="font-label-md text-label-md text-on-surface-variant mb-2 uppercase tracking-wider mt-4">Chiều</h4>';
+                    afternoonHeader.innerHTML = '<h4 class="font-label-md text-label-md text-on-surface-variant mb-2 uppercase tracking-wider mt-4">Buổi chiều</h4>';
                     container.appendChild(afternoonHeader);
-                    afternoonSlots.forEach(slot => container.appendChild(createSlotButton(slot)));
-                }
-
-                if (morningSlots.length === 0 && afternoonSlots.length === 0) {
-                    container.innerHTML = '<p class="font-body-md text-body-md text-on-surface-variant col-span-full">Không có khung giờ trống trong ngày này.</p>';
+                    afternoonSlots.forEach(function (slot) { container.appendChild(createSlotButton(slot)); });
                 }
             })
-            .catch(() => {
-                container.innerHTML = '<p class="font-body-md text-body-md text-on-surface-variant col-span-full">Lỗi khi tải khung giờ.</p>';
+            .catch(function (err) {
+                console.error('Lỗi tải khung giờ:', err);
+                container.innerHTML = '<p class="font-body-md text-body-md text-error col-span-full">Lỗi khi tải khung giờ. Vui lòng thử lại.</p>';
             });
-    }
-
-    function normalizeTime(value) {
-        if (!value) {
-            return '';
         }
-        if (typeof value === 'string') {
-            return value;
-        }
-        if (typeof value === 'object' && value.hour !== undefined) {
-            const hh = String(value.hour).padStart(2, '0');
-            const mm = String(value.minute || 0).padStart(2, '0');
-            return `${hh}:${mm}`;
-        }
-        return String(value);
-    }
 
-    function getHour(value) {
-        const time = normalizeTime(value);
-        return parseInt(time.substring(0, 2), 10) || 0;
-    }
+        // Khởi tạo sự kiện sau khi DOM sẵn sàng
+        document.addEventListener('DOMContentLoaded', function () {
+            var dateInput = document.getElementById('sessionDate');
+            if (!dateInput) return;
 
-    function createSlotButton(slot) {
-        const formatTime = (t) => normalizeTime(t).substring(0, 5);
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = 'py-3 px-4 rounded-lg border border-outline-variant bg-surface-bright text-center hover:border-secondary hover:text-secondary hover:shadow-sm transition-all focus:ring-2 focus:ring-secondary focus:outline-none slot-item';
-        btn.innerHTML = '<span class="font-body-md text-body-md font-semibold">' + formatTime(slot.startTime) + ' - ' + formatTime(slot.endTime) + '</span>';
+            /*
+             * Dùng debounce để tránh gọi API nhiều lần liên tiếp khi cả 'change' và 'input'
+             * đồng thời được kích hoạt (xảy ra trên một số trình duyệt).
+             * Timeout 80ms là đủ để bao phủ cả hai sự kiện mà không ảnh hưởng trải nghiệm.
+             */
+            var debounceTimer = null;
+            function debouncedFetch() {
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(fetchAvailableSlots, 80);
+            }
 
-        btn.onclick = function() {
-            document.querySelectorAll('.slot-item').forEach(el => {
-                el.className = 'py-3 px-4 rounded-lg border border-outline-variant bg-surface-bright text-center hover:border-secondary hover:text-secondary hover:shadow-sm transition-all focus:ring-2 focus:ring-secondary focus:outline-none slot-item';
-            });
-            btn.className = 'py-3 px-4 rounded-lg border border-secondary bg-secondary-fixed text-secondary ring-2 ring-secondary text-center transition-all slot-item';
-            document.getElementById('startTime').value = normalizeTime(slot.startTime);
-            document.getElementById('endTime').value = normalizeTime(slot.endTime);
-            document.getElementById('selectedSlotDisplay').textContent = formatTime(slot.startTime) + ' - ' + formatTime(slot.endTime);
-            document.getElementById('selectedSlotDisplay').className = 'font-body-md text-body-md text-on-surface font-semibold';
-            document.getElementById('submitBtn').disabled = false;
-        };
-        return btn;
-    }
+            // Đăng ký cả hai sự kiện để tương thích trình duyệt tối đa
+            dateInput.addEventListener('change', debouncedFetch);
+            dateInput.addEventListener('input', debouncedFetch);
 
-    document.addEventListener('DOMContentLoaded', function () {
-        if (document.getElementById('sessionDate').value) {
-            fetchAvailableSlots();
-        }
-    });
-</script>
+            // Nếu đã có giá trị ngày (form trả về do lỗi validation), tải slot ngay
+            if (dateInput.value) {
+                fetchAvailableSlots();
+            }
+        });
+    </script>
+</div>
 </body>
 </html>

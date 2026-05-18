@@ -33,6 +33,9 @@ public class LecturerController {
      */
     @GetMapping("/queue")
     public String queue(Authentication authentication, Model model) {
+        if (authentication == null || authentication.getName() == null) {
+            return "redirect:/auth/login";
+        }
         model.addAttribute("sessions", evaluationService.getPendingSessions(authentication.getName()));
         return "lecturer/queue";
     }
@@ -47,6 +50,9 @@ public class LecturerController {
      */
     @GetMapping("/session/{id}/evaluate")
     public String evaluateForm(@PathVariable Long id, Authentication authentication, Model model) {
+        if (authentication == null || authentication.getName() == null) {
+            return "redirect:/auth/login";
+        }
         model.addAttribute("session", evaluationService.getSessionDetail(id, authentication.getName()));
         model.addAttribute("equipmentList", equipmentService.findAll());
         EvaluationFormDto form = new EvaluationFormDto();
@@ -73,6 +79,9 @@ public class LecturerController {
                                    Authentication authentication,
                                    Model model,
                                    RedirectAttributes flash) {
+        if (authentication == null || authentication.getName() == null) {
+            return "redirect:/auth/login";
+        }
         if (errors.hasErrors()) {
             model.addAttribute("session", evaluationService.getSessionDetail(id, authentication.getName()));
             model.addAttribute("equipmentList", equipmentService.findAll());

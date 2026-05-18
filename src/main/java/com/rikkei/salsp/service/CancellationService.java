@@ -35,8 +35,13 @@ public class CancellationService {
             throw new BusinessException("Chỉ hủy được lịch PENDING");
         }
 
+        // Bug #18: Đồng bộ logic kiểm tra 24h với StudentHistoryService.isCancellable().
+        // isCancellable() trả true khi: now.plusHours(24).isBefore(sessionTime)
+        // tương đương: sessionTime.isAfter(now + 24h).
+        // Phiên bản cũ dùng sessionDateTime.isBefore(now+24h) là sai logic đối ngược.
+        // Nếu sessionTime == now+24h: isCancellable() = false, server cũ cho phép -> mâu thuẫn.
         LocalDateTime sessionDateTime = LocalDateTime.of(session.getSessionDate(), session.getStartTime());
-        if (sessionDateTime.isBefore(LocalDateTime.now().plusHours(24))) {
+        if (!sessionDateTime.isAfter(LocalDateTime.now().plusHours(24))) {
             throw new BusinessException("Chỉ hủy được trước 24 giờ");
         }
 

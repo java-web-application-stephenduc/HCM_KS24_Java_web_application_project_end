@@ -37,24 +37,30 @@
                 <div>
                     <label class="block font-label-md text-label-md text-on-surface mb-1" for="fullName">Họ và tên</label>
                     <input type="text" th:field="*{fullName}" id="fullName" class="w-full h-11 px-3 bg-surface-lowest border border-outline-variant rounded-lg focus:border-secondary focus:ring-1 focus:ring-secondary outline-none font-body-md text-body-md text-on-surface placeholder-on-surface-variant transition-colors" placeholder="Nhập họ và tên" required/>
-                    <p th:if="${#fields.hasErrors('fullName')}" th:errors="*{fullName}" class="mt-1 font-label-md text-label-md text-error flex items-center gap-1">
-                        <span class="material-symbols-outlined text-[14px]">error</span><span th:text="${#fields.errors('fullName')}"></span>
+                    <!-- Bug #7: th:errors thay thế toàn bộ nội dung thẻ, dùng th:if + th:text để giữ icon -->
+                    <p th:if="${#fields.hasErrors('fullName')}" class="mt-1 font-label-md text-label-md text-error flex items-center gap-1">
+                        <span class="material-symbols-outlined text-[14px]">error</span>
+                        <span th:text="${#fields.errors('fullName')[0]}"></span>
                     </p>
                 </div>
 
                 <div>
                     <label class="block font-label-md text-label-md text-on-surface mb-1" for="email">Email</label>
                     <input type="email" th:field="*{email}" id="email" class="w-full h-11 px-3 bg-surface-lowest border border-outline-variant rounded-lg focus:border-secondary focus:ring-1 focus:ring-secondary outline-none font-body-md text-body-md text-on-surface placeholder-on-surface-variant transition-colors" placeholder="sinhvien@school.edu.vn" required/>
-                    <p th:if="${#fields.hasErrors('email')}" th:errors="*{email}" class="mt-1 font-label-md text-label-md text-error flex items-center gap-1">
-                        <span class="material-symbols-outlined text-[14px]">error</span><span th:text="${#fields.errors('email')}"></span>
+                    <!-- Bug #7: dùng th:if + th:text để giữ icon -->
+                    <p th:if="${#fields.hasErrors('email')}" class="mt-1 font-label-md text-label-md text-error flex items-center gap-1">
+                        <span class="material-symbols-outlined text-[14px]">error</span>
+                        <span th:text="${#fields.errors('email')[0]}"></span>
                     </p>
                 </div>
 
                 <div>
                     <label class="block font-label-md text-label-md text-on-surface mb-1" for="phone">Số điện thoại</label>
                     <input type="tel" th:field="*{phone}" id="phone" class="w-full h-11 px-3 bg-surface-lowest border border-outline-variant rounded-lg focus:border-secondary focus:ring-1 focus:ring-secondary outline-none font-body-md text-body-md text-on-surface placeholder-on-surface-variant transition-colors" placeholder="Nhập số điện thoại"/>
-                    <p th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}" class="mt-1 font-label-md text-label-md text-error flex items-center gap-1">
-                        <span class="material-symbols-outlined text-[14px]">error</span><span th:text="${#fields.errors('phone')}"></span>
+                    <!-- Bug #7: dùng th:if + th:text để giữ icon -->
+                    <p th:if="${#fields.hasErrors('phone')}" class="mt-1 font-label-md text-label-md text-error flex items-center gap-1">
+                        <span class="material-symbols-outlined text-[14px]">error</span>
+                        <span th:text="${#fields.errors('phone')[0]}"></span>
                     </p>
                 </div>
 
@@ -62,23 +68,29 @@
                     <div>
                         <label class="block font-label-md text-label-md text-on-surface mb-1" for="password">Mật khẩu</label>
                         <input type="password" th:field="*{password}" id="password" class="w-full h-11 px-3 bg-surface-lowest border border-outline-variant rounded-lg focus:border-secondary focus:ring-1 focus:ring-secondary outline-none font-body-md text-body-md text-on-surface placeholder-on-surface-variant transition-colors" placeholder="••••••••" required/>
-                        <p th:if="${#fields.hasErrors('password')}" th:errors="*{password}" class="mt-1 font-label-md text-label-md text-error flex items-center gap-1">
-                            <span class="material-symbols-outlined text-[14px]">error</span><span th:text="${#fields.errors('password')}"></span>
+                        <!-- Bug #7: dùng th:if + th:text để giữ icon -->
+                        <p th:if="${#fields.hasErrors('password')}" class="mt-1 font-label-md text-label-md text-error flex items-center gap-1">
+                            <span class="material-symbols-outlined text-[14px]">error</span>
+                            <span th:text="${#fields.errors('password')[0]}"></span>
                         </p>
                     </div>
                     <div>
                         <label class="block font-label-md text-label-md text-on-surface mb-1" for="confirmPassword">Xác nhận mật khẩu</label>
                         <input type="password" th:field="*{confirmPassword}" id="confirmPassword" class="w-full h-11 px-3 bg-surface-lowest border border-outline-variant rounded-lg focus:border-secondary focus:ring-1 focus:ring-secondary outline-none font-body-md text-body-md text-on-surface placeholder-on-surface-variant transition-colors" placeholder="••••••••" required/>
-                        <p th:if="${#fields.hasErrors('confirmPassword')}" th:errors="*{confirmPassword}" class="mt-1 font-label-md text-label-md text-error flex items-center gap-1">
-                            <span class="material-symbols-outlined text-[14px]">error</span><span th:text="${#fields.errors('confirmPassword')}"></span>
+                        <!-- Bug #7: dùng th:if + th:text để giữ icon -->
+                        <p th:if="${#fields.hasErrors('confirmPassword')}" class="mt-1 font-label-md text-label-md text-error flex items-center gap-1">
+                            <span class="material-symbols-outlined text-[14px]">error</span>
+                            <span th:text="${#fields.errors('confirmPassword')[0]}"></span>
                         </p>
                     </div>
                 </div>
 
                 <div th:if="${#fields.hasGlobalErrors()}" class="p-4 bg-error-container text-on-error-container rounded-lg border border-error/20 flex items-center gap-2">
                     <span class="material-symbols-outlined text-error">error</span>
+                    <!-- Bug #8: dùng #fields.globalErrors() thay vì #fields.errors() -->
+                    <!-- để tránh hiển thị trùng lặp lỗi field ở khu vực lỗi toàn cục -->
                     <ul class="font-body-md text-body-md list-none m-0 p-0">
-                        <li th:each="err : ${#fields.errors()}" th:text="${err}"></li>
+                        <li th:each="err : ${#fields.globalErrors()}" th:text="${err}"></li>
                     </ul>
                 </div>
 

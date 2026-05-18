@@ -100,6 +100,15 @@ public class DataSeeder implements CommandLineRunner {
             // Force update password to properly hashed BCrypt password if it was plain text or wrong
             user.setPasswordHash(passwordEncoder.encode(rawPassword));
             userRepository.save(user);
+
+            // Bug #26: Kiểm tra sự tồn tại của profile và tạo mới nếu bị thiếu.
+            if (!userProfileRepository.findByUserId(user.getId()).isPresent()) {
+                UserProfile profile = new UserProfile();
+                profile.setUser(user);
+                profile.setFullName(fullName);
+                profile.setPhone("0987654321");
+                userProfileRepository.save(profile);
+            }
         } else {
             user = new User();
             user.setEmail(email);

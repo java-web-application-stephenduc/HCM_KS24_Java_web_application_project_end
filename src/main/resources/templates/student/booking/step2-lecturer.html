@@ -27,11 +27,12 @@
             <div class="absolute top-4 right-1/2 w-full h-[2px] bg-secondary -z-0"></div>
             <div class="absolute top-4 left-1/2 w-full h-[2px] bg-outline-variant -z-0"></div>
         </a>
-        <a th:href="@{/student/booking/step3}" class="flex flex-col items-center flex-1 relative opacity-60 cursor-not-allowed">
+        <!-- Bước 3: chưa thể đi tới, hiển thị bị khóa (phải chọn giảng viên trước) -->
+        <span class="flex flex-col items-center flex-1 relative opacity-50 cursor-not-allowed" aria-disabled="true">
             <div class="w-8 h-8 rounded-full border-2 border-outline-variant bg-surface text-on-surface-variant flex items-center justify-center font-label-md text-label-md mb-2 z-10">3</div>
             <span class="font-label-md text-label-md text-on-surface-variant">Chọn Lịch</span>
             <div class="absolute top-4 right-1/2 w-full h-[2px] bg-outline-variant -z-0"></div>
-        </a>
+        </span>
     </div>
 
     <!-- Header -->

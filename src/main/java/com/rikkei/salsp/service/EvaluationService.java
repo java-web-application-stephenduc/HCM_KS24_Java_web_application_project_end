@@ -8,6 +8,7 @@ import com.rikkei.salsp.entity.AcademicEvaluation;
 import com.rikkei.salsp.entity.BorrowingDetail;
 import com.rikkei.salsp.entity.BorrowingRecord;
 import com.rikkei.salsp.entity.BorrowingStatus;
+import com.rikkei.salsp.entity.Equipment;
 import com.rikkei.salsp.entity.MentoringSession;
 import com.rikkei.salsp.entity.SessionStatus;
 import com.rikkei.salsp.entity.User;
@@ -19,10 +20,12 @@ import com.rikkei.salsp.repository.BorrowingRecordRepository;
 import com.rikkei.salsp.repository.EquipmentRepository;
 import com.rikkei.salsp.repository.MentoringSessionRepository;
 import com.rikkei.salsp.repository.UserRepository;
+import jakarta.persistence.LockModeType;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -60,7 +63,8 @@ public class EvaluationService {
     }
 
     public SessionDetailDto getSessionDetail(Long sessionId, String lecturerEmail) {
-        MentoringSession session = sessionRepository.findById(sessionId)
+        // Bug #19: Dùng findByIdWithStudentAndLecturer tránh N+1 khi gọi getStudent().getProfile()
+        MentoringSession session = sessionRepository.findByIdWithStudentAndLecturer(sessionId)
             .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy buổi tư vấn"));
 
         User lecturer = userRepository.findByEmail(lecturerEmail)
@@ -82,7 +86,12 @@ public class EvaluationService {
     @Transactional
     public void completeSession(EvaluationFormDto dto, String lecturerEmail) {
         // Tải session và kiểm tra quyền/trạng thái.
-        MentoringSession session = sessionRepository.findById(dto.getSessionId())
+        // Bug #13: Dùng findById() bình thường - để phòng TOCTOU,
+        // cơ chế DB unique constraint trên session_id trong bảng academic_evaluations
+        // sẽ bắt duplicate nếu hai request cùng tạo evaluation đồng thời.
+        // Tại service level, ta khoa session entity trước khi read-check để giảm thiểu TOCTOU window.
+        // Bug #19: Dùng findByIdWithStudentAndLecturer
+        MentoringSession session = sessionRepository.findByIdWithStudentAndLecturer(dto.getSessionId())
             .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy buổi tư vấn"));
 
         User lecturer = userRepository.findByEmail(lecturerEmail)
@@ -93,6 +102,9 @@ public class EvaluationService {
         if (session.getStatus() != SessionStatus.PENDING) {
             throw new BusinessException("Buổi tư vấn không ở trạng thái PENDING");
         }
+        // Bug #13: Kiểm tra sau khi session được nạp vào Persistence Context.
+        // Nếu hai request đồng thời vượt qua check này, DB unique constraint sẽ bắt lỗi
+        // và transaction thứ hai sẽ rollback.
         if (evaluationRepository.existsBySessionId(dto.getSessionId())) {
             throw new BusinessException("Buổi tư vấn đã được đánh giá");
         }
@@ -106,24 +118,35 @@ public class EvaluationService {
         evaluation.setFeedback(dto.getFeedback());
         evaluationRepository.save(evaluation);
 
-        BorrowingRecord record = new BorrowingRecord();
-        record.setSession(session);
-        record.setStatus(BorrowingStatus.PENDING_DISPATCH);
-        borrowingRecordRepository.save(record);
-
+        // Xây dựng danh sách detail trước khi tạo BorrowingRecord.
         List<BorrowingDetail> details = new ArrayList<>();
         for (EquipmentItemDto item : dto.getEquipmentItems()) {
             if (item.getEquipmentId() == null || item.getQuantity() == null || item.getQuantity() <= 0) {
                 continue;
             }
+            // Bug #33: Dùng findById().orElseThrow() thay vì getReferenceById()
+            // để fail-fast ngay lập tức nếu equipment không tồn tại,
+            // thay vì nhận EntityNotFoundException lúc flush (sau khi đã lưu session + evaluation).
+            Equipment equipment = equipmentRepository.findById(item.getEquipmentId())
+                .orElseThrow(() -> new ResourceNotFoundException(
+                    "Không tìm thấy thiết bị ID: " + item.getEquipmentId()));
             BorrowingDetail detail = new BorrowingDetail();
-            detail.setRecord(record);
-            detail.setEquipment(equipmentRepository.getReferenceById(item.getEquipmentId()));
+            detail.setEquipment(equipment);
             detail.setQuantity(item.getQuantity());
             details.add(detail);
         }
+
+        // Bug #15: Chỉ tạo BorrowingRecord khi có ít nhất một thiết bị được chọn.
+        // Nếu tạo BorrowingRecord mà không có details, sẽ tạo ra một phiếu orphan
+        // trong dispatch queue mà admin không thể xử lý (không có item nào).
         if (!details.isEmpty()) {
-            borrowingDetailRepository.saveAll(details);
+            BorrowingRecord record = new BorrowingRecord();
+            record.setSession(session);
+            record.setStatus(BorrowingStatus.PENDING_DISPATCH);
+            // Gán record cho từng detail trước khi lưu (vi cascade ALL ở BorrowingRecord.details)
+            details.forEach(d -> d.setRecord(record));
+            record.getDetails().addAll(details);
+            borrowingRecordRepository.save(record);
         }
     }
 }

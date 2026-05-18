@@ -3,6 +3,7 @@ package com.rikkei.salsp.controller;
 import com.rikkei.salsp.dto.LecturerProfileDto;
 import com.rikkei.salsp.dto.ProfileUpdateDto;
 import com.rikkei.salsp.entity.User;
+import com.rikkei.salsp.entity.UserProfile;
 import com.rikkei.salsp.entity.UserRole;
 import com.rikkei.salsp.repository.DepartmentRepository;
 import com.rikkei.salsp.service.ProfileService;
@@ -34,6 +35,10 @@ public class ProfileController {
      */
     @GetMapping("/profile")
     public String viewProfile(Authentication authentication, Model model) {
+        // Null guard cho authentication (Bug #16)
+        if (authentication == null || authentication.getName() == null) {
+            return "redirect:/auth/login";
+        }
         User user = profileService.findUserByEmail(authentication.getName());
         model.addAttribute("user", user);
         model.addAttribute("profile", profileService.getProfileByUserId(user.getId()));
@@ -53,6 +58,10 @@ public class ProfileController {
      */
     @GetMapping("/profile/edit")
     public String editProfile(Authentication authentication, Model model) {
+        // Null guard cho authentication (Bug #16)
+        if (authentication == null || authentication.getName() == null) {
+            return "redirect:/auth/login";
+        }
         User user = profileService.findUserByEmail(authentication.getName());
         model.addAttribute("user", user);
 
@@ -62,9 +71,11 @@ public class ProfileController {
             return "profile/lecturer-edit";
         }
 
+        // Bug #20: Lưu kết quả getProfileByUserId vào biến cục bộ, tránh gọi DB 2 lần.
+        UserProfile userProfile = profileService.getProfileByUserId(user.getId());
         ProfileUpdateDto dto = new ProfileUpdateDto();
-        dto.setFullName(profileService.getProfileByUserId(user.getId()).getFullName());
-        dto.setPhone(profileService.getProfileByUserId(user.getId()).getPhone());
+        dto.setFullName(userProfile.getFullName());
+        dto.setPhone(userProfile.getPhone());
         model.addAttribute("profile", dto);
         return "profile/edit";
     }
@@ -85,6 +96,10 @@ public class ProfileController {
                                 BindingResult errors,
                                 RedirectAttributes flash,
                                 Model model) {
+        // Null guard cho authentication (Bug #16)
+        if (authentication == null || authentication.getName() == null) {
+            return "redirect:/auth/login";
+        }
         User user = profileService.findUserByEmail(authentication.getName());
         if (errors.hasErrors()) {
             model.addAttribute("user", user);

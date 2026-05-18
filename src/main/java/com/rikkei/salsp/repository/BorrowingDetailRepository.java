@@ -10,6 +10,13 @@ public interface BorrowingDetailRepository extends JpaRepository<BorrowingDetail
     List<BorrowingDetail> findByRecordId(Long recordId);
 
     @Query("""
+        SELECT bd FROM BorrowingDetail bd
+        JOIN FETCH bd.equipment e
+        WHERE bd.record.id = :recordId
+    """)
+    List<BorrowingDetail> findByRecordIdWithEquipment(@Param("recordId") Long recordId);
+
+    @Query("""
         SELECT COUNT(bd) > 0 FROM BorrowingDetail bd
         JOIN bd.record br
         WHERE bd.equipment.id = :equipmentId

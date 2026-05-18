@@ -56,8 +56,9 @@ public class EquipmentService {
 
     @Transactional
     public void update(Long id, EquipmentDto dto) {
-        // Điều chỉnh tồn kho khi tổng số lượng thay đổi.
-        Equipment equipment = equipmentRepository.findById(id)
+        // Bug #12: Dùng findByIdWithLock để tránh lost update khi hai admin
+        // cùng lúc sửa cùng một thiết bị (race condition).
+        Equipment equipment = equipmentRepository.findByIdWithLock(id)
             .filter(eq -> !eq.isDeleted())
             .orElseThrow(() -> new ResourceNotFoundException("Equipment not found"));
 
@@ -71,8 +72,12 @@ public class EquipmentService {
         equipment.setQuantityTotal(newTotal);
 
         int newAvailable = equipment.getQuantityAvailable() + diff;
+        // Bug #31: Không được silent clamp về 0. Nếu quantityAvailable âm,
+        // đây là dấu hiệu dữ liệu kho bất nhất quán cần operator xử lý.
         if (newAvailable < 0) {
-            newAvailable = 0;
+            throw new BusinessException(String.format(
+                "Không thể giảm tổng số lượng: số có sẵn sẽ âm (%d). Kiểm tra tồn kho trước khi cập nhật.",
+                newAvailable));
         }
         if (newAvailable > newTotal) {
             newAvailable = newTotal;

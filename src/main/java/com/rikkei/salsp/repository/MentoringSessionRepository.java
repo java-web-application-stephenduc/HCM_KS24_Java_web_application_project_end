@@ -5,6 +5,7 @@ import com.rikkei.salsp.entity.SessionStatus;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -23,6 +24,15 @@ public interface MentoringSessionRepository extends JpaRepository<MentoringSessi
                            @Param("date") LocalDate date,
                            @Param("startTime") LocalTime startTime,
                            @Param("endTime") LocalTime endTime);
+
+    @Query("""
+        SELECT ms FROM MentoringSession ms
+        JOIN FETCH ms.student st
+        JOIN FETCH st.profile p
+        JOIN FETCH ms.lecturer l
+        WHERE ms.id = :id
+    """)
+    Optional<MentoringSession> findByIdWithStudentAndLecturer(@Param("id") Long id);
 
     List<MentoringSession> findByStudentIdOrderBySessionDateDesc(Long studentId);
 

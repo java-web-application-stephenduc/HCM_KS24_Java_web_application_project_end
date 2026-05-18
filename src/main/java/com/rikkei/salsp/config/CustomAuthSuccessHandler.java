@@ -16,16 +16,18 @@ public class CustomAuthSuccessHandler implements AuthenticationSuccessHandler {
     public void onAuthenticationSuccess(HttpServletRequest request,
                                         HttpServletResponse response,
                                         Authentication authentication) throws IOException, ServletException {
-        String role = authentication.getAuthorities().stream()
+        java.util.Set<String> roles = authentication.getAuthorities().stream()
             .map(GrantedAuthority::getAuthority)
-            .findFirst()
-            .orElse("ROLE_STUDENT");
+            .collect(java.util.stream.Collectors.toSet());
 
-        String redirectUrl = switch (role) {
-            case "ROLE_ADMIN" -> "/admin/dashboard";
-            case "ROLE_LECTURER" -> "/lecturer/dashboard";
-            default -> "/student/dashboard";
-        };
+        String redirectUrl;
+        if (roles.contains("ROLE_ADMIN")) {
+            redirectUrl = "/admin/dashboard";
+        } else if (roles.contains("ROLE_LECTURER")) {
+            redirectUrl = "/lecturer/dashboard";
+        } else {
+            redirectUrl = "/student/dashboard";
+        }
 
         response.sendRedirect(request.getContextPath() + redirectUrl);
     }

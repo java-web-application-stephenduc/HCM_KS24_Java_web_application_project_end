@@ -14,14 +14,22 @@ public interface BorrowingRecordRepository extends JpaRepository<BorrowingRecord
     List<BorrowingRecord> findByStatus(BorrowingStatus status);
 
     @Query("""
-        SELECT br FROM BorrowingRecord br
-        JOIN FETCH br.session s
-        JOIN FETCH s.student st
-        JOIN FETCH st.profile p
-        JOIN FETCH br.details d
-        JOIN FETCH d.equipment e
+        SELECT DISTINCT br FROM BorrowingRecord br
+        LEFT JOIN FETCH br.session s
+        LEFT JOIN FETCH s.student st
+        LEFT JOIN FETCH st.profile p
+        LEFT JOIN FETCH br.details d
+        LEFT JOIN FETCH d.equipment e
         WHERE br.status = :status
     """)
     List<BorrowingRecord> findByStatusWithDetails(@Param("status") BorrowingStatus status);
-}
 
+    @Query("""
+        SELECT br FROM BorrowingRecord br
+        LEFT JOIN FETCH br.session s
+        LEFT JOIN FETCH s.student st
+        LEFT JOIN FETCH st.profile p
+        WHERE br.id = :id
+    """)
+    Optional<BorrowingRecord> findByIdWithAssociations(@Param("id") Long id);
+}

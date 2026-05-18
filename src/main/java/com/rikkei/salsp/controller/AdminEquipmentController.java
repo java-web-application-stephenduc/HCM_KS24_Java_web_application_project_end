@@ -7,11 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
@@ -59,7 +55,10 @@ public class AdminEquipmentController {
      * @return Chuyển hướng về danh sách nếu thành công
      */
     @PostMapping
-    public String create(@Valid EquipmentDto dto, BindingResult errors, RedirectAttributes flash, Model model) {
+    public String create(@Valid @ModelAttribute("equipment") EquipmentDto dto,
+                         BindingResult errors,
+                         RedirectAttributes flash,
+                         Model model) {
         if (errors.hasErrors()) {
             model.addAttribute("mode", "create");
             return "admin/equipment/form";
@@ -95,7 +94,7 @@ public class AdminEquipmentController {
      */
     @PostMapping("/{id}/edit")
     public String update(@PathVariable Long id,
-                         @Valid EquipmentDto dto,
+                         @Valid @ModelAttribute("equipment") EquipmentDto dto,
                          BindingResult errors,
                          RedirectAttributes flash,
                          Model model) {

@@ -4,66 +4,131 @@
       xmlns:sec="http://www.thymeleaf.org/extras/springsecurity6">
 <body>
 <div id="main-content" class="w-full max-w-container-max mx-auto flex flex-col gap-6">
-    <!-- Welcome Header -->
-    <div class="mb-2">
-        <h2 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-primary">
-            Chào mừng trở lại, <span th:text="${dashboard.studentName}">Sinh viên</span>!
-        </h2>
-        <p class="text-on-surface-variant mt-2 font-body-lg text-body-lg">Cập nhật tiến độ học tập và quản lý thiết bị của bạn.</p>
-        <div class="mt-3 flex flex-wrap gap-4 text-on-surface-variant">
-            <span>Buổi sắp tới: <strong th:text="${dashboard.upcomingCount}">0</strong></span>
-            <span>Thiết bị đang mượn: <strong th:text="${dashboard.borrowedCount}">0</strong></span>
-            <span th:if="${dashboard.latestSession != null}">
-                Trạng thái gần nhất: <strong th:text="${dashboard.latestSession.status}">PENDING</strong>
-            </span>
-            <span th:if="${dashboard.latestSession == null}">Trạng thái gần nhất: <strong>Chưa có</strong></span>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         Hero Section: Chào mừng sinh viên với thông tin thực tế
+         ═══════════════════════════════════════════════════════════ -->
+    <div class="relative w-full rounded-2xl overflow-hidden border border-outline-variant shadow-md" style="background: linear-gradient(135deg, #0058be 0%, #1a73e8 40%, #0b1c30 100%);">
+        <!-- Nền trang trí -->
+        <div class="absolute inset-0 overflow-hidden pointer-events-none">
+            <div class="absolute -top-10 -right-10 w-64 h-64 rounded-full opacity-10" style="background: white;"></div>
+            <div class="absolute bottom-0 left-1/4 w-48 h-48 rounded-full opacity-5" style="background: white;"></div>
+            <div class="absolute top-1/2 right-1/3 w-32 h-32 rounded-full opacity-10" style="background: white;"></div>
+        </div>
+
+        <div class="relative z-10 p-8 md:p-10">
+            <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                <!-- Lời chào và tên sinh viên -->
+                <div class="flex-1">
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold"
+                             style="background: rgba(255,255,255,0.15); color: #ffffff; border: 2px solid rgba(255,255,255,0.3);">
+                            <span class="material-symbols-outlined" style="font-size: 24px;">school</span>
+                        </div>
+                        <div>
+                            <p class="font-label-md text-label-md" style="color: rgba(255,255,255,0.7);">Xin chào,</p>
+                            <h2 class="font-headline-md text-headline-md font-bold" style="color: #ffffff;" th:text="${dashboard.studentName}">Sinh viên</h2>
+                        </div>
+                    </div>
+                    <p class="font-body-lg text-body-lg" style="color: rgba(255,255,255,0.8);">Cập nhật tiến độ học tập và quản lý thiết bị của bạn hôm nay.</p>
+
+                    <!-- Thống kê nhanh dạng pill -->
+                    <div class="flex flex-wrap gap-3 mt-4">
+                        <div class="flex items-center gap-2 px-4 py-2 rounded-full font-label-md text-label-md" style="background: rgba(255,255,255,0.15); color: #ffffff; border: 1px solid rgba(255,255,255,0.25);">
+                            <span class="material-symbols-outlined text-[16px]">calendar_month</span>
+                            <span>Lịch sắp tới: <strong th:text="${dashboard.upcomingCount}">0</strong></span>
+                        </div>
+                        <div class="flex items-center gap-2 px-4 py-2 rounded-full font-label-md text-label-md" style="background: rgba(255,255,255,0.15); color: #ffffff; border: 1px solid rgba(255,255,255,0.25);">
+                            <span class="material-symbols-outlined text-[16px]">biotech</span>
+                            <span>Đang mượn: <strong th:text="${dashboard.borrowedCount}">0</strong> thiết bị</span>
+                        </div>
+                        <!-- Trạng thái học tập gần nhất -->
+                        <div th:if="${dashboard.latestSession != null}"
+                             class="flex items-center gap-2 px-4 py-2 rounded-full font-label-md text-label-md"
+                             style="background: rgba(255,255,255,0.15); color: #ffffff; border: 1px solid rgba(255,255,255,0.25);">
+                            <span class="material-symbols-outlined text-[16px]">history</span>
+                            <span>Gần nhất:
+                                <strong th:if="${dashboard.latestSession.status == 'PENDING'}">Chờ duyệt</strong>
+                                <strong th:if="${dashboard.latestSession.status == 'CONFIRMED'}">Đã xác nhận</strong>
+                                <strong th:if="${dashboard.latestSession.status == 'COMPLETED'}">Hoàn thành</strong>
+                                <strong th:if="${dashboard.latestSession.status == 'CANCELLED'}">Đã hủy</strong>
+                            </span>
+                        </div>
+                        <div th:if="${dashboard.latestSession == null}"
+                             class="flex items-center gap-2 px-4 py-2 rounded-full font-label-md text-label-md"
+                             style="background: rgba(255,255,255,0.15); color: rgba(255,255,255,0.7); border: 1px solid rgba(255,255,255,0.2);">
+                            <span class="material-symbols-outlined text-[16px]">info</span>
+                            <span>Chưa có lịch hẹn nào</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CTA Button -->
+                <div class="shrink-0">
+                    <a th:href="@{/student/booking/step1}"
+                       class="inline-flex items-center gap-3 px-6 py-4 rounded-xl font-label-md text-label-md font-bold shadow-lg transition-all hover:shadow-xl hover:scale-105"
+                       style="background: #ffffff; color: #0058be; border: 2px solid rgba(255,255,255,0.8);">
+                        <span class="material-symbols-outlined">event_available</span>
+                        Đặt lịch cố vấn ngay
+                    </a>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- Bento Grid: KPI Cards -->
+    <!-- ═══════════════════════════════════════════════════════════
+         KPI Cards: Số liệu thống kê nhanh
+         ═══════════════════════════════════════════════════════════ -->
     <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        <!-- KPI 1: Upcoming -->
-        <div class="bg-surface rounded-xl p-6 border border-outline-variant shadow-sm flex flex-col justify-between">
+        <!-- KPI 1: Lịch sắp tới -->
+        <div class="bg-surface rounded-xl p-6 border border-outline-variant shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
             <div class="flex justify-between items-start mb-4">
-                <div class="p-3 bg-secondary-fixed rounded-lg text-secondary">
+                <div class="p-3 bg-secondary-fixed rounded-xl text-secondary">
                     <span class="material-symbols-outlined">calendar_month</span>
                 </div>
+                <span class="font-label-md text-label-md text-on-surface-variant px-2 py-1 bg-surface-container-low rounded-full">Sắp diễn ra</span>
             </div>
             <div>
                 <p class="font-label-md text-label-md text-on-surface-variant mb-1 uppercase tracking-wider">Lịch sắp tới</p>
                 <p class="font-headline-lg text-headline-lg text-primary" th:text="${dashboard.upcomingCount}">0</p>
             </div>
         </div>
-        <!-- KPI 2: Completed -->
-        <div class="bg-surface rounded-xl p-6 border border-outline-variant shadow-sm flex flex-col justify-between">
+
+        <!-- KPI 2: Buổi đã hoàn thành -->
+        <div class="bg-surface rounded-xl p-6 border border-outline-variant shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
             <div class="flex justify-between items-start mb-4">
-                <div class="p-3 bg-tertiary-fixed rounded-lg text-tertiary-container">
+                <div class="p-3 bg-tertiary-fixed rounded-xl text-tertiary-container">
                     <span class="material-symbols-outlined">check_circle</span>
                 </div>
+                <span class="font-label-md text-label-md text-on-surface-variant px-2 py-1 bg-surface-container-low rounded-full">Tổng số</span>
             </div>
             <div>
-                <p class="font-label-md text-label-md text-on-surface-variant mb-1 uppercase tracking-wider">Buổi đã hoàn thành</p>
+                <p class="font-label-md text-label-md text-on-surface-variant mb-1 uppercase tracking-wider">Buổi hoàn thành</p>
                 <p class="font-headline-lg text-headline-lg text-primary" th:text="${dashboard.completedCount}">0</p>
             </div>
         </div>
-        <!-- KPI 3: Borrowed -->
-        <div class="bg-surface rounded-xl p-6 border border-outline-variant shadow-sm flex flex-col justify-between">
+
+        <!-- KPI 3: Thiết bị đang mượn -->
+        <div class="bg-surface rounded-xl p-6 border border-outline-variant shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
             <div class="flex justify-between items-start mb-4">
-                <div class="p-3 bg-primary-fixed rounded-lg text-primary-container">
+                <div class="p-3 bg-primary-fixed rounded-xl text-primary-container">
                     <span class="material-symbols-outlined">biotech</span>
                 </div>
+                <span class="font-label-md text-label-md text-on-surface-variant px-2 py-1 bg-surface-container-low rounded-full">Đang mượn</span>
             </div>
             <div>
                 <p class="font-label-md text-label-md text-on-surface-variant mb-1 uppercase tracking-wider">Thiết bị đang mượn</p>
                 <p class="font-headline-lg text-headline-lg text-primary" th:text="${dashboard.borrowedCount}">0</p>
             </div>
         </div>
-        <!-- KPI 4: Status -->
-        <div class="bg-surface rounded-xl p-6 border border-outline-variant shadow-sm flex flex-col justify-between">
+
+        <!-- KPI 4: Trạng thái hồ sơ -->
+        <div class="bg-surface rounded-xl p-6 border border-outline-variant shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
             <div class="flex justify-between items-start mb-4">
-                <div class="p-3 bg-surface-container-high rounded-lg text-on-surface">
+                <div class="p-3 bg-surface-container-high rounded-xl text-on-surface">
                     <span class="material-symbols-outlined">folder_special</span>
                 </div>
+                <span class="font-label-md text-label-md text-on-surface-variant px-2 py-1 bg-surface-container-low rounded-full">Hồ sơ</span>
             </div>
             <div>
                 <p class="font-label-md text-label-md text-on-surface-variant mb-1 uppercase tracking-wider">Trạng thái hồ sơ</p>
@@ -72,26 +137,18 @@
         </div>
     </div>
 
-    <!-- Major CTA Area -->
-    <div class="relative w-full rounded-xl overflow-hidden bg-surface-container-low border border-outline-variant shadow-sm p-8 my-2 flex items-center justify-between flex-wrap gap-4">
-        <div class="relative z-10 flex-1 min-w-[280px]">
-            <h3 class="font-headline-md text-headline-md text-primary mb-2">Cần hỗ trợ học tập?</h3>
-            <p class="text-on-surface-variant font-body-md text-body-md mb-6">Đặt lịch với cố vấn học tập để giải đáp thắc mắc và định hướng lộ trình.</p>
-            <a th:href="@{/student/booking/step1}" class="inline-flex bg-secondary text-on-secondary hover:bg-secondary-container hover:text-on-secondary-container transition-colors font-label-md text-label-md px-6 py-4 rounded-lg items-center gap-3 shadow-sm">
-                <span class="material-symbols-outlined">event_available</span>
-                Đặt lịch cố vấn ngay
-            </a>
-        </div>
-        <div class="absolute right-0 top-0 h-full w-1/3 bg-gradient-to-l from-tertiary-fixed to-transparent opacity-50 z-0"></div>
-    </div>
-
-    <!-- Two Column: Recent Appointments & Borrowed Equipment -->
+    <!-- ═══════════════════════════════════════════════════════════
+         Hai cột: Lịch hẹn gần đây & Thiết bị đang mượn
+         ═══════════════════════════════════════════════════════════ -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <!-- Recent Appointments -->
+        <!-- Lịch hẹn gần đây -->
         <div class="bg-surface rounded-xl border border-outline-variant shadow-sm overflow-hidden flex flex-col">
             <div class="p-5 border-b border-outline-variant bg-surface-bright flex justify-between items-center">
-                <h3 class="font-headline-sm text-headline-sm font-semibold text-primary">Lịch hẹn gần đây</h3>
-                <a th:href="@{/student/history}" class="text-secondary hover:text-secondary-container font-label-md text-label-md">Xem tất cả</a>
+                <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-secondary text-[20px]">event_note</span>
+                    <h3 class="font-headline-sm text-headline-sm font-semibold text-primary">Lịch hẹn gần đây</h3>
+                </div>
+                <a th:href="@{/student/history}" class="text-secondary hover:text-secondary-container font-label-md text-label-md transition-colors">Xem tất cả</a>
             </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse">
@@ -104,17 +161,24 @@
                     </thead>
                     <tbody class="font-body-md text-body-md">
                         <tr th:if="${#lists.isEmpty(dashboard.recentSessions)}">
-                            <td colspan="3" class="py-8 px-5 text-center text-on-surface-variant">Chưa có lịch hẹn nào.</td>
+                            <td colspan="3" class="py-8 px-5 text-center text-on-surface-variant">
+                                <span class="material-symbols-outlined text-4xl text-on-surface-variant block mb-2">event_busy</span>
+                                Chưa có lịch hẹn nào.
+                            </td>
                         </tr>
-                        <tr th:each="session : ${dashboard.recentSessions}" class="hover:bg-surface-container-lowest transition-colors border-b border-outline-variant last:border-b-0">
+                        <tr th:each="session : ${dashboard.recentSessions}"
+                            class="hover:bg-surface-container-lowest transition-colors border-b border-outline-variant last:border-b-0">
                             <td class="py-4 px-5">
                                 <div class="flex items-center gap-3">
-                                    <div class="w-8 h-8 rounded-full bg-secondary-fixed text-secondary-container flex items-center justify-center font-bold text-sm uppercase" th:text="${#strings.abbreviate(session.lecturerName, 2)}">GV</div>
+                                    <div class="w-8 h-8 rounded-full bg-secondary-fixed text-secondary-container flex items-center justify-center font-bold text-sm uppercase shrink-0"
+                                         th:text="${#strings.abbreviate(session.lecturerName, 2)}">GV</div>
                                     <span class="font-semibold text-on-surface" th:text="${session.lecturerName}">Giảng viên</span>
                                 </div>
                             </td>
                             <td class="py-4 px-5 text-on-surface-variant">
-                                <span th:text="${#temporals.format(session.sessionDate, 'dd/MM/yyyy')}"></span> - <span th:text="${#temporals.format(session.startTime, 'HH:mm')}"></span>
+                                <span th:text="${#temporals.format(session.sessionDate, 'dd/MM/yyyy')}"></span>
+                                <br/>
+                                <span class="font-label-md text-label-md" th:text="${#temporals.format(session.startTime, 'HH:mm')}"></span>
                             </td>
                             <td class="py-4 px-5">
                                 <span th:if="${session.status == 'PENDING'}" class="inline-flex items-center px-2.5 py-0.5 rounded-full font-label-md text-label-md bg-tertiary-fixed text-tertiary-container">Chờ duyệt</span>
@@ -128,26 +192,30 @@
             </div>
         </div>
 
-        <!-- Borrowed Equipment -->
+        <!-- Thiết bị đang mượn -->
         <div class="bg-surface rounded-xl border border-outline-variant shadow-sm overflow-hidden flex flex-col">
             <div class="p-5 border-b border-outline-variant bg-surface-bright flex justify-between items-center">
-                <h3 class="font-headline-sm text-headline-sm font-semibold text-primary">Thiết bị đang mượn</h3>
-                <a th:href="@{/student/history}" class="text-secondary hover:text-secondary-container font-label-md text-label-md">Chi tiết</a>
+                <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-secondary text-[20px]">devices</span>
+                    <h3 class="font-headline-sm text-headline-sm font-semibold text-primary">Thiết bị đang mượn</h3>
+                </div>
+                <a th:href="@{/student/history}" class="text-secondary hover:text-secondary-container font-label-md text-label-md transition-colors">Chi tiết</a>
             </div>
             <div class="p-0">
-                <div th:if="${#lists.isEmpty(dashboard.recentEquipments)}" class="py-8 text-center text-on-surface-variant font-body-md text-body-md">
+                <div th:if="${#lists.isEmpty(dashboard.recentEquipments)}" class="py-10 text-center text-on-surface-variant font-body-md text-body-md">
                     <span class="material-symbols-outlined text-4xl text-on-surface-variant block mb-2">devices</span>
                     Bạn chưa mượn thiết bị nào.
                 </div>
                 <ul th:unless="${#lists.isEmpty(dashboard.recentEquipments)}" class="flex flex-col">
-                    <li th:each="eq : ${dashboard.recentEquipments}" class="flex items-start gap-4 p-5 border-b border-outline-variant hover:bg-surface-container-lowest transition-colors last:border-b-0">
-                        <div class="p-3 bg-surface-container-highest rounded-lg text-on-surface-variant">
+                    <li th:each="eq ${dashboard.recentEquipments}"
+                        class="flex items-center gap-4 p-5 border-b border-outline-variant hover:bg-surface-container-lowest transition-colors last:border-b-0">
+                        <div class="p-3 bg-surface-container-highest rounded-lg text-on-surface-variant shrink-0">
                             <span class="material-symbols-outlined">science</span>
                         </div>
-                        <div class="flex-1">
-                            <h4 class="font-headline-sm text-headline-sm text-on-surface text-[16px]" th:text="${eq.equipmentName}">Tên thiết bị</h4>
+                        <div class="flex-1 min-w-0">
+                            <h4 class="font-headline-sm text-headline-sm text-on-surface text-[15px] truncate" th:text="${eq.equipmentName}">Tên thiết bị</h4>
                         </div>
-                        <div>
+                        <div class="shrink-0">
                             <span th:if="${eq.borrowStatus == 'DISPATCHED'}" class="inline-flex items-center px-2.5 py-0.5 rounded-full font-label-md text-label-md bg-tertiary-fixed-dim text-tertiary-container">Đang mượn</span>
                             <span th:if="${eq.borrowStatus == 'PENDING_DISPATCH'}" class="inline-flex items-center px-2.5 py-0.5 rounded-full font-label-md text-label-md bg-secondary-fixed text-on-secondary-fixed-variant">Chờ xuất</span>
                             <span th:if="${eq.borrowStatus == 'OVERDUE'}" class="inline-flex items-center px-2.5 py-0.5 rounded-full font-label-md text-label-md bg-error-container text-on-error-container">Quá hạn</span>
@@ -157,6 +225,7 @@
             </div>
         </div>
     </div>
+
 </div>
 </body>
 </html>

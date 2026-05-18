@@ -21,6 +21,9 @@ public class StudentHistoryController {
 
     @GetMapping
     public String list(Authentication authentication, Model model) {
+        if (authentication == null || authentication.getName() == null) {
+            return "redirect:/auth/login";
+        }
         Long studentId = profileService.findUserByEmail(authentication.getName()).getId();
         model.addAttribute("records", historyService.getAcademicHistory(studentId));
         model.addAttribute("borrowedEquipments", historyService.getBorrowedEquipmentHistory(studentId));
@@ -29,6 +32,9 @@ public class StudentHistoryController {
 
     @GetMapping("/{id}")
     public String detail(@PathVariable Long id, Authentication authentication, Model model) {
+        if (authentication == null || authentication.getName() == null) {
+            return "redirect:/auth/login";
+        }
         Long studentId = profileService.findUserByEmail(authentication.getName()).getId();
         try {
             model.addAttribute("record", historyService.getAcademicRecordById(id));

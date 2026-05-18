@@ -33,7 +33,8 @@ public class ProfileService {
 
     public LecturerProfileDto getLecturerProfile(Long userId) {
         UserProfile profile = getProfileByUserId(userId);
-        Lecturer lecturer = lecturerRepository.findByUserId(userId)
+        // Bug #19: Dùng findByUserIdWithDepartment tránh N+1 khi gọi getDepartment().getId()
+        Lecturer lecturer = lecturerRepository.findByUserIdWithDepartment(userId)
             .orElseThrow(() -> new ResourceNotFoundException("Lecturer profile not found"));
 
         LecturerProfileDto dto = new LecturerProfileDto();

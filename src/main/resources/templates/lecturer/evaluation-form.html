@@ -70,8 +70,11 @@
                     <div class="space-y-4 max-h-96 overflow-y-auto pr-2">
                         <div th:each="eq, stat : ${equipmentList}" class="border border-slate-200 rounded-lg p-3 hover:border-secondary transition-colors">
                             <label class="flex items-start gap-3 cursor-pointer">
-                                <!-- Checkbox quyết định item có được gửi lên. Dùng index theo stat.index để bind danh sách. -->
+                                <!-- Ẩn equipmentId để server biết item nào được gửi lên -->
                                 <input type="hidden" th:name="|equipmentItems[${stat.index}].equipmentId|" th:value="${eq.id}" />
+                                <!-- Bug #22: Hidden sentinel trước checkbox để Thymeleaf/Spring biết checkbox bị bỏ chọn -->
+                                <!-- Nếu checkbox không được check, chỉ field ẩn này được gửi, server nhận false/empty -->
+                                <input type="hidden" th:name="|_equipmentItems[${stat.index}].selected|" value="on" />
                                 <input type="checkbox" th:name="|equipmentItems[${stat.index}].selected|" class="mt-1 rounded text-secondary focus:ring-secondary w-4 h-4 equipment-cb"/>
                                 <div class="flex-1">
                                     <p class="font-medium text-slate-800" th:text="${eq.name}">Tên TB</p>

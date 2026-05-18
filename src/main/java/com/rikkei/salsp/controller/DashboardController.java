@@ -18,6 +18,9 @@ public class DashboardController {
 
     @GetMapping({"/", "/dashboard"})
     public String dashboardRedirect(Authentication authentication) {
+        if (authentication == null || authentication.getName() == null) {
+            return "redirect:/auth/login";
+        }
         if (authentication.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN"))) {
             return "redirect:/admin/dashboard";
         }
@@ -29,6 +32,9 @@ public class DashboardController {
 
     @GetMapping("/student/dashboard")
     public String studentDashboard(Authentication authentication, Model model) {
+        if (authentication == null || authentication.getName() == null) {
+            return "redirect:/auth/login";
+        }
         Long studentId = profileService.findUserByEmail(authentication.getName()).getId();
         model.addAttribute("dashboard", dashboardService.getDashboardData(studentId));
         return "student/dashboard";

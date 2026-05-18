@@ -3,7 +3,6 @@ package com.rikkei.salsp.controller;
 import com.rikkei.salsp.dto.RegisterDto;
 import com.rikkei.salsp.exception.BusinessException;
 import com.rikkei.salsp.service.AuthService;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
@@ -23,11 +22,12 @@ public class AuthController {
     /**
      * Hiển thị trang đăng nhập.
      * 
+     * @param request HTTP request dùng để tạo session trước khi render
      * @return Tên template đăng nhập
      */
     @GetMapping("/auth/login")
-    public String login(HttpServletRequest request) {
-        request.getSession(true);
+    public String login(jakarta.servlet.http.HttpServletRequest request) {
+        request.getSession(true); // Tạo session trước để tránh IllegalStateException khi CSRF token được giải quyết sau khi response commit
         return "auth/login";
     }
 
@@ -35,11 +35,12 @@ public class AuthController {
      * Hiển thị form đăng ký tài khoản.
      * 
      * @param model Model để truyền dữ liệu xuống view
+     * @param request HTTP request dùng để tạo session trước khi render
      * @return Tên template đăng ký
      */
     @GetMapping("/auth/register")
-    public String registerForm(HttpServletRequest request, Model model) {
-        request.getSession(true);
+    public String registerForm(Model model, jakarta.servlet.http.HttpServletRequest request) {
+        request.getSession(true); // Tạo session trước để tránh IllegalStateException khi CSRF token được giải quyết sau khi response commit
         model.addAttribute("registerDto", new RegisterDto());
         return "auth/register";
     }

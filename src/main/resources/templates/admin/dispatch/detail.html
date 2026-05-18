@@ -22,10 +22,11 @@
             <div>
                 <p class="text-sm font-semibold text-slate-500">Trạng thái</p>
                 <div class="mt-1">
-                    <span th:if="${record.status.name() == 'PENDING_DISPATCH'}" class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-amber-100 text-amber-800">Chờ cấp phát</span>
-                    <span th:if="${record.status.name() == 'DISPATCHED'}" class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">Đang mượn</span>
-                    <span th:if="${record.status.name() == 'RETURNED'}" class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-emerald-100 text-emerald-800">Đã hoàn trả</span>
-                    <span th:if="${record.status.name() == 'OVERDUE'}" class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-700">Quá hạn</span>
+                    <!-- status là String, không cần gọi .name() (Bug #23) -->
+                    <span th:if="${record.status == 'PENDING_DISPATCH'}" class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-amber-100 text-amber-800">Chờ cấp phát</span>
+                    <span th:if="${record.status == 'DISPATCHED'}" class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">Đang mượn</span>
+                    <span th:if="${record.status == 'RETURNED'}" class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-emerald-100 text-emerald-800">Đã hoàn trả</span>
+                    <span th:if="${record.status == 'OVERDUE'}" class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-700">Quá hạn</span>
                 </div>
             </div>
             <div>

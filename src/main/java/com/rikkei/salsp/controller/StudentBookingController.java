@@ -4,12 +4,14 @@ import com.rikkei.salsp.dto.BookingRequestDto;
 import com.rikkei.salsp.dto.LecturerSummaryDto;
 import com.rikkei.salsp.dto.SlotDto;
 import com.rikkei.salsp.exception.BusinessException;
+import com.rikkei.salsp.exception.SlotConflictException;
 import com.rikkei.salsp.service.BookingService;
 import com.rikkei.salsp.service.CancellationService;
 import jakarta.validation.Valid;
 import java.time.LocalDate;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -94,16 +96,39 @@ public class StudentBookingController {
      * @param date Ngày muốn xem lịch
      * @return Danh sách khung giờ trống định dạng JSON
      */
+    /**
+     * API lấy danh sách các khung giờ trống của giảng viên trong một ngày.
+     * Dùng @DateTimeFormat để Spring MVC tự parse an toàn, tránh DateTimeParseException
+     * khi client gửi sai định dạng ngày (Bug #6).
+     *
+     * @param lecturerId ID giảng viên
+     * @param date Ngày muốn xem lịch (ISO: yyyy-MM-dd)
+     * @return Danh sách khung giờ trống định dạng JSON
+     */
     @GetMapping("/available-slots")
     @ResponseBody
-    public List<SlotDto> getAvailableSlots(@RequestParam Long lecturerId, @RequestParam String date) {
-        LocalDate localDate = LocalDate.parse(date);
-        return bookingService.getAvailableSlots(lecturerId, localDate);
+    public List<SlotDto> getAvailableSlots(
+            @RequestParam Long lecturerId,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+        return bookingService.getAvailableSlots(lecturerId, date);
     }
 
     /**
      * Xử lý lưu lịch đặt cố vấn học tập.
      * 
+     * @param dto Dữ liệu form đặt lịch
+     * @param errors Kết quả validate
+     * @param authentication Xác thực sinh viên
+     * @param flash Chứa thông báo kết quả
+     * @param model Model render lỗi nếu có
+     * @return Chuyển hướng về trang thành công hoặc trả lại form nếu lỗi
+     */
+    /**
+     * Xử lý lưu lịch đặt cố vấn học tập.
+     * Bình thường hóa xử lý ngoại lệ: cả BusinessException và SlotConflictException
+     * đều được hiển thị inline trong form (Bug #17).
+     * Thêm null guard cho authentication (Bug #16).
+     *
      * @param dto Dữ liệu form đặt lịch
      * @param errors Kết quả validate
      * @param authentication Xác thực sinh viên
@@ -117,6 +142,10 @@ public class StudentBookingController {
                           Authentication authentication,
                           RedirectAttributes flash,
                           Model model) {
+        // Null guard cho authentication (Bug #16)
+        if (authentication == null || authentication.getName() == null) {
+            return "redirect:/auth/login";
+        }
         if (errors.hasErrors()) {
             LecturerSummaryDto lecturer = bookingService.getLecturerSummary(dto.getLecturerId());
             model.addAttribute("lecturer", lecturer);
@@ -126,6 +155,7 @@ public class StudentBookingController {
         try {
             bookingService.createBooking(dto, authentication.getName());
         } catch (BusinessException ex) {
+            // Bắt cả BusinessException và SlotConflictException để hiển thị inline (Bug #17)
             model.addAttribute("error", ex.getMessage());
             LecturerSummaryDto lecturer = bookingService.getLecturerSummary(dto.getLecturerId());
             model.addAttribute("lecturer", lecturer);
@@ -154,8 +184,21 @@ public class StudentBookingController {
      * @param flash Chứa thông báo kết quả
      * @return Chuyển hướng về trang lịch sử
      */
+    /**
+     * Xử lý hủy lịch hẹn đã đặt.
+     * Thêm null guard cho authentication (Bug #16).
+     *
+     * @param id ID của buổi cố vấn
+     * @param authentication Xác thực sinh viên
+     * @param flash Chứa thông báo kết quả
+     * @return Chuyển hướng về trang lịch sử
+     */
     @PostMapping("/{id}/cancel")
     public String cancel(@PathVariable Long id, Authentication authentication, RedirectAttributes flash) {
+        // Null guard cho authentication (Bug #16)
+        if (authentication == null || authentication.getName() == null) {
+            return "redirect:/auth/login";
+        }
         cancellationService.cancelSession(id, authentication.getName());
         flash.addFlashAttribute("success", "Đã hủy lịch");
         return "redirect:/student/history";

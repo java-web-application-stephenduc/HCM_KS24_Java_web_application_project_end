@@ -13,6 +13,13 @@ public interface LecturerRepository extends JpaRepository<Lecturer, Long> {
 
     @Query("""
         SELECT l FROM Lecturer l
+        JOIN FETCH l.department d
+        WHERE l.user.id = :userId
+    """)
+    Optional<Lecturer> findByUserIdWithDepartment(@Param("userId") Long userId);
+
+    @Query("""
+        SELECT l FROM Lecturer l
         JOIN FETCH l.user u
         JOIN FETCH u.profile p
         JOIN FETCH l.department d

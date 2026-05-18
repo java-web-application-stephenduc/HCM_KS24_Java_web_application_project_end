@@ -1,5 +1,6 @@
 package com.rikkei.salsp.entity;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -46,7 +47,11 @@ public class User {
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
-    @OneToOne(mappedBy = "user")
+    /**
+     * Hồ sơ người dùng liên kết 1-1.
+     * cascade = ALL: xóa User sẽ tự xóa UserProfile, tránh FK constraint violation.
+     */
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     private UserProfile profile;
 }
 

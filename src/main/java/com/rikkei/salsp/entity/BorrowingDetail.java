@@ -1,5 +1,6 @@
 package com.rikkei.salsp.entity;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -34,6 +35,11 @@ public class BorrowingDetail {
     @JoinColumn(name = "equipment_id", nullable = false)
     private Equipment equipment;
 
+    /**
+     * Số lượng thiết bị mượn.
+     * nullable = false để JPA sinh column NOT NULL, nhất quán với int primitive.
+     */
+    @Column(nullable = false)
     private int quantity;
 }
 
