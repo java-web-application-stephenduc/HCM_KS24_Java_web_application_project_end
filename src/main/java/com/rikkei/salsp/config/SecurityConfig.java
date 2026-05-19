@@ -10,6 +10,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
+/**
+ * Lớp `SecurityConfig` thuộc hệ thống Smart Academic Lab Support Platform (SALSP).
+ */
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
@@ -17,6 +20,12 @@ public class SecurityConfig {
 
     private final CustomAuthSuccessHandler customAuthSuccessHandler;
 
+    /**
+     * Phương thức xử lý nghiệp vụ filterChain.
+     * @param http Tham số đầu vào http
+
+     * @return Kết quả trả về của phương thức
+     */
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http

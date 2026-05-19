@@ -1,16 +1,16 @@
 package com.rikkei.salsp.config;
 
-import com.rikkei.salsp.entity.Department;
-import com.rikkei.salsp.entity.Equipment;
-import com.rikkei.salsp.entity.Lecturer;
-import com.rikkei.salsp.entity.User;
-import com.rikkei.salsp.entity.UserProfile;
-import com.rikkei.salsp.entity.UserRole;
-import com.rikkei.salsp.repository.DepartmentRepository;
-import com.rikkei.salsp.repository.EquipmentRepository;
-import com.rikkei.salsp.repository.LecturerRepository;
-import com.rikkei.salsp.repository.UserProfileRepository;
-import com.rikkei.salsp.repository.UserRepository;
+import com.rikkei.salsp.entity.common.Department;
+import com.rikkei.salsp.entity.equipment.Equipment;
+import com.rikkei.salsp.entity.user.Lecturer;
+import com.rikkei.salsp.entity.user.User;
+import com.rikkei.salsp.entity.user.UserProfile;
+import com.rikkei.salsp.entity.user.UserRole;
+import com.rikkei.salsp.repository.common.DepartmentRepository;
+import com.rikkei.salsp.repository.equipment.EquipmentRepository;
+import com.rikkei.salsp.repository.user.LecturerRepository;
+import com.rikkei.salsp.repository.user.UserProfileRepository;
+import com.rikkei.salsp.repository.user.UserRepository;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
@@ -19,6 +19,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
+/**
+ * Lớp `DataSeeder` thuộc hệ thống Smart Academic Lab Support Platform (SALSP).
+ */
 @Component
 @RequiredArgsConstructor
 public class DataSeeder implements CommandLineRunner {
@@ -30,6 +33,10 @@ public class DataSeeder implements CommandLineRunner {
     private final EquipmentRepository equipmentRepository;
     private final PasswordEncoder passwordEncoder;
 
+    /**
+     * Phương thức xử lý nghiệp vụ run.
+     * @param args Tham số đầu vào args
+     */
     @Override
     @Transactional
     public void run(String... args) {
@@ -38,6 +45,9 @@ public class DataSeeder implements CommandLineRunner {
         seedUsers();
     }
 
+    /**
+     * Phương thức xử lý nghiệp vụ seedDepartments.
+     */
     private void seedDepartments() {
         if (departmentRepository.count() == 0) {
             departmentRepository.save(createDepartment("Khoa Công nghệ thông tin", "CNTT"));
@@ -46,6 +56,13 @@ public class DataSeeder implements CommandLineRunner {
         }
     }
 
+    /**
+     * Tạo mới khoa/ban chuyên môn.
+     * @param name Tham số đầu vào name
+     * @param code Tham số đầu vào code
+
+     * @return Kết quả trả về của phương thức
+     */
     private Department createDepartment(String name, String code) {
         Department d = new Department();
         d.setName(name);
@@ -53,6 +70,9 @@ public class DataSeeder implements CommandLineRunner {
         return d;
     }
 
+    /**
+     * Phương thức xử lý nghiệp vụ seedEquipments.
+     */
     private void seedEquipments() {
         if (equipmentRepository.count() == 0) {
             equipmentRepository.save(createEquipment("Laptop Dell XPS 15", "Laptop cấu hình cao cho lập trình", "Máy tính", 5));
@@ -62,6 +82,15 @@ public class DataSeeder implements CommandLineRunner {
         }
     }
 
+    /**
+     * Tạo mới thiết bị phòng Lab.
+     * @param name Tham số đầu vào name
+     * @param description Tham số đầu vào description
+     * @param category Tham số đầu vào category
+     * @param quantity Tham số đầu vào quantity
+
+     * @return Kết quả trả về của phương thức
+     */
     private Equipment createEquipment(String name, String description, String category, int quantity) {
         Equipment eq = new Equipment();
         eq.setName(name);
@@ -72,6 +101,9 @@ public class DataSeeder implements CommandLineRunner {
         return eq;
     }
 
+    /**
+     * Phương thức xử lý nghiệp vụ seedUsers.
+     */
     private void seedUsers() {
         // Cập nhật hoặc tạo mới tài khoản demo với mật khẩu đã được băm chuẩn
         upsertUser("admin@salsp.edu.vn", "admin123", UserRole.ADMIN, "Quản trị viên hệ thống");
@@ -92,6 +124,15 @@ public class DataSeeder implements CommandLineRunner {
         upsertUser("student01@salsp.edu.vn", "123456", UserRole.STUDENT, "Sinh viên Demo");
     }
 
+    /**
+     * Phương thức xử lý nghiệp vụ upsertUser.
+     * @param email Tham số đầu vào email
+     * @param rawPassword Tham số đầu vào rawPassword
+     * @param role Tham số đầu vào role
+     * @param fullName Tham số đầu vào fullName
+
+     * @return Kết quả trả về của phương thức
+     */
     private User upsertUser(String email, String rawPassword, UserRole role, String fullName) {
         Optional<User> existingUserOpt = userRepository.findByEmail(email);
         User user;

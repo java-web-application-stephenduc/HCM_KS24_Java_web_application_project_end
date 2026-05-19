@@ -46,7 +46,7 @@
                     <div class="relative">
                         <select id="departmentId" name="departmentId" class="w-full h-11 px-3 pr-10 bg-surface-lowest border border-outline-variant rounded-lg focus:border-secondary focus:ring-1 focus:ring-secondary outline-none font-body-md text-body-md text-on-surface appearance-none transition-colors cursor-pointer" required>
                             <option value="" disabled selected>-- Chọn khoa --</option>
-                            <option th:each="dept : ${departments}" th:value="${dept.id}" th:text="${dept.name} + ' (' + ${dept.code} + ')'"></option>
+                            <option th:each="dept : ${departments}" th:value="${dept.id}" th:text="|${dept.name} (${dept.code})|"></option>
                         </select>
                     </div>
                 </div>

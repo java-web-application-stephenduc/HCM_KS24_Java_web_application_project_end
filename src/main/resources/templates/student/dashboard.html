@@ -160,31 +160,32 @@
                         </tr>
                     </thead>
                     <tbody class="font-body-md text-body-md">
-                        <tr th:if="${#lists.isEmpty(dashboard.recentSessions)}">
+                        <tr th:if="${dashboard.recentSessions == null or #lists.isEmpty(dashboard.recentSessions)}">
                             <td colspan="3" class="py-8 px-5 text-center text-on-surface-variant">
                                 <span class="material-symbols-outlined text-4xl text-on-surface-variant block mb-2">event_busy</span>
                                 Chưa có lịch hẹn nào.
                             </td>
                         </tr>
-                        <tr th:each="session : ${dashboard.recentSessions}"
+                        <tr th:each="sess : ${dashboard.recentSessions != null ? dashboard.recentSessions : {}}"
+                            th:unless="${dashboard.recentSessions == null or #lists.isEmpty(dashboard.recentSessions)}"
                             class="hover:bg-surface-container-lowest transition-colors border-b border-outline-variant last:border-b-0">
                             <td class="py-4 px-5">
                                 <div class="flex items-center gap-3">
                                     <div class="w-8 h-8 rounded-full bg-secondary-fixed text-secondary-container flex items-center justify-center font-bold text-sm uppercase shrink-0"
-                                         th:text="${#strings.abbreviate(session.lecturerName, 2)}">GV</div>
-                                    <span class="font-semibold text-on-surface" th:text="${session.lecturerName}">Giảng viên</span>
+                                         th:text="${#strings.abbreviate(sess.lecturerName, 3)}">GV</div>
+                                    <span class="font-semibold text-on-surface" th:text="${sess.lecturerName}">Giảng viên</span>
                                 </div>
                             </td>
                             <td class="py-4 px-5 text-on-surface-variant">
-                                <span th:text="${#temporals.format(session.sessionDate, 'dd/MM/yyyy')}"></span>
+                                <span th:text="${#temporals.format(sess.sessionDate, 'dd/MM/yyyy')}"></span>
                                 <br/>
-                                <span class="font-label-md text-label-md" th:text="${#temporals.format(session.startTime, 'HH:mm')}"></span>
+                                <span class="font-label-md text-label-md" th:text="${#temporals.format(sess.startTime, 'HH:mm')}"></span>
                             </td>
                             <td class="py-4 px-5">
-                                <span th:if="${session.status == 'PENDING'}" class="inline-flex items-center px-2.5 py-0.5 rounded-full font-label-md text-label-md bg-tertiary-fixed text-tertiary-container">Chờ duyệt</span>
-                                <span th:if="${session.status == 'CONFIRMED'}" class="inline-flex items-center px-2.5 py-0.5 rounded-full font-label-md text-label-md bg-secondary-fixed text-on-secondary-fixed-variant">Đã xác nhận</span>
-                                <span th:if="${session.status == 'COMPLETED'}" class="inline-flex items-center px-2.5 py-0.5 rounded-full font-label-md text-label-md bg-surface-container-high text-on-surface-variant">Hoàn thành</span>
-                                <span th:if="${session.status == 'CANCELLED'}" class="inline-flex items-center px-2.5 py-0.5 rounded-full font-label-md text-label-md bg-surface-variant text-on-surface-variant">Đã hủy</span>
+                                <span th:if="${sess.status == 'PENDING'}" class="inline-flex items-center px-2.5 py-0.5 rounded-full font-label-md text-label-md bg-tertiary-fixed text-tertiary-container">Chờ duyệt</span>
+                                <span th:if="${sess.status == 'CONFIRMED'}" class="inline-flex items-center px-2.5 py-0.5 rounded-full font-label-md text-label-md bg-secondary-fixed text-on-secondary-fixed-variant">Đã xác nhận</span>
+                                <span th:if="${sess.status == 'COMPLETED'}" class="inline-flex items-center px-2.5 py-0.5 rounded-full font-label-md text-label-md bg-surface-container-high text-on-surface-variant">Hoàn thành</span>
+                                <span th:if="${sess.status == 'CANCELLED'}" class="inline-flex items-center px-2.5 py-0.5 rounded-full font-label-md text-label-md bg-surface-variant text-on-surface-variant">Đã hủy</span>
                             </td>
                         </tr>
                     </tbody>
@@ -207,7 +208,7 @@
                     Bạn chưa mượn thiết bị nào.
                 </div>
                 <ul th:unless="${#lists.isEmpty(dashboard.recentEquipments)}" class="flex flex-col">
-                    <li th:each="eq ${dashboard.recentEquipments}"
+                    <li th:each="eq : ${dashboard.recentEquipments}"
                         class="flex items-center gap-4 p-5 border-b border-outline-variant hover:bg-surface-container-lowest transition-colors last:border-b-0">
                         <div class="p-3 bg-surface-container-highest rounded-lg text-on-surface-variant shrink-0">
                             <span class="material-symbols-outlined">science</span>

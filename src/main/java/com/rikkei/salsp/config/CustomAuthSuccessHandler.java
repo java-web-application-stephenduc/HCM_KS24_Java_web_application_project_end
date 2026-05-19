@@ -9,9 +9,18 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 
+/**
+ * Lớp `CustomAuthSuccessHandler` thuộc hệ thống Smart Academic Lab Support Platform (SALSP).
+ */
 @Component
 public class CustomAuthSuccessHandler implements AuthenticationSuccessHandler {
 
+    /**
+     * Phương thức xử lý nghiệp vụ onAuthenticationSuccess.
+     * @param request Tham số đầu vào request
+     * @param response Tham số đầu vào response
+     * @param authentication Tham số đầu vào authentication
+     */
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request,
                                         HttpServletResponse response,

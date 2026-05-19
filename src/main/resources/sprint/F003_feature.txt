@@ -1,0 +1,177 @@
+================================================================================
+BÁO CÁO PHÂN TÍCH VÀ ĐÁNH GIÁ CHỨC NĂNG HỆ THỐNG (F003_feature.txt)
+Dự án: Smart Academic & Lab Support Platform (SALSP)
+Mức độ hoàn thiện: So sánh giữa Yêu cầu (feature.txt, skill.txt, task-core) và Mã nguồn thực tế
+================================================================================
+
+Dưới đây là bảng tổng hợp chi tiết phân loại trạng thái phát triển các tính năng của hệ thống 
+SALSP thành 5 nhóm: Đã làm, Chưa làm, Làm sai, UI Thiếu/Lỗi, và Logic lỗi tính năng.
+
+────────────────────────────────────────────────────────────────────────────────
+1. CHỨC NĂNG ĐÃ LÀM (DONE / DEVELOPED)
+────────────────────────────────────────────────────────────────────────────────
+Các chức năng cốt lõi của hệ thống đã được triển khai đầy đủ các lớp (Entity, Repository, 
+Service, Controller và Template tương ứng):
+
+1.1. Xác thực & Phân quyền (CORE-01, CORE-02 / UC-01, UC-02)
+  - Đăng ký tài khoản Sinh viên (/auth/register): Tạo tài khoản người dùng và hồ sơ cá nhân mặc định.
+  - Đăng nhập hệ thống (/auth/login): Sử dụng Spring Security để xác thực mật khẩu BCrypt.
+  - Đăng xuất (/auth/logout): Kết thúc session và điều hướng về trang đăng nhập.
+  - Chuyển hướng theo vai trò (CustomAuthSuccessHandler): Tự động điều hướng Sinh viên, Giảng viên, và Quản trị viên về đúng trang Dashboard tương ứng.
+
+1.2. Trang Dashboard cho các vai trò
+  - Dashboard Sinh viên (/student/dashboard): Hiển thị thống kê ca cố vấn và phiếu mượn.
+  - Dashboard Giảng viên (/lecturer/dashboard): Hiển thị danh sách ca tư vấn hôm nay và số ca chờ.
+  - Dashboard Quản trị viên (/admin/dashboard): Thống kê tổng số thiết bị, phiếu chờ duyệt, và tài khoản.
+
+1.3. Đặt lịch Cố vấn học thuật (CORE-05 / UC-05)
+  - Flow đặt lịch 3 bước: Chọn Khoa -> Chọn Giảng viên -> Chọn ngày/giờ.
+  - Tải danh sách khung giờ trống bằng AJAX gọi API REST `/student/booking/available-slots`.
+
+1.4. Đánh giá & Cấp phát thiết bị (CORE-06 / UC-06)
+  - Giảng viên thực hiện đánh giá (cho điểm từ 0-10, nhận xét) và chọn thiết bị mượn kèm theo cho sinh viên tại `/lecturer/session/{id}/evaluate`.
+  - Cơ chế Transaction bảo đảm toàn vẹn dữ liệu: Cập nhật trạng thái session thành COMPLETED, tạo đánh giá, tạo phiếu mượn thiết bị và các chi tiết mượn trong cùng một giao dịch.
+
+1.5. Lịch sử & Hồ sơ Học thuật (CORE-07 / UC-07)
+  - Sinh viên xem danh sách lịch sử cố vấn tại `/student/history` và chi tiết tại `/student/history/{id}`.
+  - Gom nhóm thiết bị mượn của từng buổi hẹn để hiển thị trực quan.
+
+1.6. Quản lý Kho thiết bị của Admin (CORE-04 / UC-04)
+  - CRUD thiết bị đầy đủ tại `/admin/equipment`: Xem danh sách, thêm mới, chỉnh sửa thông tin, và xóa mềm thiết bị. Hỗ trợ tìm kiếm theo từ khóa.
+
+1.7. Cấp phát kho & Hoàn trả (CORE-08 / UC-08)
+  - Danh sách phiếu chờ duyệt tại `/admin/dispatch`.
+  - Admin duyệt xuất kho (trừ số lượng khả dụng của thiết bị) hoặc xác nhận sinh viên hoàn trả thiết bị (cộng lại số lượng khả dụng).
+
+────────────────────────────────────────────────────────────────────────────────
+2. CHỨC NĂNG CHƯA LÀM (NOT DONE / MISSING FEATURES)
+────────────────────────────────────────────────────────────────────────────────
+Các chức năng có trong đặc tả yêu cầu hoặc sơ đồ điều hướng UI nhưng chưa được viết code 
+hoặc thiếu hoàn toàn cả Controller lẫn Template:
+
+2.1. Trang chi tiết ca cố vấn của Giảng viên (UC-06 / feature.txt dòng 28)
+  - Yêu cầu: GET `/lecturer/session/{id}` -> template `session-detail.html` hiển thị thông tin chi tiết về buổi tư vấn của sinh viên.
+  - Thực tế: Chưa tạo template `session-detail.html` trong `templates/lecturer`, và không có mapping cho endpoint này trong `LecturerController.java`.
+
+2.2. Quản lý Tài khoản người dùng của Admin (EXT-05 / feature.txt dòng 40)
+  - Yêu cầu: GET `/admin/users` -> template `user-list.html` để Admin xem danh sách, vô hiệu hóa/kích hoạt tài khoản.
+  - Thực tế: Chưa viết `AdminUserController.java` và chưa có template `user-list.html` trong `templates/admin`.
+
+2.3. Các file layout dùng chung độc lập (feature.txt dòng 42-46)
+  - Yêu cầu: Tạo các file Thymeleaf fragment riêng biệt như `layout/nav.html`, `layout/footer.html`, `layout/flash-messages.html`.
+  - Thực tế: Các thành phần này đang được viết trực tiếp bên trong `templates/layout/main-layout.html` và `templates/layout/auth-layout.html` chứ chưa được bóc tách thành các file riêng.
+
+────────────────────────────────────────────────────────────────────────────────
+3. CHỨC NĂNG LÀM SAI (DONE INCORRECTLY / MISMATCH FROM SPEC)
+────────────────────────────────────────────────────────────────────────────────
+Các chức năng đã được viết code nhưng đi ngược lại với nghiệp vụ đặc tả hoặc quy định thiết kế:
+
+3.1. Nghiệp vụ Hủy lịch của Sinh viên (CORE-09 / UC-09)
+  - Yêu cầu: Khi sinh viên hủy ca cố vấn PENDING (trước 24h), hệ thống cập nhật trạng thái session thành `CANCELLED` để lưu vết lịch sử và tự động giải phóng slot.
+  - Thực tế: Trong `CancellationService.java` (dòng 54-64), hệ thống thực hiện **XÓA CỨNG** (hard delete) bản ghi session, đánh giá, và phiếu mượn liên quan khỏi DB bằng lệnh `sessionRepository.delete(session)`. Điều này vi phạm nghiêm trọng yêu cầu giữ lại lịch sử và thay đổi trạng thái.
+
+────────────────────────────────────────────────────────────────────────────────
+4. UI THIẾU & LỖI GIAO DIỆN (UI ISSUES / THYMELEAF BUGS)
+────────────────────────────────────────────────────────────────────────────────
+Các lỗi liên quan đến giao diện người dùng, liên kết chết, lỗi cú pháp Thymeleaf làm giao diện hiển thị sai lệch hoặc gây crash phía client:
+
+4.1. Không load được tài nguyên CSS tùy chỉnh (B001 - Lỗi 1)
+  - Vấn đề: File stylesheet `static/css/app.css` chứa toàn bộ tùy chỉnh giao diện quan trọng (sidebar, logo, nút bấm, thẻ thông tin card, hiệu ứng động...) nhưng **không hề được liên kết** (thiếu thẻ `<link>`) trong hai layout chính là `main-layout.html` và `auth-layout.html`.
+  - Hậu quả: Hệ thống chỉ hiển thị CSS thô của Tailwind, mất đi giao diện thương hiệu và thiết kế tùy chỉnh của dự án.
+
+4.2. Sai Namespace bảo mật Spring Security trên các trang Dashboard (B002 - Lỗi 1)
+  - Vấn đề: Tại `student/dashboard.html:4`, `lecturer/dashboard.html:4` và `admin/dashboard.html:4` đang khai báo namespace sai: `xmlns:sec="http://www.w3.org/1999/xhtml"`.
+  - Hậu quả: Thẻ `sec:authentication="name"` không được Thymeleaf nhận diện, dẫn đến việc tên người dùng đăng nhập bị ẩn hoàn toàn trên giao diện dashboard.
+  - Khắc phục: Phải đổi thành `xmlns:sec="http://www.thymeleaf.org/extras/springsecurity6"`.
+
+4.3. Link "Quên mật khẩu?" bị chết (B002 - Lỗi 29)
+  - Vấn đề: Link "Quên mật khẩu?" trên trang `/auth/login` bị hardcode href là `#`. Khi click vào sẽ cuộn trang lên đầu thay vì chuyển tiếp hoặc thông báo.
+
+4.4. Thẻ `th:errors` ghi đè toàn bộ thẻ chứa trong register.html (B002 - Lỗi 7)
+  - Vấn đề: Các trường báo lỗi dùng cú pháp `th:errors="*{field}"` trên thẻ `<p>` sẽ thay thế toàn bộ nội dung của thẻ đó, làm biến mất các thẻ `<span>` chứa icon lỗi bên trong.
+  - Khắc phục: Sử dụng cấu trúc `th:if="${#fields.hasErrors('field')}"` kết hợp `th:text` để giữ lại icon.
+
+4.5. Lặp lại lỗi trường ở block lỗi chung trang Đăng ký (B002 - Lỗi 8)
+  - Vấn đề: Trang `register.html:81` sử dụng `#fields.errors()` để lấy lỗi chung. Hàm này trả về tất cả lỗi bao gồm cả lỗi trường, gây lặp lại các lỗi cụ thể ở đầu trang.
+  - Khắc phục: Sử dụng `#fields.globalErrors()`.
+
+4.6. Bypass bộ xử lý URL trong form thiết bị (B002 - Lỗi 9)
+  - Vấn đề: Trong `admin/equipment/form.html:17`, thuộc tính action của form dùng phép cộng chuỗi thô: `action="'/admin/equipment/' + equipment.id + '/edit'"`.
+  - Hậu quả: Context path của Spring Boot không được tự động áp dụng, gây lỗi đường dẫn nếu deploy ứng dụng dưới một sub-context path.
+  - Khắc phục: Dùng cú pháp chuẩn `@{|/admin/equipment/${equipment.id}/edit|}`.
+
+4.7. Thiếu sentinel ẩn cho checkbox trong Form đánh giá (B002 - Lỗi 22)
+  - Vấn đề: Trong `lecturer/evaluation-form.html`, các checkbox chọn thiết bị mượn thiếu input ẩn mang tiền tố `_` trước mỗi checkbox. Điều này khiến các thiết bị không được tick chọn không được truyền trạng thái trống/false về server, gây khó khăn cho việc xử lý binding.
+
+4.8. Lỗi Null Pointer từ status name trong các bảng queue (B002 - Lỗi 23)
+  - Vấn đề: Tại `admin/dispatch/queue.html:45-47` và `lecturer/queue.html:43-46`, code gọi trực tiếp `record.status.name()` mà không kiểm tra xem trường status hoặc record có bị null hay không.
+
+────────────────────────────────────────────────────────────────────────────────
+5. LOGIC LỖI TÍNH NĂNG (BACKEND & DATABASE BUGS)
+────────────────────────────────────────────────────────────────────────────────
+Các lỗi nghiêm trọng liên quan đến logic nghiệp vụ Java, truy vấn SQL sai hoặc thiếu kiểm soát an toàn dữ liệu:
+
+5.1. Lỗi Cast/Project LocalDate trong Lịch sử học tập (B001 - Lỗi 2)
+  - Vấn đề: Khi Sinh viên truy cập trang lịch sử học tập (`/student/history`), hàm `sessionRepository.findAcademicHistory(studentId)` thực thi truy vấn native SQL. Kết quả cột `session_date` kiểu DATE được driver MySQL trả về dưới dạng `java.sql.Date`.
+  - Tuy nhiên, Spring Data JPA Interface Projection `AcademicHistoryProjection` định nghĩa kiểu trả về là `java.time.LocalDate`. Do Spring Data không tự động chuyển đổi giữa hai kiểu này trong native query projection, hệ thống ném ngoại lệ:
+    `UnsupportedOperationException: Cannot project java.time.LocalDate to java.sql.Date` và crash ứng dụng lập tức.
+  - Khắc phục: Sửa kiểu trả về của projection thành `java.sql.Date` / `java.sql.Time` rồi convert thủ công, hoặc viết lại câu truy vấn bằng JPQL thay vì Native SQL.
+
+5.2. Khởi động lại ứng dụng bị lỗi khi đã có Database trong MySQL (B001 - Lỗi 3)
+  - Vấn đề: File `schema.sql` dùng lệnh `CREATE TABLE` trực tiếp mà không có `IF NOT EXISTS`. Đồng thời, file `data.sql` dùng `INSERT INTO` cứng không có `INSERT IGNORE` hoặc kiểm tra trùng lặp khóa chính/khóa duy nhất.
+  - Hậu quả: Khi chạy lại ứng dụng lần thứ 2 trở đi, Spring Boot tự động chạy lại các file này, gây lỗi "Table already exists" hoặc "Duplicate entry" và crash startup ứng dụng.
+  - Khắc phục: Thêm điều kiện `IF NOT EXISTS` vào DDL và chuyển seeding dữ liệu vào `DataSeeder.java` hoặc dùng `INSERT IGNORE`.
+
+5.3. Nghiêm trọng: Thiếu Pessimistic Lock khi Hoàn trả thiết bị (B002 - Lỗi 11)
+  - Vấn đề: Trong `DispatchService.returnEquipment()`, hàm sử dụng `equipmentRepository.findById()` thông thường để lấy thông tin thiết bị và cộng lại tồn kho khả dụng.
+  - Nguy cơ: Nếu có hai request hoàn trả thiết bị đồng thời cho cùng một loại thiết bị, cả hai luồng sẽ đọc cùng một số lượng tồn kho khả dụng cũ, thực hiện cộng thêm và lưu lại -> Một trong hai bản cập nhật sẽ bị ghi đè và mất mát số lượng tồn kho (Lost Update).
+  - Khắc phục: Sử dụng `findByIdWithLock()` (Pessimistic Write) tương tự như hàm xuất kho `dispatchEquipment`.
+
+5.4. Nghiêm trọng: Thiếu Kiểm tra Vai trò khi Đặt lịch cố vấn (B002 - Lỗi 10)
+  - Vấn đề: Trong `BookingService.createBooking()`, hệ thống chỉ gọi `userRepository.findById(dto.getLecturerId())` mà không kiểm tra xem tài khoản đó có thực sự mang vai trò `LECTURER` hay không.
+  - Hậu quả: Kẻ xấu có thể truyền ID của một Sinh viên khác hoặc Admin vào làm `lecturerId`, hệ thống vẫn lưu thành công buổi hẹn cố vấn với giảng viên là sinh viên/admin đó, làm sai lệch nghiêm trọng tính đúng đắn của dữ liệu.
+
+5.5. Nghiêm trọng: Lỗi N+1 Query làm giảm hiệu năng hệ thống (B002 - Lỗi 19)
+  - Vấn đề: Tại nhiều service (`DispatchService`, `EvaluationService`, `ProfileService`, `StudentDashboardService`), hệ thống truy cập vào các quan hệ Lazy-loading (như `student.profile`, `lecturer.department`, `borrowingRecord.details`) trong vòng lặp hoặc danh sách lớn mà không sử dụng `JOIN FETCH` trong câu lệnh JPA repository.
+  - Hậu quả: Hệ thống phải phát sinh thêm hàng chục câu lệnh SQL con (N+1 query) để nạp dữ liệu liên quan, làm chậm ứng dụng nghiêm trọng khi lượng dữ liệu tăng lên.
+
+5.6. Tạo phiếu mượn rác/trống (B002 - Lỗi 15)
+  - Vấn đề: Trong `EvaluationService.completeSession()`, hệ thống luôn tạo và lưu bản ghi `BorrowingRecord` trạng thái `PENDING_DISPATCH` bất kể danh sách thiết bị mượn kèm theo có trống hay không.
+  - Hậu quả: Tạo ra các hàng chờ rác trong queue duyệt xuất kho của Admin mà không có thiết bị nào để xuất.
+  - Khắc phục: Chỉ tạo `BorrowingRecord` khi danh sách thiết bị mượn thực sự có ít nhất một phần tử hợp lệ.
+
+5.7. Nguy cơ lỗi Null Pointer Exception từ Authentication (B002 - Lỗi 16)
+  - Vấn đề: Tại nhiều endpoint trong các Controller (`DashboardController`, `LecturerController`, `ProfileController`, `StudentHistoryController`), code gọi trực tiếp `authentication.getName()` để truy vấn user mà không kiểm tra `authentication` có null hay không.
+  - Hậu quả: Khi phiên đăng nhập hết hạn hoặc truy cập ẩn danh, hệ thống sẽ ném lỗi NPE và trả về màn hình lỗi 500 thay vì redirect người dùng về trang login một cách thân thiện.
+
+5.8. Lỗi TOCTOU (Time-of-Check to Time-of-Use) trong Đánh giá (B002 - Lỗi 13)
+  - Vấn đề: Trong `EvaluationService.completeSession()`, việc gọi `existsBySessionId` để kiểm tra ca tư vấn đã được đánh giá chưa diễn ra không đồng bộ/không có khóa lock. Hai request gửi đồng thời có thể cùng đi qua bước kiểm tra này và tạo ra hai đánh giá trùng lặp cho cùng một buổi hẹn.
+
+5.9. Lỗi ghim số lượng tồn kho âm thầm khi hoàn trả thiết bị (B002 - Lỗi 14)
+  - Vấn đề: Trong `DispatchService.returnEquipment()`, nếu số lượng hoàn trả cộng số khả dụng vượt quá số lượng tổng thiết bị (`quantityTotal`), hệ thống cũ âm thầm đặt lại số khả dụng bằng số tổng (silent clamp).
+  - Nguy cơ: Đây là dấu hiệu của việc sai lệch/bất nhất quán dữ liệu kho nghiêm trọng. Việc âm thầm che giấu lỗi sẽ khiến người vận hành không phát hiện được sự cố. Cần ném ngoại lệ để cảnh báo.
+
+5.10. Xử lý ngoại lệ không đồng bộ tại form đặt lịch (B002 - Lỗi 17)
+  - Vấn đề: Tại `StudentBookingController.confirm()`, code chỉ bắt `BusinessException` để hiển thị lỗi inline trong form, nhưng lại để lọt `SlotConflictException` (do nó kế thừa từ `RuntimeException` trực tiếp). Lỗi này sẽ trôi ra ngoài Global Exception Handler gây redirect trang và làm mất sạch thông tin sinh viên đã nhập trên form đặt lịch.
+
+5.11. Sai lệch điều kiện biên thời gian hủy lịch 24h (B002 - Lỗi 18)
+  - Vấn đề: Có sự bất nhất trong kiểm tra điều kiện hủy lịch trước 24h giữa `CancellationService` (sử dụng so sánh `!isAfter`) và `StudentHistoryService` (sử dụng so sánh `isBefore`). Khi thời gian ca hẹn đúng bằng 24h so với hiện tại, UI có thể hiển thị nút "Hủy" nhưng khi click server sẽ báo lỗi từ chối.
+
+5.12. Lãng phí kết nối DB trong ProfileController (B002 - Lỗi 20)
+  - Vấn đề: Hàm `editProfile` thực hiện gọi `profileService.getProfileByUserId(user.getId())` hai lần liên tiếp để lấy cùng một đối tượng profile, gây dư thừa truy vấn cơ sở dữ liệu.
+
+5.13. Trùng lặp dòng dữ liệu trong Native Query lịch sử (B002 - Lỗi 21)
+  - Vấn đề: Lệnh `LEFT JOIN` với bảng `borrowing_details` trong câu lệnh SQL lấy lịch sử sẽ tạo ra nhiều dòng dữ liệu trùng lặp thông tin ca cố vấn cho mỗi thiết bị được mượn thêm.
+
+================================================================================
+KẾT LUẬN & ĐỀ XUẤT HƯỚNG GIẢI QUYẾT
+================================================================================
+1. Hoàn thiện các chức năng thiếu: Cần tạo bổ sung template `session-detail.html` cho Giảng viên và trang quản lý tài khoản người dùng `user-list.html` cho Admin.
+2. Khắc phục lỗi CSS: Liên kết ngay file `app.css` vào các layout chính để kích hoạt giao diện chuyên nghiệp đã thiết kế.
+3. Sửa đổi nghiệp vụ Hủy lịch: Chuyển đổi từ xóa cứng (delete) sang cập nhật trạng thái session thành `CANCELLED` trong `CancellationService.java`.
+4. Khắc phục lỗi ép kiểu dữ liệu Lịch sử (LocalDate -> Date): Sửa kiểu dữ liệu trong Interface Projection hoặc cấu trúc lại truy vấn sang JPQL.
+5. Áp dụng Pessimistic Lock: Đảm bảo tất cả các thao tác hoàn trả, xuất kho, và cập nhật thông tin thiết bị đều được khóa dòng an toàn để tránh xung đột race condition.
+6. Sửa đổi Namespace: Thay thế namespace Spring Security ở các trang Dashboard để hiển thị chính xác thông tin giảng viên/sinh viên đăng nhập.
+================================================================================
+
+

@@ -1,73 +1,116 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org"
-      th:replace="~{layout/main-layout :: layout(~{::#main-content})}" th:with="pageTitle='Hồ sơ cá nhân'">
+      th:replace="~{layout/main-layout :: layout(~{::#main-content})}" th:with="pageTitle='Hồ sơ cá nhân'"
+      xmlns:sec="http://www.thymeleaf.org/extras/springsecurity6">
 <body>
-<div id="main-content" class="w-full max-w-container-max mx-auto flex flex-col gap-6">
-    <div class="flex items-center justify-between">
-        <div>
-            <h2 class="font-headline-md text-headline-md text-primary">Hồ sơ cá nhân</h2>
-            <p class="font-body-md text-body-md text-on-surface-variant mt-1">Quản lý thông tin cá nhân của bạn.</p>
-        </div>
-        <a th:href="@{/profile/edit}" class="h-10 px-4 rounded-lg bg-secondary text-on-secondary font-label-md text-label-md hover:bg-secondary-container transition-colors inline-flex items-center gap-2 shadow-sm">
-            <span class="material-symbols-outlined text-sm">edit</span> Chỉnh sửa
-        </a>
+<div id="main-content" class="w-full max-w-4xl mx-auto space-y-6">
+    <!-- Page Header -->
+    <div>
+        <h1 class="font-headline-lg text-headline-lg text-on-surface">Hồ sơ cá nhân</h1>
+        <p class="font-body-md text-body-md text-on-surface-variant mt-1">Quản lý thông tin tài khoản và cài đặt bảo mật của bạn.</p>
     </div>
 
     <!-- Flash Messages -->
     <div th:if="${success}" class="p-4 bg-tertiary-fixed text-on-tertiary-fixed-variant rounded-lg border border-tertiary-fixed-dim flex items-center gap-2">
-        <span class="material-symbols-outlined">check_circle</span><span class="font-body-md text-body-md" th:text="${success}"></span>
+        <span class="material-symbols-outlined">check_circle</span><span th:text="${success}"></span>
     </div>
 
-    <div class="bg-surface rounded-xl p-8 border border-outline-variant shadow-sm max-w-3xl mx-auto w-full">
-        <div class="flex flex-col md:flex-row gap-8">
-            <!-- Avatar -->
-            <div class="flex flex-col items-center md:items-start">
-                <div class="w-32 h-32 rounded-full bg-surface-container-high border-4 border-white shadow-sm overflow-hidden flex items-center justify-center">
-                    <span th:if="${profile.avatarUrl == null}" class="material-symbols-outlined text-6xl text-on-surface-variant">person</span>
-                </div>
-                <div class="mt-4 text-center md:text-left">
-                    <span sec:authorize="hasRole('STUDENT')" class="inline-block bg-tertiary-fixed text-tertiary-container px-3 py-1 rounded-full font-label-md text-label-md font-bold uppercase tracking-wider">Sinh viên</span>
-                    <span sec:authorize="hasRole('LECTURER')" class="inline-block bg-secondary-fixed text-on-secondary-fixed-variant px-3 py-1 rounded-full font-label-md text-label-md font-bold uppercase tracking-wider">Giảng viên</span>
-                    <span sec:authorize="hasRole('ADMIN')" class="inline-block bg-primary-fixed text-primary-container px-3 py-1 rounded-full font-label-md text-label-md font-bold uppercase tracking-wider">Admin</span>
-                </div>
-            </div>
-
-            <!-- Info -->
-            <div class="flex-1 space-y-6">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <p class="font-label-md text-label-md text-on-surface-variant">Họ và tên</p>
-                        <p class="font-headline-sm text-headline-sm text-primary mt-1" th:text="${profile.fullName != null ? profile.fullName : 'Chưa cập nhật'}">Tên</p>
-                    </div>
-                    <div>
-                        <p class="font-label-md text-label-md text-on-surface-variant">Email (Đăng nhập)</p>
-                        <p class="font-headline-sm text-headline-sm text-primary mt-1" th:text="${user.email}">email@domain.com</p>
-                    </div>
-                    <div>
-                        <p class="font-label-md text-label-md text-on-surface-variant">Số điện thoại</p>
-                        <p class="font-headline-sm text-headline-sm text-primary mt-1" th:text="${profile.phone != null ? profile.phone : 'Chưa cập nhật'}">Số ĐT</p>
-                    </div>
-                </div>
-
-                <!-- Lecturer specific -->
-                <div th:if="${lecturer != null}" class="mt-6 pt-6 border-t border-outline-variant space-y-6">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <p class="font-label-md text-label-md text-on-surface-variant">Chức danh</p>
-                            <p class="font-headline-sm text-headline-sm text-primary mt-1" th:text="${lecturer.title != null ? lecturer.title : 'Chưa cập nhật'}">Giảng viên</p>
+    <!-- Profile Grid Layout -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- General Information -->
+        <div class="lg:col-span-2 space-y-6">
+            <div class="bg-surface rounded-xl p-6 shadow-[0_1px_3px_rgba(0,0,0,0.1)] border border-outline-variant/30">
+                <h2 class="font-headline-sm text-headline-sm text-on-surface mb-6 border-b border-surface-variant pb-2">Thông tin chung</h2>
+                <div class="flex flex-col sm:flex-row gap-8 items-start">
+                    <!-- Avatar -->
+                    <div class="flex flex-col items-center gap-3 shrink-0">
+                        <div class="relative group">
+                            <div class="w-24 h-24 rounded-full overflow-hidden border-2 border-surface-container-high bg-surface-container flex items-center justify-center">
+                                <span th:if="${profile.avatarUrl == null}" class="material-symbols-outlined text-5xl text-on-surface-variant">person</span>
+                            </div>
+                            <a th:href="@{/profile/edit}"
+                               class="absolute bottom-0 right-0 w-8 h-8 bg-surface text-on-surface rounded-full shadow border border-outline-variant flex items-center justify-center hover:bg-surface-container-low transition-colors">
+                                <span class="material-symbols-outlined text-[16px]">edit</span>
+                            </a>
                         </div>
-                        <div>
-                            <p class="font-label-md text-label-md text-on-surface-variant">Khoa trực thuộc</p>
-                            <p class="font-headline-sm text-headline-sm text-primary mt-1" th:text="${lecturer.departmentName != null ? lecturer.departmentName : 'Chưa cập nhật'}">Khoa</p>
-                        </div>
+                        <span class="font-label-md text-label-md text-on-surface-variant">Ảnh đại diện</span>
                     </div>
-                    <div>
-                        <p class="font-label-md text-label-md text-on-surface-variant">Giới thiệu bản thân (Bio)</p>
-                        <p class="font-body-md text-body-md text-on-surface bg-surface-container-low p-4 rounded-lg border border-outline-variant mt-1" th:text="${lecturer.bio != null && !lecturer.bio.isEmpty() ? lecturer.bio : 'Chưa cập nhật tiểu sử.'}">Bio</p>
+                    <!-- Info Fields -->
+                    <div class="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+                        <div class="space-y-1">
+                            <p class="font-label-md text-label-md text-on-surface">Họ và tên</p>
+                            <p class="text-body-md text-on-surface font-medium" th:text="${profile.fullName != null ? profile.fullName : 'Chưa cập nhật'}">Nguyễn Văn A</p>
+                        </div>
+                        <div th:if="${lecturer != null}" class="space-y-1">
+                            <p class="font-label-md text-label-md text-on-surface">Chức danh</p>
+                            <p class="text-body-md text-on-surface font-medium" th:text="${lecturer.title != null ? lecturer.title : 'Chưa cập nhật'}">Giảng viên</p>
+                        </div>
+                        <div class="space-y-1 md:col-span-2">
+                            <p class="font-label-md text-label-md text-on-surface">Email</p>
+                            <p class="text-body-md text-on-surface font-medium" th:text="${user.email}">nguyenvana@university.edu.vn</p>
+                        </div>
+                        <div class="space-y-1">
+                            <p class="font-label-md text-label-md text-on-surface">Số điện thoại</p>
+                            <p class="text-body-md text-on-surface font-medium" th:text="${profile.phone != null ? profile.phone : 'Chưa cập nhật'}">0901234567</p>
+                        </div>
+                        <div th:if="${lecturer != null}" class="space-y-1">
+                            <p class="font-label-md text-label-md text-on-surface">Khoa/Phòng ban</p>
+                            <p class="text-body-md text-on-surface font-medium" th:text="${lecturer.departmentName != null ? lecturer.departmentName : 'Chưa cập nhật'}">Khoa</p>
+                        </div>
+                        <div th:if="${lecturer != null and lecturer.bio != null and !lecturer.bio.isEmpty()}" class="space-y-1 md:col-span-2">
+                            <p class="font-label-md text-label-md text-on-surface">Giới thiệu</p>
+                            <p class="text-body-md text-on-surface bg-surface-container-low p-3 rounded-lg leading-relaxed" th:text="${lecturer.bio}">Tiểu sử</p>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
+        <!-- Security & Role -->
+        <div class="space-y-6">
+            <div class="bg-surface rounded-xl p-6 shadow-[0_1px_3px_rgba(0,0,0,0.1)] border border-outline-variant/30">
+                <h2 class="font-headline-sm text-headline-sm text-on-surface mb-6 border-b border-surface-variant pb-2">Bảo mật</h2>
+                <div class="space-y-4">
+                    <div class="space-y-1">
+                        <p class="font-label-md text-label-md text-on-surface-variant">Email đăng nhập</p>
+                        <p class="text-body-md text-on-surface font-medium" th:text="${user.email}"></p>
+                    </div>
+                    <div class="pt-3 border-t border-surface-variant">
+                        <a th:href="@{/profile/edit}" class="flex items-center gap-2 text-secondary hover:text-secondary-container font-label-md text-label-md transition-colors">
+                            <span class="material-symbols-outlined text-[16px]">lock_reset</span>
+                            Đổi mật khẩu
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <!-- Role Badge -->
+            <div class="bg-surface rounded-xl p-6 shadow-[0_1px_3px_rgba(0,0,0,0.1)] border border-outline-variant/30">
+                <div class="flex items-center gap-3">
+                    <div sec:authorize="hasRole('STUDENT')" class="w-12 h-12 rounded-full bg-tertiary-fixed flex items-center justify-center">
+                        <span class="material-symbols-outlined text-tertiary-container">school</span>
+                    </div>
+                    <div sec:authorize="hasRole('LECTURER')" class="w-12 h-12 rounded-full bg-secondary-fixed flex items-center justify-center">
+                        <span class="material-symbols-outlined text-on-secondary-fixed-variant">badge</span>
+                    </div>
+                    <div sec:authorize="hasRole('ADMIN')" class="w-12 h-12 rounded-full bg-primary-fixed flex items-center justify-center">
+                        <span class="material-symbols-outlined text-primary-container">admin_panel_settings</span>
+                    </div>
+                    <div>
+                        <p class="font-label-md text-label-md text-on-surface-variant">Vai trò</p>
+                        <p sec:authorize="hasRole('STUDENT')" class="font-headline-sm text-headline-sm text-tertiary-container">Sinh viên</p>
+                        <p sec:authorize="hasRole('LECTURER')" class="font-headline-sm text-headline-sm text-on-secondary-fixed-variant">Giảng viên</p>
+                        <p sec:authorize="hasRole('ADMIN')" class="font-headline-sm text-headline-sm text-primary-container">Quản trị viên</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Action Buttons -->
+    <div class="flex justify-end gap-3 pt-4 border-t border-surface-variant">
+        <a th:href="@{/profile/edit}"
+           class="px-6 py-2 rounded-lg bg-secondary text-on-secondary font-label-md text-label-md hover:bg-secondary-container transition-colors shadow-sm inline-flex items-center gap-2">
+            <span class="material-symbols-outlined text-[16px]">edit</span>
+            Chỉnh sửa
+        </a>
     </div>
 </div>
 </body>

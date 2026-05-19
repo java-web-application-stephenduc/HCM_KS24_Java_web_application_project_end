@@ -52,14 +52,15 @@
                 </thead>
                 <tbody class="font-body-md text-body-md">
                     <!-- Trạng thái rỗng -->
-                    <tr th:if="${#lists.isEmpty(records)}">
+                    <tr th:if="${records == null or #lists.isEmpty(records)}">
                         <td colspan="5" class="py-10 px-5 text-center text-on-surface-variant">
                             <span class="material-symbols-outlined text-4xl block mb-2 text-on-surface-variant">event_busy</span>
                             Bạn chưa có lịch sử tư vấn nào.
                         </td>
                     </tr>
                     <!-- Danh sách từng buổi tư vấn -->
-                    <tr th:each="record : ${records}"
+                    <tr th:each="record : ${records != null ? records : {}}"
+                        th:unless="${records == null or #lists.isEmpty(records)}"
                         class="hover:bg-surface-container-lowest transition-colors border-b border-outline-variant last:border-b-0">
                         <td class="py-4 px-5">
                             <div class="font-semibold text-on-surface" th:text="${record.lecturerName}">Tên giảng viên</div>
@@ -127,14 +128,15 @@
                 </thead>
                 <tbody class="font-body-md text-body-md">
                     <!-- Trạng thái rỗng -->
-                    <tr th:if="${#lists.isEmpty(borrowedEquipments)}">
+                    <tr th:if="${borrowedEquipments == null or #lists.isEmpty(borrowedEquipments)}">
                         <td colspan="6" class="py-10 px-5 text-center text-on-surface-variant">
                             <span class="material-symbols-outlined text-4xl block mb-2 text-on-surface-variant">devices_off</span>
                             Bạn chưa mượn thiết bị nào.
                         </td>
                     </tr>
                     <!-- Từng dòng thiết bị đã mượn, dữ liệu từ BorrowedEquipmentHistoryDto -->
-                    <tr th:each="item : ${borrowedEquipments}"
+                    <tr th:each="item : ${borrowedEquipments != null ? borrowedEquipments : {}}"
+                        th:unless="${borrowedEquipments == null or #lists.isEmpty(borrowedEquipments)}"
                         class="hover:bg-surface-container-lowest transition-colors border-b border-outline-variant last:border-b-0">
                         <!-- Mã thiết bị: định dạng TB-{id} sinh bởi service -->
                         <td class="py-4 px-5 font-mono text-on-surface-variant" th:text="${item.equipmentCode}">TB-1</td>

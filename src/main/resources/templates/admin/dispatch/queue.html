@@ -29,11 +29,13 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 text-sm">
-                    <tr th:if="${#lists.isEmpty(records)}">
+                    <tr th:if="${records == null or #lists.isEmpty(records)}">
                         <td colspan="6" class="px-5 py-8 text-center text-slate-500">Không có phiếu cấp phát nào.</td>
                     </tr>
-                    <tr th:each="record : ${records}" class="hover:bg-slate-50/50 transition-colors">
-                        <td class="px-5 py-4 text-slate-500 font-mono" th:text="'#' + ${record.recordId}">#1</td>
+                    <tr th:each="record : ${records != null ? records : {}}"
+                        th:unless="${records == null or #lists.isEmpty(records)}"
+                        class="hover:bg-slate-50/50 transition-colors">
+                        <td class="px-5 py-4 text-slate-500 font-mono" th:text="|#${record.recordId}|">#1</td>
                         <td class="px-5 py-4 font-medium text-slate-800" th:text="${record.studentName}">Tên SV</td>
                         <td class="px-5 py-4 text-slate-600" th:text="${#temporals.format(record.sessionDate, 'dd/MM/yyyy')}">12/12/2026</td>
                         <td class="px-5 py-4">

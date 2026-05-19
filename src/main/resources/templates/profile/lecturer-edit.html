@@ -2,69 +2,95 @@
 <html lang="vi" xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/main-layout :: layout(~{::#main-content})}" th:with="pageTitle='Chỉnh sửa hồ sơ Giảng viên'">
 <body>
-<div id="main-content" class="w-full max-w-7xl mx-auto space-y-6">
-    <div class="flex items-center justify-between mb-6">
+<div id="main-content" class="w-full max-w-4xl mx-auto space-y-6">
+    <!-- Page Header -->
+    <div class="flex items-center justify-between">
         <div>
-            <h2 class="text-2xl font-bold text-slate-800">Chỉnh sửa hồ sơ</h2>
-            <p class="text-slate-500 mt-2">Cập nhật thông tin giảng viên và liên hệ.</p>
+            <h1 class="font-headline-lg text-headline-lg text-on-surface">Chỉnh sửa hồ sơ</h1>
+            <p class="font-body-md text-body-md text-on-surface-variant mt-1">Cập nhật thông tin giảng viên và liên hệ.</p>
         </div>
-        <a th:href="@{/profile}" class="bg-slate-100 text-slate-600 hover:bg-slate-200 rounded-lg px-4 py-2 font-medium transition-colors flex items-center gap-2">
+        <a th:href="@{/profile}"
+           class="px-4 py-2 rounded-lg border border-outline text-on-surface font-label-md text-label-md hover:bg-surface-container-low transition-colors inline-flex items-center gap-2">
             <span class="material-symbols-outlined text-sm">arrow_back</span> Quay lại
         </a>
     </div>
 
-    <div class="bg-white rounded-2xl p-8 shadow-sm border border-slate-100 max-w-3xl mx-auto">
-        <form th:action="@{/profile/edit}" th:object="${profile}" method="post" class="space-y-6">
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="md:col-span-2">
-                    <label class="block text-sm font-semibold text-slate-700 mb-2">Email (Không thể đổi)</label>
-                    <input type="text" th:value="${user.email}" disabled class="w-full px-4 py-3 rounded-lg border border-slate-300 bg-slate-50 text-slate-500 cursor-not-allowed"/>
-                </div>
-                
-                <div class="md:col-span-2">
-                    <label for="fullName" class="block text-sm font-semibold text-slate-700 mb-2">Họ và tên</label>
-                    <input type="text" th:field="*{fullName}" id="fullName" class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-secondary focus:border-secondary outline-none transition-all" required/>
-                    <p th:if="${#fields.hasErrors('fullName')}" th:errors="*{fullName}" class="text-red-500 text-sm mt-1"></p>
-                </div>
-                
-                <div>
-                    <label for="phone" class="block text-sm font-semibold text-slate-700 mb-2">Số điện thoại</label>
-                    <input type="tel" th:field="*{phone}" id="phone" class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-secondary focus:border-secondary outline-none transition-all"/>
-                    <p th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}" class="text-red-500 text-sm mt-1"></p>
-                </div>
-                
-                <div>
-                    <label for="departmentId" class="block text-sm font-semibold text-slate-700 mb-2">Khoa trực thuộc</label>
-                    <select th:field="*{departmentId}" id="departmentId" class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-secondary focus:border-secondary outline-none transition-all bg-white" required>
-                        <option value="" disabled>-- Chọn khoa --</option>
-                        <option th:each="dept : ${departments}" th:value="${dept.id}" th:text="${dept.name}"></option>
-                    </select>
-                    <p th:if="${#fields.hasErrors('departmentId')}" th:errors="*{departmentId}" class="text-red-500 text-sm mt-1"></p>
-                </div>
-                
-                <div class="md:col-span-2">
-                    <label for="title" class="block text-sm font-semibold text-slate-700 mb-2">Chức danh / Học hàm, học vị</label>
-                    <input type="text" th:field="*{title}" id="title" class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-secondary focus:border-secondary outline-none transition-all" placeholder="VD: TS. Nguyễn Văn A, ThS, ..."/>
-                    <p th:if="${#fields.hasErrors('title')}" th:errors="*{title}" class="text-red-500 text-sm mt-1"></p>
-                </div>
-                
-                <div class="md:col-span-2">
-                    <label for="bio" class="block text-sm font-semibold text-slate-700 mb-2">Giới thiệu bản thân (Tiểu sử)</label>
-                    <textarea th:field="*{bio}" id="bio" rows="4" class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-secondary focus:border-secondary outline-none transition-all" placeholder="Nhập tiểu sử, hướng nghiên cứu, lịch rảnh..."></textarea>
-                    <p th:if="${#fields.hasErrors('bio')}" th:errors="*{bio}" class="text-red-500 text-sm mt-1"></p>
+    <!-- Form -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-2">
+            <div class="bg-surface rounded-xl p-6 shadow-[0_1px_3px_rgba(0,0,0,0.1)] border border-outline-variant/30">
+                <h2 class="font-headline-sm text-headline-sm text-on-surface mb-6 border-b border-surface-variant pb-2">Thông tin chung</h2>
+                <form th:action="@{/profile/edit}" th:object="${profile}" method="post" class="space-y-6">
+                    <div class="flex flex-col sm:flex-row gap-8 items-start">
+                        <!-- Avatar -->
+                        <div class="flex flex-col items-center gap-3 shrink-0">
+                            <div class="relative group">
+                                <div class="w-24 h-24 rounded-full overflow-hidden border-2 border-surface-container-high bg-surface-container flex items-center justify-center">
+                                    <span class="material-symbols-outlined text-5xl text-on-surface-variant">person</span>
+                                </div>
+                                <button type="button" class="absolute bottom-0 right-0 w-8 h-8 bg-surface text-on-surface rounded-full shadow border border-outline-variant flex items-center justify-center hover:bg-surface-container-low transition-colors cursor-not-allowed opacity-50">
+                                    <span class="material-symbols-outlined text-[16px]">edit</span>
+                                </button>
+                            </div>
+                            <span class="font-label-md text-label-md text-on-surface-variant">Ảnh đại diện</span>
+                        </div>
+                        <!-- Form Fields -->
+                        <div class="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+                            <div class="space-y-1 md:col-span-2">
+                                <label class="font-label-md text-label-md text-on-surface">Email (Không thể đổi)</label>
+                                <input type="text" th:value="${user.email}" disabled class="w-full bg-surface-container-low border border-outline-variant rounded-lg px-3 py-2 text-body-md text-on-surface-variant cursor-not-allowed"/>
+                            </div>
+                            <div class="space-y-1 md:col-span-2">
+                                <label for="fullName" class="font-label-md text-label-md text-on-surface">Họ và tên</label>
+                                <input type="text" th:field="*{fullName}" id="fullName" class="w-full bg-surface border border-outline-variant rounded-lg px-3 py-2 text-body-md text-on-surface focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary" required/>
+                                <p th:if="${#fields.hasErrors('fullName')}" th:errors="*{fullName}" class="font-label-md text-label-md text-error mt-1"></p>
+                            </div>
+                            <div class="space-y-1">
+                                <label for="phone" class="font-label-md text-label-md text-on-surface">Số điện thoại</label>
+                                <input type="tel" th:field="*{phone}" id="phone" class="w-full bg-surface border border-outline-variant rounded-lg px-3 py-2 text-body-md text-on-surface focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary"/>
+                                <p th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}" class="font-label-md text-label-md text-error mt-1"></p>
+                            </div>
+                            <div class="space-y-1">
+                                <label for="departmentId" class="font-label-md text-label-md text-on-surface">Khoa trực thuộc</label>
+                                <select th:field="*{departmentId}" id="departmentId" class="w-full bg-surface border border-outline-variant rounded-lg px-3 py-2 text-body-md text-on-surface focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary appearance-none" required>
+                                    <option value="" disabled>-- Chọn khoa --</option>
+                                    <option th:each="dept : ${departments}" th:value="${dept.id}" th:text="${dept.name}"></option>
+                                </select>
+                                <p th:if="${#fields.hasErrors('departmentId')}" th:errors="*{departmentId}" class="font-label-md text-label-md text-error mt-1"></p>
+                            </div>
+                            <div class="space-y-1 md:col-span-2">
+                                <label for="title" class="font-label-md text-label-md text-on-surface">Chức danh / Học hàm, học vị</label>
+                                <input type="text" th:field="*{title}" id="title" class="w-full bg-surface border border-outline-variant rounded-lg px-3 py-2 text-body-md text-on-surface focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary" placeholder="VD: TS., ThS., ..."/>
+                                <p th:if="${#fields.hasErrors('title')}" th:errors="*{title}" class="font-label-md text-label-md text-error mt-1"></p>
+                            </div>
+                            <div class="space-y-1 md:col-span-2">
+                                <label for="bio" class="font-label-md text-label-md text-on-surface">Giới thiệu bản thân (Tiểu sử)</label>
+                                <textarea th:field="*{bio}" id="bio" rows="4" class="w-full bg-surface border border-outline-variant rounded-lg px-3 py-2 text-body-md text-on-surface focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary" placeholder="Nhập tiểu sử, hướng nghiên cứu, lịch rảnh..."></textarea>
+                                <p th:if="${#fields.hasErrors('bio')}" th:errors="*{bio}" class="font-label-md text-label-md text-error mt-1"></p>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Submit -->
+                    <div class="flex justify-end gap-3 pt-4 border-t border-surface-variant">
+                        <a th:href="@{/profile}" class="px-6 py-2 rounded-lg border border-outline text-on-surface font-label-md text-label-md hover:bg-surface-container-low transition-colors">Hủy bỏ</a>
+                        <button type="submit" class="px-6 py-2 rounded-lg bg-secondary text-on-secondary font-label-md text-label-md hover:bg-secondary-container transition-colors shadow-sm inline-flex items-center gap-2">
+                            Lưu thay đổi
+                            <span class="material-symbols-outlined text-[16px]">save</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <!-- Security Sidebar -->
+        <div class="space-y-6">
+            <div class="bg-surface rounded-xl p-6 shadow-[0_1px_3px_rgba(0,0,0,0.1)] border border-outline-variant/30">
+                <h2 class="font-headline-sm text-headline-sm text-on-surface mb-6 border-b border-surface-variant pb-2">Bảo mật</h2>
+                <div class="space-y-1">
+                    <p class="font-label-md text-label-md text-on-surface-variant">Email đăng nhập</p>
+                    <p class="text-body-md text-on-surface font-medium" th:text="${user.email}"></p>
                 </div>
             </div>
-            
-            <div class="flex justify-end gap-3 pt-6 border-t border-slate-100">
-                <a th:href="@{/profile}" class="bg-slate-100 text-slate-600 hover:bg-slate-200 rounded-lg px-6 py-3 font-medium transition-colors">
-                    Hủy
-                </a>
-                <button type="submit" class="bg-secondary hover:bg-secondary-container text-white px-8 py-3 rounded-xl font-medium transition-colors shadow-sm">
-                    Lưu thông tin
-                </button>
-            </div>
-        </form>
+        </div>
     </div>
 </div>
 </body>
