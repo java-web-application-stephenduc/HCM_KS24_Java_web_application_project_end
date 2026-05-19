@@ -1,4 +1,5 @@
 package com.rikkei.salsp.entity.session;
+
 import com.rikkei.salsp.entity.user.User;
 
 import jakarta.persistence.Column;
@@ -61,8 +62,10 @@ public class MentoringSession {
     @Column(columnDefinition = "TEXT")
     private String note;
 
+    @Column(name = "rejection_reason", columnDefinition = "TEXT")
+    private String rejectionReason;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 }
-

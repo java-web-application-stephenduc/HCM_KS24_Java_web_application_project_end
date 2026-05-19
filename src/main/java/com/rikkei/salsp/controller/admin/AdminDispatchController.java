@@ -11,7 +11,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 /**
- * Controller quản lý quy trình cấp phát và hoàn trả thiết bị phòng Lab của Admin.
+ * Controller quản lý quy trình cấp phát và hoàn trả thiết bị phòng Lab của
+ * Admin.
  */
 @Controller
 @RequiredArgsConstructor
@@ -35,7 +36,7 @@ public class AdminDispatchController {
     /**
      * Xem chi tiết yêu cầu cấp phát dựa trên ID.
      * 
-     * @param id ID của yêu cầu mượn
+     * @param id    ID của yêu cầu mượn
      * @param model Model để truyền thông tin chi tiết
      * @return Template chi tiết phiếu mượn
      */
@@ -48,21 +49,36 @@ public class AdminDispatchController {
     /**
      * Xác nhận cấp phát thiết bị cho sinh viên.
      * 
-     * @param id ID của phiếu mượn
+     * @param id    ID của phiếu mượn
      * @param flash Chứa thông báo kết quả
      * @return Chuyển hướng lại danh sách hàng đợi
      */
     @PostMapping("/{id}/confirm")
-    public String confirm(@PathVariable Long id, RedirectAttributes flash) {
-        dispatchService.dispatchEquipment(id);
+    public String confirm(@PathVariable Long id, String adminNote, RedirectAttributes flash) {
+        dispatchService.dispatchEquipment(id, adminNote);
         flash.addFlashAttribute("success", "Đã xác nhận cấp phát");
+        return "redirect:/admin/dispatch";
+    }
+
+    /**
+     * Từ chối yêu cầu mượn thiết bị.
+     *
+     * @param id        ID của phiếu mượn
+     * @param adminNote Ghi chú từ admin
+     * @param flash     Chứa thông báo kết quả
+     * @return Chuyển hướng lại danh sách hàng đợi
+     */
+    @PostMapping("/{id}/reject")
+    public String reject(@PathVariable Long id, String adminNote, RedirectAttributes flash) {
+        dispatchService.rejectDispatch(id, adminNote);
+        flash.addFlashAttribute("success", "Đã từ chối yêu cầu mượn thiết bị");
         return "redirect:/admin/dispatch";
     }
 
     /**
      * Xác nhận hoàn trả thiết bị về kho.
      * 
-     * @param id ID của phiếu mượn
+     * @param id    ID của phiếu mượn
      * @param flash Chứa thông báo kết quả
      * @return Chuyển hướng lại danh sách hàng đợi
      */
@@ -73,5 +89,3 @@ public class AdminDispatchController {
         return "redirect:/admin/dispatch";
     }
 }
-
-

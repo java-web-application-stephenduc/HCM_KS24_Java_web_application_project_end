@@ -30,7 +30,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Service cung cấp lịch sử học thuật, lịch sử mượn thiết bị và xử lý đăng ký mượn thiết bị của sinh viên.
+ * Service cung cấp lịch sử học thuật, lịch sử mượn thiết bị và xử lý đăng ký
+ * mượn thiết bị của sinh viên.
  */
 @Service
 @RequiredArgsConstructor
@@ -52,15 +53,16 @@ public class StudentHistoryService {
      */
     public List<AcademicRecordDto> getAcademicHistory(Long studentId) {
         // Gom dữ liệu phẳng thành danh sách theo từng buổi.
-        List<MentoringSessionRepository.AcademicHistoryProjection> rows =
-            sessionRepository.findAcademicHistory(studentId);
+        List<MentoringSessionRepository.AcademicHistoryProjection> rows = sessionRepository
+                .findAcademicHistory(studentId);
 
         Map<Long, AcademicRecordDto> grouped = new LinkedHashMap<>();
         for (MentoringSessionRepository.AcademicHistoryProjection row : rows) {
             AcademicRecordDto dto = grouped.computeIfAbsent(row.getSessionId(), id -> {
                 AcademicRecordDto record = new AcademicRecordDto();
                 record.setSessionId(row.getSessionId());
-                // Hibernate 6 trả về trực tiếp java.time.LocalDate/LocalTime, không cần convert.
+                // Hibernate 6 trả về trực tiếp java.time.LocalDate/LocalTime, không cần
+                // convert.
                 record.setSessionDate(row.getSessionDate());
                 record.setStartTime(row.getStartTime());
                 record.setEndTime(row.getEndTime());
@@ -70,9 +72,10 @@ public class StudentHistoryService {
                 record.setScore(row.getScore());
                 record.setFeedback(row.getFeedback());
                 record.setNote(row.getNote());
+                record.setRejectionReason(row.getRejectionReason());
                 record.setEquipments(new ArrayList<>());
                 record.setCancellable(isCancellable(record.getStatus(),
-                    record.getSessionDate(), record.getStartTime()));
+                        record.getSessionDate(), record.getStartTime()));
                 return record;
             });
 
@@ -88,13 +91,14 @@ public class StudentHistoryService {
 
     /**
      * Lấy thông tin bản ghi.
+     * 
      * @param sessionId Tham số đầu vào sessionId
-
+     * 
      * @return Kết quả trả về của phương thức
      */
     public AcademicRecordDto getAcademicRecordById(Long sessionId) {
-        List<MentoringSessionRepository.AcademicHistoryProjection> rows =
-            sessionRepository.findAcademicHistoryBySessionId(sessionId);
+        List<MentoringSessionRepository.AcademicHistoryProjection> rows = sessionRepository
+                .findAcademicHistoryBySessionId(sessionId);
         if (rows.isEmpty()) {
             throw new ResourceNotFoundException("Không tìm thấy buổi tư vấn");
         }
@@ -113,9 +117,10 @@ public class StudentHistoryService {
                 record.setFeedback(row.getFeedback());
                 record.setNote(row.getNote());
                 record.setNote(row.getNote());
+                record.setRejectionReason(row.getRejectionReason());
                 record.setEquipments(new ArrayList<>());
                 record.setCancellable(isCancellable(record.getStatus(),
-                    record.getSessionDate(), record.getStartTime()));
+                        record.getSessionDate(), record.getStartTime()));
             }
             if (row.getEquipmentName() != null) {
                 BorrowedEquipmentDto equipment = new BorrowedEquipmentDto();
@@ -144,7 +149,8 @@ public class StudentHistoryService {
             dto.setReturnedAt(resolveReturnedAt(detail));
             dto.setStatus(detail.getRecord().getStatus().name());
             dto.setNote(detail.getRecord().getSession() != null
-                ? detail.getRecord().getSession().getNote() : null);
+                    ? detail.getRecord().getSession().getNote()
+                    : null);
             results.add(dto);
         }
         return results;
@@ -152,8 +158,9 @@ public class StudentHistoryService {
 
     /**
      * Phương thức xử lý nghiệp vụ resolveReturnedAt.
+     * 
      * @param detail Tham số đầu vào detail
-
+     * 
      * @return Kết quả trả về của phương thức
      */
     private LocalDateTime resolveReturnedAt(BorrowingDetail detail) {
@@ -167,8 +174,8 @@ public class StudentHistoryService {
      * Kiểm tra buổi hẹn có thể hủy được không.
      * Điều kiện: trạng thái PENDING và còn cách ít nhất 24 giờ.
      *
-     * @param status Trạng thái hiện tại
-     * @param date Ngày buổi hẹn
+     * @param status    Trạng thái hiện tại
+     * @param date      Ngày buổi hẹn
      * @param startTime Giờ bắt đầu
      * @return true nếu có thể hủy
      */
@@ -182,7 +189,7 @@ public class StudentHistoryService {
 
     /**
      * Lấy thông tin thiết bị phòng Lab.
-
+     * 
      * @return Kết quả trả về của phương thức
      */
     public List<Equipment> getAvailableEquipment() {
@@ -190,24 +197,28 @@ public class StudentHistoryService {
     }
 
     /**
-     * Xử lý yêu cầu đăng ký mượn thiết bị tự phục vụ của sinh viên. Kiểm tra tính hợp lệ của ca hẹn và số lượng khả dụng trong kho.
-     * @param sessionId Tham số đầu vào sessionId
-     * @param items Tham số đầu vào items
+     * Xử lý yêu cầu đăng ký mượn thiết bị tự phục vụ của sinh viên. Kiểm tra tính
+     * hợp lệ của ca hẹn và số lượng khả dụng trong kho.
+     * 
+     * @param sessionId    Tham số đầu vào sessionId
+     * @param items        Tham số đầu vào items
      * @param studentEmail Tham số đầu vào studentEmail
      */
     @Transactional
     public void createBorrowRequest(Long sessionId, List<EquipmentItemDto> items, String studentEmail) {
         MentoringSession session = sessionRepository.findById(sessionId)
-            .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy buổi tư vấn"));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy buổi tư vấn"));
 
         User student = userRepository.findByEmail(studentEmail)
-            .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sinh viên"));
-        
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sinh viên"));
+
         if (!session.getStudent().getId().equals(student.getId())) {
             throw new BusinessException("Không có quyền đăng ký mượn cho buổi tư vấn này");
         }
-        
-        if (session.getStatus() == SessionStatus.CANCELLED) {
+
+        if (session.getStatus() == SessionStatus.CANCELLED
+                || session.getStatus() == SessionStatus.REJECTED
+                || session.getStatus() == SessionStatus.CANCELED_BY_STUDENT) {
             throw new BusinessException("Không thể mượn thiết bị cho buổi tư vấn đã hủy");
         }
 
@@ -221,11 +232,12 @@ public class StudentHistoryService {
                 continue;
             }
             Equipment equipment = equipmentRepository.findById(item.getEquipmentId())
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy thiết bị ID: " + item.getEquipmentId()));
-            
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "Không tìm thấy thiết bị ID: " + item.getEquipmentId()));
+
             if (item.getQuantity() > equipment.getQuantityAvailable()) {
-                throw new BusinessException("Số lượng yêu cầu cho thiết bị '" + equipment.getName() + 
-                    "' vượt quá số lượng khả dụng hiện có (" + equipment.getQuantityAvailable() + ")");
+                throw new BusinessException("Số lượng yêu cầu cho thiết bị '" + equipment.getName() +
+                        "' vượt quá số lượng khả dụng hiện có (" + equipment.getQuantityAvailable() + ")");
             }
 
             BorrowingDetail detail = new BorrowingDetail();
@@ -240,7 +252,7 @@ public class StudentHistoryService {
 
         BorrowingRecord record = new BorrowingRecord();
         record.setSession(session);
-        record.setStatus(BorrowingStatus.PENDING_DISPATCH);
+        record.setStatus(BorrowingStatus.PENDING_LECTURER_APPROVAL);
         details.forEach(d -> d.setRecord(record));
         record.getDetails().addAll(details);
         borrowingRecordRepository.save(record);

@@ -1,4 +1,5 @@
 package com.rikkei.salsp.entity.equipment;
+
 import com.rikkei.salsp.entity.session.MentoringSession;
 
 import jakarta.persistence.CascadeType;
@@ -25,7 +26,8 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 /**
- * Thực thể đại diện cho một phiếu mượn thiết bị gắn liền với ca cố vấn học thuật.
+ * Thực thể đại diện cho một phiếu mượn thiết bị gắn liền với ca cố vấn học
+ * thuật.
  */
 @Entity
 @Table(name = "borrowing_records")
@@ -48,6 +50,12 @@ public class BorrowingRecord {
     @Column(nullable = false, length = 30)
     private BorrowingStatus status;
 
+    @Column(name = "lecturer_note", columnDefinition = "TEXT")
+    private String lecturerNote;
+
+    @Column(name = "admin_note", columnDefinition = "TEXT")
+    private String adminNote;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
@@ -58,10 +66,11 @@ public class BorrowingRecord {
 
     /**
      * Danh sách chi tiết thiết bị trong phiếu mượn.
-     * cascade = ALL: lưu/xóa BorrowingRecord sẽ tự động lưu/xóa các BorrowingDetail con.
-     * orphanRemoval = true: xóa detail khỏi list sẽ xóa khỏi DB, tránh FK constraint khi delete record.
+     * cascade = ALL: lưu/xóa BorrowingRecord sẽ tự động lưu/xóa các BorrowingDetail
+     * con.
+     * orphanRemoval = true: xóa detail khỏi list sẽ xóa khỏi DB, tránh FK
+     * constraint khi delete record.
      */
     @OneToMany(mappedBy = "record", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<BorrowingDetail> details = new ArrayList<>();
 }
-

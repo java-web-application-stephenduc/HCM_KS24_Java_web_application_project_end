@@ -9,7 +9,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * Lớp `AcademicRecordDto` thuộc hệ thống Smart Academic Lab Support Platform (SALSP).
+ * Lớp `AcademicRecordDto` thuộc hệ thống Smart Academic Lab Support Platform
+ * (SALSP).
  */
 @Getter
 @Setter
@@ -26,8 +27,7 @@ public class AcademicRecordDto {
     private Integer score;
     private String feedback;
     private String note;
+    private String rejectionReason;
     private List<BorrowedEquipmentDto> equipments = new ArrayList<>();
     private boolean cancellable;
 }
-
-

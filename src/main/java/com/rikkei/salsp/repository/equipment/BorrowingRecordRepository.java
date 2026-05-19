@@ -14,44 +14,66 @@ import org.springframework.data.repository.query.Param;
 public interface BorrowingRecordRepository extends JpaRepository<BorrowingRecord, Long> {
     /**
      * Tìm kiếm buổi cố vấn học thuật.
+     * 
      * @param sessionId Tham số đầu vào sessionId
-
+     * 
      * @return Kết quả trả về của phương thức
      */
     Optional<BorrowingRecord> findBySessionId(Long sessionId);
 
     /**
      * Tìm kiếm.
+     * 
      * @param status Tham số đầu vào status
-
+     * 
      * @return Kết quả trả về của phương thức
      */
     List<BorrowingRecord> findByStatus(BorrowingStatus status);
 
     @Query("""
-        SELECT DISTINCT br FROM BorrowingRecord br
-        LEFT JOIN FETCH br.session s
-        LEFT JOIN FETCH s.student st
-        LEFT JOIN FETCH st.profile p
-        LEFT JOIN FETCH br.details d
-        LEFT JOIN FETCH d.equipment e
-        WHERE br.status = :status
-    """)
+                SELECT DISTINCT br FROM BorrowingRecord br
+                LEFT JOIN FETCH br.session s
+                LEFT JOIN FETCH s.student st
+                LEFT JOIN FETCH st.profile p
+                LEFT JOIN FETCH br.details d
+                LEFT JOIN FETCH d.equipment e
+                WHERE br.status = :status
+            """)
     List<BorrowingRecord> findByStatusWithDetails(@Param("status") BorrowingStatus status);
 
     @Query("""
-        SELECT br FROM BorrowingRecord br
-        LEFT JOIN FETCH br.session s
-        LEFT JOIN FETCH s.student st
-        LEFT JOIN FETCH st.profile p
-        WHERE br.id = :id
-    """)
+                SELECT DISTINCT br FROM BorrowingRecord br
+                LEFT JOIN FETCH br.session s
+                LEFT JOIN FETCH s.student st
+                LEFT JOIN FETCH st.profile p
+                LEFT JOIN FETCH br.details d
+                LEFT JOIN FETCH d.equipment e
+                WHERE br.status IN :statuses
+            """)
+    List<BorrowingRecord> findByStatusInWithDetails(@Param("statuses") List<BorrowingStatus> statuses);
+
+    @Query("""
+                SELECT br FROM BorrowingRecord br
+                LEFT JOIN FETCH br.session s
+                LEFT JOIN FETCH s.student st
+                LEFT JOIN FETCH st.profile p
+                WHERE br.id = :id
+            """)
     Optional<BorrowingRecord> findByIdWithAssociations(@Param("id") Long id);
+
+    @Query("""
+                SELECT br FROM BorrowingRecord br
+                LEFT JOIN FETCH br.details d
+                LEFT JOIN FETCH d.equipment e
+                WHERE br.session.id = :sessionId
+            """)
+    Optional<BorrowingRecord> findBySessionIdWithDetails(@Param("sessionId") Long sessionId);
 
     /**
      * Đếm số lượng.
+     * 
      * @param status Tham số đầu vào status
-
+     * 
      * @return Kết quả trả về của phương thức
      */
     long countByStatus(BorrowingStatus status);

@@ -16,6 +16,8 @@
                     <span th:if="${record.status == 'CONFIRMED'}" class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-secondary-fixed text-on-secondary-fixed-variant">Đã xác nhận</span>
                     <span th:if="${record.status == 'COMPLETED'}" class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-emerald-100 text-emerald-700">Hoàn thành</span>
                     <span th:if="${record.status == 'CANCELLED'}" class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-700">Đã hủy</span>
+                    <span th:if="${record.status == 'REJECTED'}" class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-700">Từ chối</span>
+                    <span th:if="${record.status == 'CANCELED_BY_STUDENT'}" class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-rose-100 text-rose-700">Sinh viên hủy</span>
                 </div>
                 <p class="text-on-surface-variant mt-1">Thông tin chi tiết lịch sử học tập và thiết bị sử dụng</p>
             </div>
@@ -92,6 +94,19 @@
                             </div>
                         </div>
                     </div>
+
+                    <div th:if="${record.rejectionReason != null and !#strings.isEmpty(record.rejectionReason)}"
+                         class="md:col-span-2">
+                        <div class="flex items-start gap-3">
+                            <span class="material-symbols-outlined text-error mt-0.5">gpp_bad</span>
+                            <div class="flex-1">
+                                <p class="text-sm font-semibold text-on-surface-variant mb-2">Lý do từ chối</p>
+                                <div class="bg-error-container rounded-xl p-4 text-on-error-container leading-relaxed border border-error/20">
+                                    <span th:text="${record.rejectionReason}">Lý do từ chối</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -160,7 +175,7 @@
                         <span class="material-symbols-outlined text-lg">devices_off</span>
                         Không có thiết bị được sử dụng.
                     </div>
-                    <div th:if="${record.status != 'CANCELLED'}" class="pt-2">
+                    <div th:if="${record.status != 'CANCELLED' and record.status != 'REJECTED' and record.status != 'CANCELED_BY_STUDENT'}" class="pt-2">
                         <a th:href="@{/student/history/{id}/borrow(id=${record.sessionId})}"
                            class="w-full flex items-center justify-center gap-2 bg-secondary text-on-secondary hover:bg-secondary-container rounded-xl px-4 py-3 font-semibold transition-colors shadow-sm">
                             <span class="material-symbols-outlined text-lg">add_circle</span>

@@ -45,15 +45,22 @@
                         </td>
                         <td class="px-5 py-4">
                             <!-- status là String, không cần gọi .name() (Bug #23) -->
+                            <span th:if="${record.status == 'PENDING_ADMIN_APPROVAL'}" class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">Chờ admin duyệt</span>
                             <span th:if="${record.status == 'PENDING_DISPATCH'}" class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800">Chờ cấp phát</span>
                             <span th:if="${record.status == 'DISPATCHED'}" class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">Đang mượn</span>
                             <span th:if="${record.status == 'RETURNED'}" class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">Đã trả</span>
                             <span th:if="${record.status == 'OVERDUE'}" class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700">Quá hạn</span>
+                            <span th:if="${record.status == 'REJECTED_BY_ADMIN'}" class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700">Admin từ chối</span>
                         </td>
                         <td class="px-5 py-4 text-right flex items-center justify-end gap-2">
                             <a th:href="@{/admin/dispatch/{id}(id=${record.recordId})}" class="bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg px-3 py-1.5 font-medium transition-colors border border-transparent">Chi tiết</a>
-                            <form th:if="${record.status == 'PENDING_DISPATCH'}" th:action="@{/admin/dispatch/{id}/confirm(id=${record.recordId})}" method="post" onsubmit="return confirm('Xác nhận đã giao thiết bị cho sinh viên?');">
-                                <button type="submit" class="bg-emerald-50 text-emerald-600 hover:bg-emerald-100 rounded-lg px-3 py-1.5 font-medium transition-colors border border-transparent">Giao</button>
+                            <form th:if="${record.status == 'PENDING_ADMIN_APPROVAL' or record.status == 'PENDING_DISPATCH'}" th:action="@{/admin/dispatch/{id}/confirm(id=${record.recordId})}" method="post" onsubmit="return confirm('Xác nhận cấp phát thiết bị cho sinh viên?');">
+                                <input type="text" name="adminNote" placeholder="Ghi chú..." class="w-32 px-2 py-1 text-xs border border-slate-200 rounded" />
+                                <button type="submit" class="bg-emerald-50 text-emerald-600 hover:bg-emerald-100 rounded-lg px-3 py-1.5 font-medium transition-colors border border-transparent">Duyệt</button>
+                            </form>
+                            <form th:if="${record.status == 'PENDING_ADMIN_APPROVAL' or record.status == 'PENDING_DISPATCH'}" th:action="@{/admin/dispatch/{id}/reject(id=${record.recordId})}" method="post" onsubmit="return confirm('Xác nhận từ chối cấp phát?');">
+                                <input type="text" name="adminNote" placeholder="Lý do..." class="w-32 px-2 py-1 text-xs border border-slate-200 rounded" />
+                                <button type="submit" class="bg-red-50 text-red-600 hover:bg-red-100 rounded-lg px-3 py-1.5 font-medium transition-colors border border-transparent">Từ chối</button>
                             </form>
                             <form th:if="${record.status == 'DISPATCHED'}" th:action="@{/admin/dispatch/{id}/return(id=${record.recordId})}" method="post" onsubmit="return confirm('Xác nhận thu hồi thiết bị?');">
                                 <button type="submit" class="bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg px-3 py-1.5 font-medium transition-colors border border-transparent">Thu hồi</button>

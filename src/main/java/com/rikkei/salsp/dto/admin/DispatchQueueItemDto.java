@@ -7,7 +7,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * Lớp `DispatchQueueItemDto` thuộc hệ thống Smart Academic Lab Support Platform (SALSP).
+ * Lớp `DispatchQueueItemDto` thuộc hệ thống Smart Academic Lab Support Platform
+ * (SALSP).
  */
 @Getter
 @Setter
@@ -19,5 +20,6 @@ public class DispatchQueueItemDto {
     private LocalDate sessionDate;
     private List<String> equipmentSummary;
     private String status;
+    private String lecturerNote;
+    private String adminNote;
 }
-

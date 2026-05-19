@@ -35,3 +35,6 @@ out/
 
 ### VS Code ###
 .vscode/
+
+### Sprint ###
+src/main/resources/sprint/
