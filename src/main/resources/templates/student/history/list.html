@@ -59,7 +59,7 @@
                         </td>
                     </tr>
                     <!-- Danh sách từng buổi tư vấn -->
-                    <tr th:each="record : ${records != null ? records : {}}"
+                    <tr th:each="record : ${records}"
                         th:unless="${records == null or #lists.isEmpty(records)}"
                         class="hover:bg-surface-container-lowest transition-colors border-b border-outline-variant last:border-b-0">
                         <td class="py-4 px-5">
@@ -139,7 +139,7 @@
                         </td>
                     </tr>
                     <!-- Từng dòng thiết bị đã mượn, dữ liệu từ BorrowedEquipmentHistoryDto -->
-                    <tr th:each="item : ${borrowedEquipments != null ? borrowedEquipments : {}}"
+                    <tr th:each="item : ${borrowedEquipments}"
                         th:unless="${borrowedEquipments == null or #lists.isEmpty(borrowedEquipments)}"
                         class="hover:bg-surface-container-lowest transition-colors border-b border-outline-variant last:border-b-0">
                         <!-- Mã thiết bị: định dạng TB-{id} sinh bởi service -->
@@ -151,6 +151,14 @@
                             th:text="${item.borrowedAt != null ? #temporals.format(item.borrowedAt, 'dd/MM/yyyy HH:mm') : '--'}">--</td>
                         <!-- Trạng thái: map từ BorrowingStatus enum -->
                         <td class="py-4 px-5">
+                            <span th:if="${item.status == 'PENDING_LECTURER_APPROVAL'}"
+                                  class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800">Chờ GV duyệt</span>
+                            <span th:if="${item.status == 'PENDING_ADMIN_APPROVAL'}"
+                                  class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">Chờ Admin duyệt</span>
+                            <span th:if="${item.status == 'REJECTED_BY_LECTURER'}"
+                                  class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700">GV từ chối</span>
+                            <span th:if="${item.status == 'REJECTED_BY_ADMIN'}"
+                                  class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700">Admin từ chối</span>
                             <span th:if="${item.status == 'PENDING_DISPATCH'}"
                                   class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-secondary-fixed text-on-secondary-fixed-variant">Chờ xuất kho</span>
                             <span th:if="${item.status == 'DISPATCHED'}"

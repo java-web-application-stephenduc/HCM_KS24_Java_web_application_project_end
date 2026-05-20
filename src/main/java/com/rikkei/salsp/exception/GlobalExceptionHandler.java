@@ -57,21 +57,6 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * Xử lý lỗi trùng lịch hoặc thiếu thiết bị.
-     * 
-     * @param ex Lỗi liên quan đến tài nguyên không đủ
-     * @param flash Thông báo lỗi
-     * @param request Yêu cầu HTTP
-     * @return Chuyển hướng lại trang trước đó
-     */
-    @ExceptionHandler({SlotConflictException.class, InsufficientStockException.class})
-    public String handleConflict(RuntimeException ex, RedirectAttributes flash, HttpServletRequest request) {
-        flash.addFlashAttribute("error", ex.getMessage());
-        String referer = request.getHeader("Referer");
-        return "redirect:" + (referer != null ? referer : "/dashboard");
-    }
-
-    /**
      * Xử lý lỗi không có quyền truy cập (403 Forbidden).
      * 
      * @return Trang thông báo lỗi 403

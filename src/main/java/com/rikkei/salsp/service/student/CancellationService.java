@@ -10,6 +10,7 @@ import com.rikkei.salsp.repository.user.UserRepository;
 import com.rikkei.salsp.repository.session.AcademicEvaluationRepository;
 import com.rikkei.salsp.repository.equipment.BorrowingDetailRepository;
 import com.rikkei.salsp.repository.equipment.BorrowingRecordRepository;
+import com.rikkei.salsp.entity.equipment.BorrowingStatus;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -67,5 +68,16 @@ public class CancellationService {
         // Hủy mềm: cập nhật trạng thái theo sinh viên hủy.
         session.setStatus(SessionStatus.CANCELED_BY_STUDENT);
         sessionRepository.save(session);
+
+        // Đồng bộ hủy phiếu mượn thiết bị nếu có liên kết và đang ở trạng thái chờ duyệt/chờ cấp phát
+        borrowingRecordRepository.findBySessionId(sessionId).ifPresent(record -> {
+            if (record.getStatus() == BorrowingStatus.PENDING_LECTURER_APPROVAL
+                    || record.getStatus() == BorrowingStatus.PENDING_ADMIN_APPROVAL
+                    || record.getStatus() == BorrowingStatus.PENDING_DISPATCH) {
+                record.setStatus(BorrowingStatus.REJECTED_BY_LECTURER);
+                record.setLecturerNote("Buổi tư vấn học tập liên kết đã bị hủy bởi Sinh viên.");
+                borrowingRecordRepository.save(record);
+            }
+        });
     }
 }

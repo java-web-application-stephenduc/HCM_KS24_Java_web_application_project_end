@@ -15,25 +15,38 @@
         </a>
     </div>
 
-    <!-- Form -->
+    <!-- Error/Success Messages -->
+    <div th:if="${error}" class="p-4 bg-error-container text-on-error-container rounded-lg border border-error flex items-center gap-2">
+        <span class="material-symbols-outlined text-error">error</span><span th:text="${error}"></span>
+    </div>
+    <div th:if="${success}" class="p-4 bg-tertiary-fixed text-on-tertiary-fixed-variant rounded-lg border border-tertiary-fixed-dim flex items-center gap-2">
+        <span class="material-symbols-outlined text-tertiary">check_circle</span><span th:text="${success}"></span>
+    </div>
+
+    <!-- Main Grid -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Profile Form -->
         <div class="lg:col-span-2">
             <div class="bg-surface rounded-xl p-6 shadow-[0_1px_3px_rgba(0,0,0,0.1)] border border-outline-variant/30">
                 <h2 class="font-headline-sm text-headline-sm text-on-surface mb-6 border-b border-surface-variant pb-2">Thông tin chung</h2>
-                <form th:action="@{/profile/edit}" th:object="${profile}" method="post" class="space-y-6">
+                <form th:action="@{/profile/edit/student}" th:object="${profile}" method="post" enctype="multipart/form-data" class="space-y-6">
                     <div class="flex flex-col sm:flex-row gap-8 items-start">
-                        <!-- Avatar -->
+                        <!-- Avatar File Upload & Preview -->
                         <div class="flex flex-col items-center gap-3 shrink-0">
                             <div class="relative group">
-                                <div class="w-24 h-24 rounded-full overflow-hidden border-2 border-surface-container-high bg-surface-container flex items-center justify-center">
-                                    <span class="material-symbols-outlined text-5xl text-on-surface-variant">person</span>
+                                <div class="w-24 h-24 rounded-full overflow-hidden border-2 border-surface-container-high bg-surface-container flex items-center justify-center relative">
+                                    <span th:if="${user.profile.avatarUrl == null}" id="avatarIcon" class="material-symbols-outlined text-5xl text-on-surface-variant">person</span>
+                                    <img th:if="${user.profile.avatarUrl != null}" id="avatarPreview" th:src="${user.profile.avatarUrl}" alt="Avatar" class="w-full h-full object-cover"/>
+                                    <img th:if="${user.profile.avatarUrl == null}" id="avatarPreview" class="w-full h-full object-cover hidden" alt="Avatar"/>
                                 </div>
-                                <button type="button" class="absolute bottom-0 right-0 w-8 h-8 bg-surface text-on-surface rounded-full shadow border border-outline-variant flex items-center justify-center hover:bg-surface-container-low transition-colors cursor-not-allowed opacity-50">
+                                <input type="file" id="avatarFile" name="avatarFile" class="hidden" accept="image/*"/>
+                                <button type="button" onclick="document.getElementById('avatarFile').click();" class="absolute bottom-0 right-0 w-8 h-8 bg-surface text-on-surface rounded-full shadow border border-outline-variant flex items-center justify-center hover:bg-surface-container-low transition-colors cursor-pointer">
                                     <span class="material-symbols-outlined text-[16px]">edit</span>
                                 </button>
                             </div>
                             <span class="font-label-md text-label-md text-on-surface-variant">Ảnh đại diện</span>
                         </div>
+                        
                         <!-- Form Fields -->
                         <div class="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
                             <div class="space-y-1 md:col-span-2">
@@ -45,7 +58,7 @@
                                 <input type="text" th:field="*{fullName}" id="fullName" class="w-full bg-surface border border-outline-variant rounded-lg px-3 py-2 text-body-md text-on-surface focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary" required/>
                                 <p th:if="${#fields.hasErrors('fullName')}" th:errors="*{fullName}" class="font-label-md text-label-md text-error mt-1"></p>
                             </div>
-                            <div class="space-y-1">
+                            <div class="space-y-1 md:col-span-2">
                                 <label for="phone" class="font-label-md text-label-md text-on-surface">Số điện thoại</label>
                                 <input type="tel" th:field="*{phone}" id="phone" class="w-full bg-surface border border-outline-variant rounded-lg px-3 py-2 text-body-md text-on-surface focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary"/>
                                 <p th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}" class="font-label-md text-label-md text-error mt-1"></p>
@@ -63,17 +76,67 @@
                 </form>
             </div>
         </div>
-        <!-- Security Sidebar -->
+
+        <!-- Security & Password Change Sidebar -->
         <div class="space-y-6">
+            <!-- Email display -->
             <div class="bg-surface rounded-xl p-6 shadow-[0_1px_3px_rgba(0,0,0,0.1)] border border-outline-variant/30">
-                <h2 class="font-headline-sm text-headline-sm text-on-surface mb-6 border-b border-surface-variant pb-2">Bảo mật</h2>
+                <h2 class="font-headline-sm text-headline-sm text-on-surface mb-4 border-b border-surface-variant pb-2">Tài khoản</h2>
                 <div class="space-y-1">
                     <p class="font-label-md text-label-md text-on-surface-variant">Email đăng nhập</p>
-                    <p class="text-body-md text-on-surface font-medium" th:text="${user.email}"></p>
+                    <p class="text-body-md text-on-surface font-medium break-all" th:text="${user.email}"></p>
                 </div>
+            </div>
+
+            <!-- Password Change Form -->
+            <div class="bg-surface rounded-xl p-6 shadow-[0_1px_3px_rgba(0,0,0,0.1)] border border-outline-variant/30">
+                <h2 class="font-headline-sm text-headline-sm text-on-surface mb-6 border-b border-surface-variant pb-2">Đổi mật khẩu</h2>
+                <form th:action="@{/profile/change-password}" method="post" class="space-y-4">
+                    <div class="space-y-1">
+                        <label for="oldPassword" class="font-label-md text-label-md text-on-surface">Mật khẩu cũ</label>
+                        <input type="password" name="oldPassword" id="oldPassword" class="w-full bg-surface border border-outline-variant rounded-lg px-3 py-2 text-body-md text-on-surface focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary" required/>
+                    </div>
+                    <div class="space-y-1">
+                        <label for="newPassword" class="font-label-md text-label-md text-on-surface">Mật khẩu mới</label>
+                        <input type="password" name="newPassword" id="newPassword" class="w-full bg-surface border border-outline-variant rounded-lg px-3 py-2 text-body-md text-on-surface focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary" required/>
+                    </div>
+                    <div class="space-y-1">
+                        <label for="confirmPassword" class="font-label-md text-label-md text-on-surface">Xác nhận mật khẩu</label>
+                        <input type="password" name="confirmPassword" id="confirmPassword" class="w-full bg-surface border border-outline-variant rounded-lg px-3 py-2 text-body-md text-on-surface focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary" required/>
+                    </div>
+                    <button type="submit" class="w-full mt-2 px-6 py-2 rounded-lg bg-secondary text-on-secondary font-label-md text-label-md hover:bg-secondary-container transition-colors shadow-sm inline-flex items-center justify-center gap-2">
+                        Cập nhật mật khẩu
+                        <span class="material-symbols-outlined text-[16px]">lock_reset</span>
+                    </button>
+                </form>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+    document.getElementById('avatarFile').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            if (file.size > 2 * 1024 * 1024) {
+                alert("Kích thước ảnh vượt quá giới hạn 2MB. Vui lòng chọn ảnh nhỏ hơn.");
+                e.target.value = ""; // Reset input
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const preview = document.getElementById('avatarPreview');
+                const icon = document.getElementById('avatarIcon');
+                
+                preview.src = event.target.result;
+                preview.classList.remove('hidden');
+                if (icon) {
+                    icon.classList.add('hidden');
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+</script>
 </body>
 </html>

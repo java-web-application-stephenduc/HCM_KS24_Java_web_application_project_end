@@ -19,6 +19,7 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
 
     private final CustomAuthSuccessHandler customAuthSuccessHandler;
+    private final CustomAuthFailureHandler customAuthFailureHandler;
 
     /**
      * Phương thức xử lý nghiệp vụ filterChain.
@@ -41,7 +42,7 @@ public class SecurityConfig {
                 .loginPage("/auth/login")
                 .loginProcessingUrl("/auth/login")
                 .successHandler(customAuthSuccessHandler)
-                .failureUrl("/auth/login?error=true")
+                .failureHandler(customAuthFailureHandler)
                 .permitAll()
             )
             .logout(logout -> logout
@@ -59,7 +60,7 @@ public class SecurityConfig {
      */
     @Bean
     public WebSecurityCustomizer webSecurityCustomizer() {
-        return web -> web.ignoring().requestMatchers("/css/**", "/js/**", "/images/**", "/favicon.ico");
+        return web -> web.ignoring().requestMatchers("/css/**", "/js/**", "/images/**", "/favicon.ico", "/uploads/**");
     }
 
     @Bean

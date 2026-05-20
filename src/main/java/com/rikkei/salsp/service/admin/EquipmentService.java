@@ -68,6 +68,9 @@ public class EquipmentService {
      */
     @Transactional
     public void create(EquipmentDto dto) {
+        if (dto.getQuantityAvailable() > dto.getQuantityTotal()) {
+            throw new BusinessException("Số lượng khả dụng không được lớn hơn tổng số lượng");
+        }
         // Tạo thiết bị mới với tồn kho ban đầu.
         Equipment equipment = new Equipment();
         equipment.setName(dto.getName().trim());

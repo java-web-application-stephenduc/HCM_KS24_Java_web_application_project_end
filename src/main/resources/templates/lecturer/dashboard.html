@@ -65,7 +65,7 @@
                                     Không có sinh viên chờ xác nhận.
                                 </td>
                             </tr>
-                            <tr th:each="student, iterStat : ${dashboard.pendingStudents != null ? dashboard.pendingStudents : {}}"
+                            <tr th:each="student, iterStat : ${dashboard.pendingStudents}"
                                 th:unless="${dashboard.pendingStudents == null or #lists.isEmpty(dashboard.pendingStudents)}"
                                 th:classappend="${iterStat.odd} ? 'bg-surface-bright' : ''"
                                 class="hover:bg-[#F8FAFC] transition-colors">
@@ -107,7 +107,7 @@
                         <span class="material-symbols-outlined text-4xl text-on-surface-variant block mb-2">event_busy</span>
                         Không có lịch hẹn hôm nay.
                     </div>
-                    <div th:each="appt : ${dashboard.todayAppointments != null ? dashboard.todayAppointments : {}}"
+                    <div th:each="appt : ${dashboard.todayAppointments}"
                          th:unless="${dashboard.todayAppointments == null or #lists.isEmpty(dashboard.todayAppointments)}"
                          class="flex items-start gap-4 p-4 rounded-lg bg-surface-container-low border border-transparent hover:border-outline-variant transition-colors">
                         <div class="flex flex-col items-center justify-center min-w-[50px] bg-secondary-container text-on-secondary-container rounded p-2">

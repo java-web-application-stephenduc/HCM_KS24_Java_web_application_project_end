@@ -117,6 +117,15 @@ public class EvaluationService {
         dto.setStatus(session.getStatus().name());
         dto.setRejectionReason(session.getRejectionReason());
 
+        if (session.getStudent().getProfile() != null) {
+            dto.setStudentAvatarUrl(session.getStudent().getProfile().getAvatarUrl());
+        }
+
+        evaluationRepository.findBySessionId(sessionId).ifPresent(eval -> {
+            dto.setScore(eval.getScore());
+            dto.setFeedback(eval.getFeedback());
+        });
+
         borrowingRecordRepository.findBySessionIdWithDetails(sessionId).ifPresent(record -> {
             dto.setBorrowStatus(record.getStatus().name());
             dto.setLecturerNote(record.getLecturerNote());

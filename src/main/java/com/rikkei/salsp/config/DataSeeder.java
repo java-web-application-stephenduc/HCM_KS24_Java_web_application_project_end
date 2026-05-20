@@ -106,9 +106,9 @@ public class DataSeeder implements CommandLineRunner {
      */
     private void seedUsers() {
         // Cập nhật hoặc tạo mới tài khoản demo với mật khẩu đã được băm chuẩn
-        upsertUser("admin@salsp.edu.vn", "admin123", UserRole.ADMIN, "Quản trị viên hệ thống");
+        upsertUser("admin@salsp.edu.vn", "admin123", UserRole.ADMIN, "Nguyễn Bá Minh Đạo");
         
-        User lecturerUser = upsertUser("lecturer01@salsp.edu.vn", "123456", UserRole.LECTURER, "Giảng viên Demo");
+        User lecturerUser = upsertUser("lecturer01@salsp.edu.vn", "123456", UserRole.LECTURER, "Nguyễn Thanh Bình Phước");
         if (!lecturerRepository.findByUserId(lecturerUser.getId()).isPresent()) {
             Optional<Department> department = departmentRepository.findByCode("CNTT");
             if (department.isPresent()) {
@@ -121,7 +121,7 @@ public class DataSeeder implements CommandLineRunner {
             }
         }
 
-        upsertUser("student01@salsp.edu.vn", "123456", UserRole.STUDENT, "Sinh viên Demo");
+        upsertUser("student01@salsp.edu.vn", "123456", UserRole.STUDENT, "Trần Đức Anh");
     }
 
     /**

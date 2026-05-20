@@ -68,6 +68,9 @@ public class AdminEquipmentController {
                          BindingResult errors,
                          RedirectAttributes flash,
                          Model model) {
+        if (dto.getQuantityAvailable() > dto.getQuantityTotal()) {
+            errors.rejectValue("quantityAvailable", "error.equipment", "Số lượng khả dụng không được lớn hơn tổng số lượng");
+        }
         if (errors.hasErrors()) {
             model.addAttribute("mode", "create");
             return "admin/equipment/form";
@@ -114,6 +117,9 @@ public class AdminEquipmentController {
                          BindingResult errors,
                          RedirectAttributes flash,
                          Model model) {
+        if (dto.getQuantityAvailable() > dto.getQuantityTotal()) {
+            errors.rejectValue("quantityTotal", "error.equipment", "Tổng số lượng không được nhỏ hơn số lượng khả dụng");
+        }
         if (errors.hasErrors()) {
             model.addAttribute("mode", "edit");
             return "admin/equipment/form";

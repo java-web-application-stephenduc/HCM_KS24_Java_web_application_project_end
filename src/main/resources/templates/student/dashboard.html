@@ -166,7 +166,7 @@
                                 Chưa có lịch hẹn nào.
                             </td>
                         </tr>
-                        <tr th:each="sess : ${dashboard.recentSessions != null ? dashboard.recentSessions : {}}"
+                        <tr th:each="sess : ${dashboard.recentSessions}"
                             th:unless="${dashboard.recentSessions == null or #lists.isEmpty(dashboard.recentSessions)}"
                             class="hover:bg-surface-container-lowest transition-colors border-b border-outline-variant last:border-b-0">
                             <td class="py-4 px-5">
@@ -208,18 +208,18 @@
                     Bạn chưa mượn thiết bị nào.
                 </div>
                 <ul th:unless="${#lists.isEmpty(dashboard.recentEquipments)}" class="flex flex-col">
-                    <li th:each="eq : ${dashboard.recentEquipments}"
+                    <li th:each="item : ${dashboard.recentEquipments}"
                         class="flex items-center gap-4 p-5 border-b border-outline-variant hover:bg-surface-container-lowest transition-colors last:border-b-0">
                         <div class="p-3 bg-surface-container-highest rounded-lg text-on-surface-variant shrink-0">
                             <span class="material-symbols-outlined">science</span>
                         </div>
                         <div class="flex-1 min-w-0">
-                            <h4 class="font-headline-sm text-headline-sm text-on-surface text-[15px] truncate" th:text="${eq.equipmentName}">Tên thiết bị</h4>
+                            <h4 class="font-headline-sm text-headline-sm text-on-surface text-[15px] truncate" th:text="${item.equipmentName}">Tên thiết bị</h4>
                         </div>
                         <div class="shrink-0">
-                            <span th:if="${eq.borrowStatus == 'DISPATCHED'}" class="inline-flex items-center px-2.5 py-0.5 rounded-full font-label-md text-label-md bg-tertiary-fixed-dim text-tertiary-container">Đang mượn</span>
-                            <span th:if="${eq.borrowStatus == 'PENDING_DISPATCH'}" class="inline-flex items-center px-2.5 py-0.5 rounded-full font-label-md text-label-md bg-secondary-fixed text-on-secondary-fixed-variant">Chờ xuất</span>
-                            <span th:if="${eq.borrowStatus == 'OVERDUE'}" class="inline-flex items-center px-2.5 py-0.5 rounded-full font-label-md text-label-md bg-error-container text-on-error-container">Quá hạn</span>
+                            <span th:if="${item.borrowStatus == 'DISPATCHED'}" class="inline-flex items-center px-2.5 py-0.5 rounded-full font-label-md text-label-md bg-tertiary-fixed-dim text-tertiary-container">Đang mượn</span>
+                            <span th:if="${item.borrowStatus == 'PENDING_DISPATCH'}" class="inline-flex items-center px-2.5 py-0.5 rounded-full font-label-md text-label-md bg-secondary-fixed text-on-secondary-fixed-variant">Chờ xuất</span>
+                            <span th:if="${item.borrowStatus == 'OVERDUE'}" class="inline-flex items-center px-2.5 py-0.5 rounded-full font-label-md text-label-md bg-error-container text-on-error-container">Quá hạn</span>
                         </div>
                     </li>
                 </ul>

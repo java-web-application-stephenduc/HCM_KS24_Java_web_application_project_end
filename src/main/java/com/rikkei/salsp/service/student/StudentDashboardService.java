@@ -66,7 +66,8 @@ public class StudentDashboardService {
         long borrowedCount = details.stream()
             .filter(d -> d.getRecord().getStatus() == BorrowingStatus.DISPATCHED
                       || d.getRecord().getStatus() == BorrowingStatus.OVERDUE)
-            .count();
+            .mapToLong(BorrowingDetail::getQuantity)
+            .sum();
         dto.setBorrowedCount(borrowedCount);
 
         List<RecentEquipmentDto> eqDtos = new ArrayList<>();

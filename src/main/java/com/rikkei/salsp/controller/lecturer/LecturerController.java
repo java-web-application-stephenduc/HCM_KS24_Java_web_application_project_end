@@ -59,7 +59,7 @@ public class LecturerController {
         if (authentication == null || authentication.getName() == null) {
             return "redirect:/auth/login";
         }
-        model.addAttribute("session", evaluationService.getSessionDetail(id, authentication.getName()));
+        model.addAttribute("sessionDetail", evaluationService.getSessionDetail(id, authentication.getName()));
         model.addAttribute("equipmentList", equipmentService.findAll());
         EvaluationFormDto form = new EvaluationFormDto();
         form.setSessionId(id);
@@ -103,7 +103,7 @@ public class LecturerController {
             return "redirect:/auth/login";
         }
         if (errors.hasErrors()) {
-            model.addAttribute("session", evaluationService.getSessionDetail(id, authentication.getName()));
+            model.addAttribute("sessionDetail", evaluationService.getSessionDetail(id, authentication.getName()));
             model.addAttribute("equipmentList", equipmentService.findAll());
             BorrowApprovalDto borrowForm = new BorrowApprovalDto();
             borrowForm.setSessionId(id);
@@ -167,7 +167,7 @@ public class LecturerController {
             return "redirect:/auth/login";
         }
         if (errors.hasErrors()) {
-            model.addAttribute("session", evaluationService.getSessionDetail(id, authentication.getName()));
+            model.addAttribute("sessionDetail", evaluationService.getSessionDetail(id, authentication.getName()));
             model.addAttribute("equipmentList", equipmentService.findAll());
             EvaluationFormDto form = new EvaluationFormDto();
             form.setSessionId(id);

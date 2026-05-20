@@ -39,7 +39,9 @@ public class DispatchService {
     public List<DispatchQueueItemDto> getPendingDispatchQueue() {
         List<BorrowingStatus> statuses = List.of(
                 BorrowingStatus.PENDING_ADMIN_APPROVAL,
-                BorrowingStatus.PENDING_DISPATCH);
+                BorrowingStatus.PENDING_DISPATCH,
+                BorrowingStatus.DISPATCHED,
+                BorrowingStatus.OVERDUE);
         return borrowingRecordRepository.findByStatusInWithDetails(statuses).stream()
                 .map(record -> {
                     DispatchQueueItemDto dto = new DispatchQueueItemDto();
@@ -173,8 +175,8 @@ public class DispatchService {
         // Bug #19: Sử dụng findByIdWithAssociations
         BorrowingRecord record = borrowingRecordRepository.findByIdWithAssociations(recordId)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy phiếu mượn"));
-        if (record.getStatus() != BorrowingStatus.DISPATCHED) {
-            throw new BusinessException("Chỉ hoàn trả phiếu đã cấp phát");
+        if (record.getStatus() != BorrowingStatus.DISPATCHED && record.getStatus() != BorrowingStatus.OVERDUE) {
+            throw new BusinessException("Chỉ hoàn trả phiếu đã cấp phát hoặc quá hạn");
         }
 
         // Bug #19: Sử dụng findByRecordIdWithEquipment

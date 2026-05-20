@@ -58,8 +58,9 @@ public class LecturerDashboardService {
             .map(s -> {
                 PendingStudentDto ps = new PendingStudentDto();
                 ps.setSessionId(s.getId());
-                ps.setStudentName(s.getStudent().getProfile().getFullName());
-                ps.setStudentCode(s.getStudent().getEmail());
+                ps.setStudentName(s.getStudent() != null && s.getStudent().getProfile() != null
+                    ? s.getStudent().getProfile().getFullName() : "Sinh viên");
+                ps.setStudentCode(s.getStudent() != null ? s.getStudent().getEmail() : "");
                 ps.setReason(s.getNote());
                 ps.setRequestDate(s.getSessionDate());
                 return ps;
@@ -71,7 +72,8 @@ public class LecturerDashboardService {
         List<TodayAppointmentDto> appointments = todaySessions.stream()
             .map(s -> {
                 TodayAppointmentDto a = new TodayAppointmentDto();
-                a.setStudentName(s.getStudent().getProfile().getFullName());
+                a.setStudentName(s.getStudent() != null && s.getStudent().getProfile() != null
+                    ? s.getStudent().getProfile().getFullName() : "Sinh viên");
                 a.setTime(s.getStartTime());
                 a.setLocation("Phòng tư vấn");
                 a.setOnline(false);

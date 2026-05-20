@@ -8,10 +8,12 @@ import com.rikkei.salsp.entity.equipment.BorrowingStatus;
 import com.rikkei.salsp.entity.equipment.Equipment;
 import com.rikkei.salsp.entity.session.SessionStatus;
 import com.rikkei.salsp.entity.user.User;
+import com.rikkei.salsp.entity.user.UserRole;
 import com.rikkei.salsp.repository.equipment.BorrowingRecordRepository;
 import com.rikkei.salsp.repository.equipment.EquipmentRepository;
 import com.rikkei.salsp.repository.session.MentoringSessionRepository;
 import com.rikkei.salsp.repository.user.UserRepository;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -66,22 +68,24 @@ public class AdminDashboardService {
         dto.setLowStockEquipments(lowStockDtos);
 
         List<MonthlyStatDto> monthlyStats = new ArrayList<>();
-        monthlyStats.add(createMonthlyStat("T1", 24));
-        monthlyStats.add(createMonthlyStat("T2", 32));
-        monthlyStats.add(createMonthlyStat("T3", 48));
-        monthlyStats.add(createMonthlyStat("T4", 40));
-        monthlyStats.add(createMonthlyStat("T5", 20));
-        monthlyStats.add(createMonthlyStat("T6", 36));
+        LocalDate now = LocalDate.now();
+        for (int i = 5; i >= 0; i--) {
+            LocalDate target = now.minusMonths(i);
+            int m = target.getMonthValue();
+            int y = target.getYear();
+            long count = sessionRepository.countCompletedSessionsByMonthAndYear(m, y);
+            monthlyStats.add(createMonthlyStat("T" + m, (int) count));
+        }
         dto.setMonthlyStats(monthlyStats);
 
         List<TopLecturerDto> topLecturers = new ArrayList<>();
         List<Object[]> raw = sessionRepository.findTopLecturers(PageRequest.of(0, 5));
         if (raw.isEmpty()) {
-            topLecturers.add(createTopLecturer("TS. Nguyễn Văn A", 120, 100));
-            topLecturers.add(createTopLecturer("ThS. Trần Thị B", 95, 80));
-            topLecturers.add(createTopLecturer("TS. Lê Văn C", 80, 65));
-            topLecturers.add(createTopLecturer("PGS. Phạm D", 60, 50));
-            topLecturers.add(createTopLecturer("ThS. Hoàng E", 45, 35));
+            List<User> lecturers = userRepository.findByRole(UserRole.LECTURER, PageRequest.of(0, 5)).getContent();
+            for (User lec : lecturers) {
+                String name = (lec.getProfile() != null) ? lec.getProfile().getFullName() : lec.getEmail();
+                topLecturers.add(createTopLecturer(name, 0, 0));
+            }
         } else {
             long maxCount = raw.isEmpty() ? 1 : ((Number) raw.get(0)[1]).longValue();
             for (Object[] row : raw) {

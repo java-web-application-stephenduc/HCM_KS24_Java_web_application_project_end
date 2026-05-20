@@ -159,14 +159,14 @@
                 </div>
 
                 <div th:if="${record.equipments != null and !#lists.isEmpty(record.equipments)}" class="space-y-2">
-                    <div th:each="eq : ${record.equipments}"
+                    <div th:each="item : ${record.equipments}"
                          class="flex items-center justify-between bg-surface-container-low rounded-xl px-4 py-3 border border-outline-variant/20">
                         <div class="flex items-center gap-3 min-w-0">
                             <span class="material-symbols-outlined text-secondary text-lg shrink-0">check_small</span>
-                            <span class="font-medium text-on-surface truncate" th:text="${eq.equipmentName}">Tên thiết bị</span>
+                            <span class="font-medium text-on-surface truncate" th:text="${item.equipmentName}">Tên thiết bị</span>
                         </div>
                         <span class="bg-surface-container-high text-on-surface-variant text-sm font-semibold px-3 py-1 rounded-lg shrink-0 ml-2"
-                              th:text="${'x' + eq.quantity}">x1</span>
+                              th:text="${'x' + item.quantity}">x1</span>
                     </div>
                 </div>
 

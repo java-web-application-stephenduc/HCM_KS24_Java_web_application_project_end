@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/main-layout :: layout(~{::#main-content})}"
+      th:with="pageTitle='Quản lý hệ thống - SALSP'" xmlns:sec="http://www.thymeleaf.org/extras/springsecurity6">
+<body>
+<div id="main-content" class="w-full max-w-container-max mx-auto space-y-6">
+    <!-- Page Header -->
+    <div class="flex items-center justify-between">
+        <div>
+            <h2 class="font-headline-md text-headline-md text-on-surface">Quản lý hệ thống</h2>
+            <p class="font-body-md text-body-md text-on-surface-variant mt-1">Phân quyền, kích hoạt người dùng, kiểm tra phiếu mượn thiết bị và lịch trình tư vấn học thuật.</p>
+        </div>
+    </div>
+
+    <!-- Success & Error Alert Panels -->
+    <div th:if="${success}" class="p-4 bg-tertiary-fixed text-on-tertiary-fixed-variant rounded-xl border border-tertiary-fixed-dim flex items-center gap-3 shadow-sm animate-pulse">
+        <span class="material-symbols-outlined text-tertiary">check_circle</span>
+        <span class="font-body-md" th:text="${success}"></span>
+    </div>
+    <div th:if="${error}" class="p-4 bg-error-container text-on-error-container rounded-xl border border-error flex items-center gap-3 shadow-sm">
+        <span class="material-symbols-outlined">error</span>
+        <span class="font-body-md" th:text="${error}"></span>
+    </div>
+
+    <!-- 3 Tab Layout Navigation -->
+    <div class="border-b border-outline-variant bg-surface rounded-t-xl px-4 flex gap-2">
+        <!-- Tab 1: Người dùng -->
+        <a th:href="@{/admin/users(userPage=${userPage}, borrowPage=${borrowPage}, sessionPage=${sessionPage}, activeTab='users')}"
+           class="py-4 px-6 inline-flex items-center gap-2 border-b-2 font-medium text-sm transition-all"
+           th:classappend="${activeTab == 'users'} ? 'border-primary text-primary font-bold' : 'border-transparent text-on-surface-variant hover:text-on-surface hover:border-outline-variant'">
+            <span class="material-symbols-outlined text-[20px]">group</span>
+            <span>Người dùng</span>
+        </a>
+
+        <!-- Tab 2: Phiếu mượn thiết bị -->
+        <a th:href="@{/admin/users(userPage=${userPage}, borrowPage=${borrowPage}, sessionPage=${sessionPage}, activeTab='borrows')}"
+           class="py-4 px-6 inline-flex items-center gap-2 border-b-2 font-medium text-sm transition-all"
+           th:classappend="${activeTab == 'borrows'} ? 'border-primary text-primary font-bold' : 'border-transparent text-on-surface-variant hover:text-on-surface hover:border-outline-variant'">
+            <span class="material-symbols-outlined text-[20px]">devices</span>
+            <span>Phiếu mượn thiết bị</span>
+        </a>
+
+        <!-- Tab 3: Lịch tư vấn -->
+        <a th:href="@{/admin/users(userPage=${userPage}, borrowPage=${borrowPage}, sessionPage=${sessionPage}, activeTab='sessions')}"
+           class="py-4 px-6 inline-flex items-center gap-2 border-b-2 font-medium text-sm transition-all"
+           th:classappend="${activeTab == 'sessions'} ? 'border-primary text-primary font-bold' : 'border-transparent text-on-surface-variant hover:text-on-surface hover:border-outline-variant'">
+            <span class="material-symbols-outlined text-[20px]">calendar_month</span>
+            <span>Lịch tư vấn</span>
+        </a>
+    </div>
+
+    <!-- Tab Contents -->
+    <div class="bg-surface rounded-b-xl shadow-[0_1px_3px_rgba(0,0,0,0.1)] border border-t-0 border-outline-variant/30 overflow-hidden">
+        
+        <!-- ================= TAB 1: NGƯỜI DÙNG ================= -->
+        <div th:classappend="${activeTab == 'users'} ? 'block' : 'hidden'">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-surface-container-low border-b border-outline-variant">
+                            <th class="p-4 font-label-md text-label-md text-on-surface-variant uppercase w-16">ID</th>
+                            <th class="p-4 font-label-md text-label-md text-on-surface-variant uppercase">Người dùng</th>
+                            <th class="p-4 font-label-md text-label-md text-on-surface-variant uppercase w-48">Vai trò hệ thống</th>
+                            <th class="p-4 font-label-md text-label-md text-on-surface-variant uppercase w-36 text-center">Trạng thái</th>
+                            <th class="p-4 font-label-md text-label-md text-on-surface-variant uppercase w-60 text-right">Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-outline-variant/20 font-body-md text-body-md">
+                        <tr th:if="${#lists.isEmpty(users.content)}">
+                            <td colspan="5" class="p-8 text-center text-on-surface-variant">Không tìm thấy tài khoản người dùng nào.</td>
+                        </tr>
+                        <tr th:each="user : ${users.content}" class="hover:bg-surface-container-lowest/50 transition-colors">
+                            <!-- ID -->
+                            <td class="p-4 font-mono text-on-surface-variant" th:text="${user.id}">1</td>
+                            <!-- Người dùng info -->
+                            <td class="p-4">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-full overflow-hidden border border-outline-variant bg-surface-container-high flex items-center justify-center shrink-0">
+                                        <span th:if="${user.profile == null or user.profile.avatarUrl == null}" class="material-symbols-outlined text-on-surface-variant text-xl">person</span>
+                                        <img th:if="${user.profile != null and user.profile.avatarUrl != null}" th:src="${user.profile.avatarUrl}" alt="Avatar" class="w-full h-full object-cover"/>
+                                    </div>
+                                    <div class="flex flex-col">
+                                        <span class="font-bold text-on-surface" th:text="${user.profile != null ? user.profile.fullName : 'Chưa thiết lập tên'}">Họ tên</span>
+                                        <span class="text-xs text-on-surface-variant" th:text="${user.email}">email@domain.com</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <!-- Vai trò -->
+                            <td class="p-4">
+                                <form th:action="@{/admin/users/{id}/role(id=${user.id})}" method="post" class="inline-block w-full">
+                                    <input type="hidden" name="userPage" th:value="${userPage}" />
+                                    <input type="hidden" name="borrowPage" th:value="${borrowPage}" />
+                                    <input type="hidden" name="sessionPage" th:value="${sessionPage}" />
+                                    <select name="role" onchange="this.form.submit()" 
+                                            class="w-full bg-surface border border-outline-variant rounded-lg px-2.5 py-1.5 font-label-md text-label-md text-on-surface hover:border-primary transition-colors focus:ring-1 focus:ring-primary focus:outline-none">
+                                        <option th:each="r : ${roles}" th:value="${r}" th:text="${r}" th:selected="${r == user.role}"></option>
+                                    </select>
+                                </form>
+                            </td>
+                            <!-- Trạng thái -->
+                            <td class="p-4 text-center">
+                                <span th:if="${user.active}" class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">Kích hoạt</span>
+                                <span th:unless="${user.active}" class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200">Đã khóa</span>
+                            </td>
+                            <!-- Hành động -->
+                            <td class="p-4 text-right">
+                                <form th:action="@{/admin/users/{id}/toggle-status(id=${user.id})}" method="post" class="inline-block">
+                                    <input type="hidden" name="userPage" th:value="${userPage}" />
+                                    <input type="hidden" name="borrowPage" th:value="${borrowPage}" />
+                                    <input type="hidden" name="sessionPage" th:value="${sessionPage}" />
+                                    <button type="submit" 
+                                            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border font-label-md text-label-md transition-all shadow-sm"
+                                            th:classappend="${user.active} ? 'bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100' : 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'">
+                                        <span class="material-symbols-outlined text-[16px]" th:text="${user.active} ? 'lock' : 'lock_open'">lock</span>
+                                        <span th:text="${user.active} ? 'Khóa tài khoản' : 'Mở tài khoản'"></span>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- TAB 1 PAGINATION -->
+            <div class="px-6 py-4 border-t border-outline-variant/30 flex items-center justify-between font-label-md text-label-md" th:with="page=${users}">
+                <p class="text-on-surface-variant">
+                    Hiển thị dòng <span class="font-semibold text-on-surface" th:text="${page.totalElements == 0 ? 0 : page.number * 8 + 1}">1</span> 
+                    đến <span class="font-semibold text-on-surface" th:text="${(page.number + 1) * 8 > page.totalElements ? page.totalElements : (page.number + 1) * 8}">8</span> 
+                    trong tổng số <span class="font-semibold text-on-surface" th:text="${page.totalElements}">100</span> bản ghi
+                </p>
+                
+                <div class="flex items-center gap-1.5" th:if="${page.totalPages > 1}">
+                    <a th:href="@{/admin/users(userPage=${page.number - 1}, borrowPage=${borrowPage}, sessionPage=${sessionPage}, activeTab='users')}"
+                       class="p-2 border border-outline-variant rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors"
+                       th:classappend="${!page.hasPrevious()} ? 'pointer-events-none opacity-40' : ''">
+                        <span class="material-symbols-outlined text-[18px]">chevron_left</span>
+                    </a>
+                    
+                    <th:block th:each="i : ${#numbers.sequence(0, page.totalPages - 1)}">
+                        <a th:href="@{/admin/users(userPage=${i}, borrowPage=${borrowPage}, sessionPage=${sessionPage}, activeTab='users')}"
+                           class="min-w-[36px] h-9 flex items-center justify-center rounded-lg border font-medium transition-colors"
+                           th:classappend="${page.number == i} ? 'bg-primary border-primary text-on-primary shadow-sm' : 'border-outline-variant text-on-surface hover:bg-surface-container-high'"
+                           th:text="${i + 1}">1</a>
+                    </th:block>
+                    
+                    <a th:href="@{/admin/users(userPage=${page.number + 1}, borrowPage=${borrowPage}, sessionPage=${sessionPage}, activeTab='users')}"
+                       class="p-2 border border-outline-variant rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors"
+                       th:classappend="${!page.hasNext()} ? 'pointer-events-none opacity-40' : ''">
+                        <span class="material-symbols-outlined text-[18px]">chevron_right</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= TAB 2: PHIẾU MƯỢN THIẾT BỊ ================= -->
+        <div th:classappend="${activeTab == 'borrows'} ? 'block' : 'hidden'">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-surface-container-low border-b border-outline-variant">
+                            <th class="p-4 font-label-md text-label-md text-on-surface-variant uppercase w-24">Mã Phiếu</th>
+                            <th class="p-4 font-label-md text-label-md text-on-surface-variant uppercase w-32">Ca tư vấn ID</th>
+                            <th class="p-4 font-label-md text-label-md text-on-surface-variant uppercase">Sinh viên mượn</th>
+                            <th class="p-4 font-label-md text-label-md text-on-surface-variant uppercase">Thiết bị & Số lượng</th>
+                            <th class="p-4 font-label-md text-label-md text-on-surface-variant uppercase w-48 text-center">Trạng thái phiếu</th>
+                            <th class="p-4 font-label-md text-label-md text-on-surface-variant uppercase w-48 text-right">Thời gian tạo</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-outline-variant/20 font-body-md text-body-md">
+                        <tr th:if="${#lists.isEmpty(borrows.content)}">
+                            <td colspan="6" class="p-8 text-center text-on-surface-variant">Không tìm thấy phiếu mượn thiết bị nào.</td>
+                        </tr>
+                        <tr th:each="borrow : ${borrows.content}" class="hover:bg-surface-container-lowest/50 transition-colors">
+                            <!-- Mã Phiếu -->
+                            <td class="p-4 font-mono text-primary font-bold" th:text="|#B-${borrow.id}|">#B-1</td>
+                            <!-- Ca tư vấn ID -->
+                            <td class="p-4">
+                                <a th:href="@{/admin/dispatch(activeTab='records')}" class="text-secondary font-bold hover:underline" th:text="|Ca #${borrow.session.id}|">Ca #1</a>
+                            </td>
+                            <!-- Sinh viên mượn -->
+                            <td class="p-4">
+                                <div class="flex flex-col">
+                                    <span class="font-bold text-on-surface" th:text="${borrow.session.student.profile != null ? borrow.session.student.profile.fullName : 'N/A'}">Họ tên</span>
+                                    <span class="text-xs text-on-surface-variant" th:text="${borrow.session.student.email}">email@domain.com</span>
+                                </div>
+                            </td>
+                            <!-- Thiết bị -->
+                            <td class="p-4">
+                                <ul class="list-disc pl-4 space-y-0.5 text-xs text-on-surface-variant">
+                                    <li th:each="detail : ${borrow.details}">
+                                        <span class="font-medium text-on-surface" th:text="${detail.equipment.name}">Thiết bị</span> 
+                                        (<span class="font-semibold text-secondary" th:text="|x${detail.quantity}|">x1</span>)
+                                    </li>
+                                </ul>
+                            </td>
+                            <!-- Trạng thái -->
+                            <td class="p-4 text-center">
+                                <span th:if="${borrow.status.name() == 'PENDING_LECTURER_APPROVAL'}" class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">Chờ GV duyệt</span>
+                                <span th:if="${borrow.status.name() == 'PENDING_ADMIN_APPROVAL'}" class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-purple-50 text-purple-700 border border-purple-200">Chờ Admin duyệt</span>
+                                <span th:if="${borrow.status.name() == 'REJECTED_BY_LECTURER'}" class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200">GV từ chối</span>
+                                <span th:if="${borrow.status.name() == 'REJECTED_BY_ADMIN'}" class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200">Admin từ chối</span>
+                                <span th:if="${borrow.status.name() == 'PENDING_DISPATCH'}" class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">Chờ xuất kho</span>
+                                <span th:if="${borrow.status.name() == 'DISPATCHED'}" class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200">Đang mượn</span>
+                                <span th:if="${borrow.status.name() == 'RETURNED'}" class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">Đã trả</span>
+                                <span th:if="${borrow.status.name() == 'OVERDUE'}" class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-100 text-rose-800 border border-rose-300">Quá hạn</span>
+                            </td>
+                            <!-- Ngày tạo -->
+                            <td class="p-4 font-mono text-xs text-on-surface-variant text-right" th:text="${#temporals.format(borrow.createdAt, 'dd/MM/yyyy HH:mm')}">20/05/2026 12:00</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- TAB 2 PAGINATION -->
+            <div class="px-6 py-4 border-t border-outline-variant/30 flex items-center justify-between font-label-md text-label-md" th:with="page=${borrows}">
+                <p class="text-on-surface-variant">
+                    Hiển thị dòng <span class="font-semibold text-on-surface" th:text="${page.totalElements == 0 ? 0 : page.number * 8 + 1}">1</span> 
+                    đến <span class="font-semibold text-on-surface" th:text="${(page.number + 1) * 8 > page.totalElements ? page.totalElements : (page.number + 1) * 8}">8</span> 
+                    trong tổng số <span class="font-semibold text-on-surface" th:text="${page.totalElements}">100</span> bản ghi
+                </p>
+                
+                <div class="flex items-center gap-1.5" th:if="${page.totalPages > 1}">
+                    <a th:href="@{/admin/users(userPage=${userPage}, borrowPage=${page.number - 1}, sessionPage=${sessionPage}, activeTab='borrows')}"
+                       class="p-2 border border-outline-variant rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors"
+                       th:classappend="${!page.hasPrevious()} ? 'pointer-events-none opacity-40' : ''">
+                        <span class="material-symbols-outlined text-[18px]">chevron_left</span>
+                    </a>
+                    
+                    <th:block th:each="i : ${#numbers.sequence(0, page.totalPages - 1)}">
+                        <a th:href="@{/admin/users(userPage=${userPage}, borrowPage=${i}, sessionPage=${sessionPage}, activeTab='borrows')}"
+                           class="min-w-[36px] h-9 flex items-center justify-center rounded-lg border font-medium transition-colors"
+                           th:classappend="${page.number == i} ? 'bg-primary border-primary text-on-primary shadow-sm' : 'border-outline-variant text-on-surface hover:bg-surface-container-high'"
+                           th:text="${i + 1}">1</a>
+                    </th:block>
+                    
+                    <a th:href="@{/admin/users(userPage=${userPage}, borrowPage=${page.number + 1}, sessionPage=${sessionPage}, activeTab='borrows')}"
+                       class="p-2 border border-outline-variant rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors"
+                       th:classappend="${!page.hasNext()} ? 'pointer-events-none opacity-40' : ''">
+                        <span class="material-symbols-outlined text-[18px]">chevron_right</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= TAB 3: LỊCH TƯ VẤN ================= -->
+        <div th:classappend="${activeTab == 'sessions'} ? 'block' : 'hidden'">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-surface-container-low border-b border-outline-variant">
+                            <th class="p-4 font-label-md text-label-md text-on-surface-variant uppercase w-24">Mã Lịch</th>
+                            <th class="p-4 font-label-md text-label-md text-on-surface-variant uppercase">Sinh viên</th>
+                            <th class="p-4 font-label-md text-label-md text-on-surface-variant uppercase">Giảng viên phụ trách</th>
+                            <th class="p-4 font-label-md text-label-md text-on-surface-variant uppercase w-32">Ngày tư vấn</th>
+                            <th class="p-4 font-label-md text-label-md text-on-surface-variant uppercase w-36">Thời gian</th>
+                            <th class="p-4 font-label-md text-label-md text-on-surface-variant uppercase w-36 text-center">Trạng thái</th>
+                            <th class="p-4 font-label-md text-label-md text-on-surface-variant uppercase w-48 text-right">Ngày đăng ký</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-outline-variant/20 font-body-md text-body-md">
+                        <tr th:if="${#lists.isEmpty(sessions.content)}">
+                            <td colspan="7" class="p-8 text-center text-on-surface-variant">Không tìm thấy ca hẹn tư vấn học thuật nào.</td>
+                        </tr>
+                        <tr th:each="ses : ${sessions.content}" class="hover:bg-surface-container-lowest/50 transition-colors">
+                            <!-- Mã Lịch -->
+                            <td class="p-4 font-mono text-primary font-bold" th:text="|#MS-${ses.id}|">#MS-1</td>
+                            <!-- Sinh viên -->
+                            <td class="p-4">
+                                <div class="flex flex-col">
+                                    <span class="font-bold text-on-surface" th:text="${ses.student.profile != null ? ses.student.profile.fullName : 'N/A'}">Tên SV</span>
+                                    <span class="text-xs text-on-surface-variant" th:text="${ses.student.email}">email@domain.com</span>
+                                </div>
+                            </td>
+                            <!-- Giảng viên -->
+                            <td class="p-4">
+                                <div class="flex flex-col">
+                                    <span class="font-bold text-on-surface" th:text="${ses.lecturer.profile != null ? ses.lecturer.profile.fullName : 'N/A'}">Tên GV</span>
+                                    <span class="text-xs text-on-surface-variant" th:text="${ses.lecturer.email}">email@domain.com</span>
+                                </div>
+                            </td>
+                            <!-- Ngày tư vấn -->
+                            <td class="p-4 font-mono text-on-surface-variant" th:text="${#temporals.format(ses.sessionDate, 'dd/MM/yyyy')}">20/05/2026</td>
+                            <!-- Giờ tư vấn -->
+                            <td class="p-4 font-mono text-xs text-on-surface-variant">
+                                <span th:text="${#temporals.format(ses.startTime, 'HH:mm')}"></span> - <span th:text="${#temporals.format(ses.endTime, 'HH:mm')}"></span>
+                            </td>
+                            <!-- Trạng thái -->
+                            <td class="p-4 text-center">
+                                <span th:if="${ses.status.name() == 'PENDING'}" class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">Chờ duyệt</span>
+                                <span th:if="${ses.status.name() == 'CONFIRMED'}" class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200">Đã xác nhận</span>
+                                <span th:if="${ses.status.name() == 'COMPLETED'}" class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">Hoàn thành</span>
+                                <span th:if="${ses.status.name() == 'CANCELLED'}" class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-50 text-slate-600 border border-slate-200">Đã hủy</span>
+                            </td>
+                            <!-- Ngày đăng ký -->
+                            <td class="p-4 font-mono text-xs text-on-surface-variant text-right" th:text="${#temporals.format(ses.createdAt, 'dd/MM/yyyy HH:mm')}">20/05/2026 12:00</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- TAB 3 PAGINATION -->
+            <div class="px-6 py-4 border-t border-outline-variant/30 flex items-center justify-between font-label-md text-label-md" th:with="page=${sessions}">
+                <p class="text-on-surface-variant">
+                    Hiển thị dòng <span class="font-semibold text-on-surface" th:text="${page.totalElements == 0 ? 0 : page.number * 8 + 1}">1</span> 
+                    đến <span class="font-semibold text-on-surface" th:text="${(page.number + 1) * 8 > page.totalElements ? page.totalElements : (page.number + 1) * 8}">8</span> 
+                    trong tổng số <span class="font-semibold text-on-surface" th:text="${page.totalElements}">100</span> bản ghi
+                </p>
+                
+                <div class="flex items-center gap-1.5" th:if="${page.totalPages > 1}">
+                    <a th:href="@{/admin/users(userPage=${userPage}, borrowPage=${borrowPage}, sessionPage=${page.number - 1}, activeTab='sessions')}"
+                       class="p-2 border border-outline-variant rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors"
+                       th:classappend="${!page.hasPrevious()} ? 'pointer-events-none opacity-40' : ''">
+                        <span class="material-symbols-outlined text-[18px]">chevron_left</span>
+                    </a>
+                    
+                    <th:block th:each="i : ${#numbers.sequence(0, page.totalPages - 1)}">
+                        <a th:href="@{/admin/users(userPage=${userPage}, borrowPage=${borrowPage}, sessionPage=${i}, activeTab='sessions')}"
+                           class="min-w-[36px] h-9 flex items-center justify-center rounded-lg border font-medium transition-colors"
+                           th:classappend="${page.number == i} ? 'bg-primary border-primary text-on-primary shadow-sm' : 'border-outline-variant text-on-surface hover:bg-surface-container-high'"
+                           th:text="${i + 1}">1</a>
+                    </th:block>
+                    
+                    <a th:href="@{/admin/users(userPage=${userPage}, borrowPage=${borrowPage}, sessionPage=${page.number + 1}, activeTab='sessions')}"
+                       class="p-2 border border-outline-variant rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors"
+                       th:classappend="${!page.hasNext()} ? 'pointer-events-none opacity-40' : ''">
+                        <span class="material-symbols-outlined text-[18px]">chevron_right</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+</body>
+</html>

@@ -27,6 +27,7 @@
                         <div class="relative group">
                             <div class="w-24 h-24 rounded-full overflow-hidden border-2 border-surface-container-high bg-surface-container flex items-center justify-center">
                                 <span th:if="${profile.avatarUrl == null}" class="material-symbols-outlined text-5xl text-on-surface-variant">person</span>
+                                <img th:if="${profile.avatarUrl != null}" th:src="${profile.avatarUrl}" alt="Avatar" class="w-full h-full object-cover"/>
                             </div>
                             <a th:href="@{/profile/edit}"
                                class="absolute bottom-0 right-0 w-8 h-8 bg-surface text-on-surface rounded-full shadow border border-outline-variant flex items-center justify-center hover:bg-surface-container-low transition-colors">

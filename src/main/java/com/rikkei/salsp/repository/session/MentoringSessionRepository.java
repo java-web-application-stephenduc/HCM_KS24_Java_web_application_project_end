@@ -37,7 +37,7 @@ public interface MentoringSessionRepository extends JpaRepository<MentoringSessi
     @Query("""
                 SELECT ms FROM MentoringSession ms
                 JOIN FETCH ms.student st
-                JOIN FETCH st.profile p
+                LEFT JOIN FETCH st.profile p
                 JOIN FETCH ms.lecturer l
                 WHERE ms.id = :id
             """)
@@ -77,7 +77,7 @@ public interface MentoringSessionRepository extends JpaRepository<MentoringSessi
     @Query("""
                 SELECT ms FROM MentoringSession ms
                 JOIN FETCH ms.student st
-                JOIN FETCH st.profile p
+                LEFT JOIN FETCH st.profile p
                 WHERE ms.lecturer.id = :lecturerId
                   AND ms.status = :status
                 ORDER BY ms.sessionDate DESC, ms.startTime DESC
@@ -88,7 +88,7 @@ public interface MentoringSessionRepository extends JpaRepository<MentoringSessi
     @Query("""
                 SELECT ms FROM MentoringSession ms
                 JOIN FETCH ms.student st
-                JOIN FETCH st.profile p
+                LEFT JOIN FETCH st.profile p
                 WHERE ms.lecturer.id = :lecturerId
                   AND ms.sessionDate = :date
                                     AND ms.status NOT IN (
@@ -195,6 +195,15 @@ public interface MentoringSessionRepository extends JpaRepository<MentoringSessi
                 ORDER BY ms.session_date DESC, ms.start_time DESC
             """, nativeQuery = true)
     List<AcademicHistoryProjection> findAcademicHistoryBySessionId(@Param("sessionId") Long sessionId);
+
+    @Query("""
+        SELECT COUNT(ms) FROM MentoringSession ms
+        WHERE ms.status = com.rikkei.salsp.entity.session.SessionStatus.COMPLETED
+          AND MONTH(ms.sessionDate) = :month
+          AND YEAR(ms.sessionDate) = :year
+    """)
+    long countCompletedSessionsByMonthAndYear(@Param("month") int month, @Param("year") int year);
+
 
     /**
      * Giao diện projection cho kết quả lịch sử học tập.

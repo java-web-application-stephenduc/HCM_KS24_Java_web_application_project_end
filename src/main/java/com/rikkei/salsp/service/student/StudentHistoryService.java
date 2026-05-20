@@ -167,6 +167,12 @@ public class StudentHistoryService {
         if (detail.getRecord().getStatus() == BorrowingStatus.RETURNED) {
             return detail.getRecord().getUpdatedAt();
         }
+        if (detail.getRecord().getSession() != null && detail.getRecord().getSession().getStatus() == SessionStatus.COMPLETED) {
+            MentoringSession session = detail.getRecord().getSession();
+            if (session.getSessionDate() != null && session.getEndTime() != null) {
+                return LocalDateTime.of(session.getSessionDate(), session.getEndTime());
+            }
+        }
         return null;
     }
 

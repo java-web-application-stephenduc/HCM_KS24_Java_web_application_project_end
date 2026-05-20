@@ -33,4 +33,8 @@ public class SessionDetailDto {
     private String lecturerNote;
     private String adminNote;
     private List<EquipmentRequestDto> requestedEquipments = new ArrayList<>();
+    private Integer score;
+    private String feedback;
+    private String studentAvatarUrl;
 }
+

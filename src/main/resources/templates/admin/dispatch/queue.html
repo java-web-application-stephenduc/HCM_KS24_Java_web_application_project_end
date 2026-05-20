@@ -32,7 +32,7 @@
                     <tr th:if="${records == null or #lists.isEmpty(records)}">
                         <td colspan="6" class="px-5 py-8 text-center text-slate-500">Không có phiếu cấp phát nào.</td>
                     </tr>
-                    <tr th:each="record : ${records != null ? records : {}}"
+                    <tr th:each="record : ${records}"
                         th:unless="${records == null or #lists.isEmpty(records)}"
                         class="hover:bg-slate-50/50 transition-colors">
                         <td class="px-5 py-4 text-slate-500 font-mono" th:text="|#${record.recordId}|">#1</td>
@@ -62,7 +62,7 @@
                                 <input type="text" name="adminNote" placeholder="Lý do..." class="w-32 px-2 py-1 text-xs border border-slate-200 rounded" />
                                 <button type="submit" class="bg-red-50 text-red-600 hover:bg-red-100 rounded-lg px-3 py-1.5 font-medium transition-colors border border-transparent">Từ chối</button>
                             </form>
-                            <form th:if="${record.status == 'DISPATCHED'}" th:action="@{/admin/dispatch/{id}/return(id=${record.recordId})}" method="post" onsubmit="return confirm('Xác nhận thu hồi thiết bị?');">
+                            <form th:if="${record.status == 'DISPATCHED' or record.status == 'OVERDUE'}" th:action="@{/admin/dispatch/{id}/return(id=${record.recordId})}" method="post" onsubmit="return confirm('Xác nhận thu hồi thiết bị?');">
                                 <button type="submit" class="bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg px-3 py-1.5 font-medium transition-colors border border-transparent">Thu hồi</button>
                             </form>
                         </td>

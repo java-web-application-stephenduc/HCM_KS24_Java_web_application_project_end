@@ -72,5 +72,13 @@ public class AuthController {
         flash.addFlashAttribute("success", "Đăng ký thành công. Vui lòng đăng nhập.");
         return "redirect:/auth/login";
     }
+
+    /**
+     * Hiển thị trang thông báo tài khoản bị khóa.
+     */
+    @GetMapping("/auth/locked")
+    public String locked() {
+        return "auth/locked";
+    }
 }
 

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/auth-layout :: layout(~{::#main-content})}" th:with="pageTitle='Tài khoản bị khóa - SALSP'">
+<body>
+<div id="main-content" class="flex flex-1 w-full h-full">
+    <!-- Left Column: Banner -->
+    <div class="hidden lg:flex lg:w-1/2 relative flex-col justify-between overflow-hidden bg-tertiary-container h-full">
+        <div class="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-80" style="background-image: url('https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?q=80&w=2070&auto=format&fit=crop');"></div>
+        <div class="absolute inset-0 bg-gradient-to-t from-primary/90 via-primary/50 to-transparent"></div>
+        <div class="relative z-10 flex flex-col h-full justify-between p-12">
+            <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-on-primary text-4xl" style="font-variation-settings: 'FILL' 1;">science</span>
+                <span class="font-headline-sm text-headline-sm text-on-primary font-bold">Smart Academic & Lab Support</span>
+            </div>
+            <div class="max-w-md">
+                <h1 class="font-headline-lg text-headline-lg text-on-primary mb-4 leading-tight">Hệ thống đồng hành cùng tri thức & sáng tạo</h1>
+                <p class="font-body-lg text-body-lg text-inverse-on-surface opacity-90">Chúng tôi cam kết mang lại môi trường học thuật văn minh, an toàn và tối ưu hóa tài nguyên nghiên cứu cho tất cả thành viên.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Locked Screen -->
+    <div class="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12 lg:p-24 bg-surface-container-low h-full overflow-y-auto">
+        <div class="w-full max-w-[460px] bg-surface-container-lowest p-8 sm:p-10 rounded-2xl shadow-lg border border-error-container/30 text-center animate-fade-in">
+            <!-- Icon -->
+            <div class="mx-auto w-20 h-20 rounded-full bg-error-container/40 flex items-center justify-center text-error mb-6 shadow-sm">
+                <span class="material-symbols-outlined text-5xl" style="font-variation-settings: 'FILL' 1;">lock</span>
+            </div>
+
+            <!-- Header -->
+            <h2 class="font-headline-md text-headline-md text-on-surface mb-3">Tài khoản đã bị khóa</h2>
+            <div class="h-1 w-16 bg-error mx-auto rounded-full mb-6"></div>
+            
+            <!-- Message Content -->
+            <div class="space-y-4 text-on-surface-variant mb-8 text-sm leading-relaxed">
+                <p class="font-medium text-error bg-error-container/20 p-4 rounded-xl border border-error-container/30 text-sm">
+                    Tài khoản của bạn đã bị khóa, vui lòng liên hệ giảng viên hoặc quản lý để tư vấn.
+                </p>
+                <p class="text-xs">
+                    Nếu bạn tin rằng đây là một sự nhầm lẫn, vui lòng liên hệ ngay với bộ phận hỗ trợ kỹ thuật qua Hotline ban quản lý hoặc gửi email phản hồi trực tiếp.
+                </p>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="space-y-3">
+                <a th:href="@{/auth/login}" class="w-full flex justify-center items-center gap-2 bg-secondary text-on-secondary rounded-lg py-3 px-4 font-label-md text-label-md hover:bg-secondary-container hover:text-on-secondary-container transition-all shadow-sm">
+                    <span class="material-symbols-outlined text-lg">arrow_back</span>
+                    Quay lại Đăng nhập
+                </a>
+                <a href="mailto:support@salsp.edu.vn?subject=Yeu%20cau%20mo%20khoa%20tai%20khoan%20SALSP" class="w-full flex justify-center items-center gap-2 bg-surface-container-high text-on-surface hover:bg-surface-container-highest rounded-lg py-3 px-4 font-label-md text-label-md transition-all border border-outline-variant/50">
+                    <span class="material-symbols-outlined text-lg">mail</span>
+                    Gửi Email hỗ trợ
+                </a>
+            </div>
+
+            <div class="mt-8 text-xs text-on-surface-variant">
+                &copy; 2026 Smart Academic Lab Support Platform (SALSP)
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
