@@ -4,6 +4,7 @@ import com.rikkei.salsp.entity.equipment.BorrowingRecord;
 import com.rikkei.salsp.entity.session.MentoringSession;
 import com.rikkei.salsp.entity.user.User;
 import com.rikkei.salsp.entity.user.UserRole;
+import com.rikkei.salsp.repository.common.DepartmentRepository;
 import com.rikkei.salsp.repository.equipment.BorrowingRecordRepository;
 import com.rikkei.salsp.repository.session.MentoringSessionRepository;
 import com.rikkei.salsp.repository.user.UserRepository;
@@ -28,6 +29,7 @@ public class AdminUserController {
     private final UserRepository userRepository;
     private final BorrowingRecordRepository borrowingRecordRepository;
     private final MentoringSessionRepository mentoringSessionRepository;
+    private final DepartmentRepository departmentRepository;
 
     private static final int PAGE_SIZE = 8;
 
@@ -64,6 +66,7 @@ public class AdminUserController {
         
         model.addAttribute("activeTab", activeTab);
         model.addAttribute("roles", UserRole.values());
+        model.addAttribute("departments", departmentRepository.findAll());
 
         return "admin/users";
     }
@@ -75,12 +78,13 @@ public class AdminUserController {
     public String changeUserRole(
             @PathVariable("id") Long id,
             @RequestParam("role") UserRole role,
+            @RequestParam(value = "departmentId", required = false) Long departmentId,
             @RequestParam(value = "userPage", defaultValue = "0") int userPage,
             @RequestParam(value = "borrowPage", defaultValue = "0") int borrowPage,
             @RequestParam(value = "sessionPage", defaultValue = "0") int sessionPage,
             RedirectAttributes flash) {
         try {
-            adminUserService.changeUserRole(id, role);
+            adminUserService.changeUserRole(id, role, departmentId);
             flash.addFlashAttribute("success", "Cập nhật vai trò người dùng thành công");
         } catch (Exception e) {
             flash.addFlashAttribute("error", "Lỗi khi cập nhật vai trò: " + e.getMessage());

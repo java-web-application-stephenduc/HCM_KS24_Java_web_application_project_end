@@ -87,13 +87,20 @@
                             </td>
                             <!-- Vai trò -->
                             <td class="p-4">
-                                <form th:action="@{/admin/users/{id}/role(id=${user.id})}" method="post" class="inline-block w-full">
+                                <form th:action="@{/admin/users/{id}/role(id=${user.id})}" method="post" class="inline-block w-full space-y-2">
                                     <input type="hidden" name="userPage" th:value="${userPage}" />
                                     <input type="hidden" name="borrowPage" th:value="${borrowPage}" />
                                     <input type="hidden" name="sessionPage" th:value="${sessionPage}" />
-                                    <select name="role" onchange="this.form.submit()" 
+                                    <select name="role" onchange="this.form.submit()"
                                             class="w-full bg-surface border border-outline-variant rounded-lg px-2.5 py-1.5 font-label-md text-label-md text-on-surface hover:border-primary transition-colors focus:ring-1 focus:ring-primary focus:outline-none">
                                         <option th:each="r : ${roles}" th:value="${r}" th:text="${r}" th:selected="${r == user.role}"></option>
+                                    </select>
+                                    <select name="departmentId" onchange="this.form.submit()"
+                                            class="w-full bg-surface border border-outline-variant rounded-lg px-2.5 py-1.5 font-label-md text-label-md text-on-surface hover:border-primary transition-colors focus:ring-1 focus:ring-primary focus:outline-none">
+                                        <option value="">-- Chọn khoa cho Lecturer --</option>
+                                        <option th:each="dept : ${departments}"
+                                                th:value="${dept.id}"
+                                                th:text="${dept.name}"></option>
                                     </select>
                                 </form>
                             </td>

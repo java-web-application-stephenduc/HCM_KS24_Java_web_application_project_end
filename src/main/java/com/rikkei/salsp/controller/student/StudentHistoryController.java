@@ -65,7 +65,7 @@ public class StudentHistoryController {
         }
         Long studentId = profileService.findUserByEmail(authentication.getName()).getId();
         try {
-            model.addAttribute("record", historyService.getAcademicRecordById(id));
+            model.addAttribute("record", historyService.getAcademicRecordByIdForStudent(id, studentId));
         } catch (ResourceNotFoundException e) {
             model.addAttribute("error", "Không tìm thấy buổi tư vấn.");
             model.addAttribute("records", historyService.getAcademicHistory(studentId));
@@ -92,7 +92,8 @@ public class StudentHistoryController {
             return "redirect:/auth/login";
         }
         try {
-            var record = historyService.getAcademicRecordById(id);
+            Long studentId = profileService.findUserByEmail(authentication.getName()).getId();
+            var record = historyService.getAcademicRecordByIdForStudent(id, studentId);
             if ("CANCELLED".equals(record.getStatus())
                     || "REJECTED".equals(record.getStatus())
                     || "CANCELED_BY_STUDENT".equals(record.getStatus())) {
@@ -148,7 +149,8 @@ public class StudentHistoryController {
             flash.addFlashAttribute("success", "Đã gửi yêu cầu mượn thiết bị thành công, vui lòng chờ Admin xuất kho!");
         } catch (BusinessException | ResourceNotFoundException e) {
             model.addAttribute("error", e.getMessage());
-            var record = historyService.getAcademicRecordById(id);
+            Long studentId = profileService.findUserByEmail(authentication.getName()).getId();
+            var record = historyService.getAcademicRecordByIdForStudent(id, studentId);
             var equipments = historyService.getAvailableEquipment();
             model.addAttribute("borrowForm", dto);
             model.addAttribute("record", record);

@@ -36,7 +36,7 @@ public class AdminUserService {
      * Thay đổi vai trò người dùng (STUDENT, LECTURER, ADMIN).
      * Xử lý tạo/xóa thực thể Lecturer tương ứng.
      */
-    public void changeUserRole(Long id, UserRole newRole) {
+    public void changeUserRole(Long id, UserRole newRole, Long departmentId) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng"));
         
@@ -48,17 +48,24 @@ public class AdminUserService {
         user.setRole(newRole);
         userRepository.save(user);
 
-        // Nếu vai trò mới là LECTURER, ta phải đảm bảo có thực thể Lecturer và khoa liên kết hợp lệ
+        // Nếu vai trò mới là LECTURER, yêu cầu khoa hợp lệ từ admin.
         if (newRole == UserRole.LECTURER) {
-            if (!lecturerRepository.findByUserId(id).isPresent()) {
-                Department defaultDept = departmentRepository.findAll().stream().findFirst()
-                        .orElseThrow(() -> new BusinessException("Không có khoa nào tồn tại trong hệ thống"));
+            if (departmentId == null) {
+                throw new BusinessException("Vui lòng chọn khoa khi chuyển sang vai trò LECTURER");
+            }
+            Department targetDept = departmentRepository.findById(departmentId)
+                    .orElseThrow(() -> new BusinessException("Khoa không tồn tại"));
+            Lecturer existingLecturer = lecturerRepository.findByUserId(id).orElse(null);
+            if (existingLecturer == null) {
                 Lecturer lecturer = new Lecturer();
                 lecturer.setUser(user);
-                lecturer.setDepartment(defaultDept);
+                lecturer.setDepartment(targetDept);
                 lecturer.setTitle("Giảng viên");
                 lecturer.setBio("Chưa cập nhật giới thiệu");
                 lecturerRepository.save(lecturer);
+            } else {
+                existingLecturer.setDepartment(targetDept);
+                lecturerRepository.save(existingLecturer);
             }
         } else {
             // Nếu chuyển đổi từ LECTURER sang vai trò khác, cần xóa thông tin Lecturer

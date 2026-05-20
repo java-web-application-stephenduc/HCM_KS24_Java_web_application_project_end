@@ -38,11 +38,12 @@ public class StudentDashboardService {
      * @param studentId ID sinh viên
      * @return Dữ liệu dashboard
      */
-    public StudentDashboardDto getDashboardData(Long studentId) {
+    public StudentDashboardDto getDashboardData(String studentEmail) {
         StudentDashboardDto dto = new StudentDashboardDto();
 
-        User student = userRepository.findById(studentId)
+        User student = userRepository.findByEmail(studentEmail)
             .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sinh viên"));
+        Long studentId = student.getId();
         dto.setStudentName(student.getProfile() != null ? student.getProfile().getFullName() : "Sinh viên");
 
         long upcoming = sessionRepository.countByStudentIdAndStatusIn(studentId,
@@ -54,7 +55,9 @@ public class StudentDashboardService {
         dto.setCompletedCount(completed);
 
         List<MentoringSession> sessions = sessionRepository.findByStudentIdWithLecturerProfile(studentId);
-        if (sessions.size() > 5) sessions = sessions.subList(0, 5);
+        if (sessions.size() > 5) {
+            sessions = new ArrayList<>(sessions.subList(0, 5));
+        }
 
         List<RecentSessionDto> recent = sessions.stream().map(this::toRecentSession).collect(Collectors.toList());
         dto.setRecentSessions(recent);
@@ -64,14 +67,19 @@ public class StudentDashboardService {
 
         List<BorrowingDetail> details = borrowingDetailRepository.findByStudentIdWithEquipment(studentId);
         long borrowedCount = details.stream()
-            .filter(d -> d.getRecord().getStatus() == BorrowingStatus.DISPATCHED
+            .filter(d -> d.getRecord().getStatus() == BorrowingStatus.PENDING_DISPATCH
+                      || d.getRecord().getStatus() == BorrowingStatus.DISPATCHED
                       || d.getRecord().getStatus() == BorrowingStatus.OVERDUE)
             .mapToLong(BorrowingDetail::getQuantity)
             .sum();
         dto.setBorrowedCount(borrowedCount);
 
         List<RecentEquipmentDto> eqDtos = new ArrayList<>();
-        for (BorrowingDetail detail : details) {
+        for (BorrowingDetail detail : details.stream()
+            .filter(d -> d.getRecord().getStatus() == BorrowingStatus.PENDING_DISPATCH
+                      || d.getRecord().getStatus() == BorrowingStatus.DISPATCHED
+                      || d.getRecord().getStatus() == BorrowingStatus.OVERDUE)
+            .toList()) {
             if (eqDtos.size() >= 5) break;
             RecentEquipmentDto eq = new RecentEquipmentDto();
             eq.setEquipmentName(detail.getEquipment().getName());

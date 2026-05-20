@@ -51,7 +51,8 @@
                                 <strong th:if="${dashboard.latestSession.status == 'PENDING'}">Chờ duyệt</strong>
                                 <strong th:if="${dashboard.latestSession.status == 'CONFIRMED'}">Đã xác nhận</strong>
                                 <strong th:if="${dashboard.latestSession.status == 'COMPLETED'}">Hoàn thành</strong>
-                                <strong th:if="${dashboard.latestSession.status == 'CANCELLED'}">Đã hủy</strong>
+                                <strong th:if="${dashboard.latestSession.status == 'CANCELLED' or dashboard.latestSession.status == 'CANCELED_BY_STUDENT'}">Đã hủy</strong>
+                                <strong th:if="${dashboard.latestSession.status == 'REJECTED'}">Bị từ chối</strong>
                             </span>
                         </div>
                         <div th:if="${dashboard.latestSession == null}"
@@ -185,7 +186,8 @@
                                 <span th:if="${sess.status == 'PENDING'}" class="inline-flex items-center px-2.5 py-0.5 rounded-full font-label-md text-label-md bg-tertiary-fixed text-tertiary-container">Chờ duyệt</span>
                                 <span th:if="${sess.status == 'CONFIRMED'}" class="inline-flex items-center px-2.5 py-0.5 rounded-full font-label-md text-label-md bg-secondary-fixed text-on-secondary-fixed-variant">Đã xác nhận</span>
                                 <span th:if="${sess.status == 'COMPLETED'}" class="inline-flex items-center px-2.5 py-0.5 rounded-full font-label-md text-label-md bg-surface-container-high text-on-surface-variant">Hoàn thành</span>
-                                <span th:if="${sess.status == 'CANCELLED'}" class="inline-flex items-center px-2.5 py-0.5 rounded-full font-label-md text-label-md bg-surface-variant text-on-surface-variant">Đã hủy</span>
+                                <span th:if="${sess.status == 'CANCELLED' or sess.status == 'CANCELED_BY_STUDENT'}" class="inline-flex items-center px-2.5 py-0.5 rounded-full font-label-md text-label-md bg-surface-variant text-on-surface-variant">Đã hủy</span>
+                                <span th:if="${sess.status == 'REJECTED'}" class="inline-flex items-center px-2.5 py-0.5 rounded-full font-label-md text-label-md bg-error-container text-on-error-container">Bị từ chối</span>
                             </td>
                         </tr>
                     </tbody>

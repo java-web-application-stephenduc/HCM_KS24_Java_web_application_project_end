@@ -132,6 +132,13 @@ public class StudentHistoryService {
         return record;
     }
 
+    public AcademicRecordDto getAcademicRecordByIdForStudent(Long sessionId, Long studentId) {
+        if (!sessionRepository.existsByIdAndStudentId(sessionId, studentId)) {
+            throw new ResourceNotFoundException("Không tìm thấy buổi tư vấn");
+        }
+        return getAcademicRecordById(sessionId);
+    }
+
     /**
      * Lấy danh sách thiết bị đã mượn của sinh viên.
      *
@@ -142,12 +149,16 @@ public class StudentHistoryService {
         List<BorrowingDetail> details = borrowingDetailRepository.findByStudentIdWithEquipment(studentId);
         List<BorrowedEquipmentHistoryDto> results = new ArrayList<>();
         for (BorrowingDetail detail : details) {
+            BorrowingStatus status = detail.getRecord().getStatus();
+            if (status == BorrowingStatus.REJECTED_BY_LECTURER || status == BorrowingStatus.REJECTED_BY_ADMIN) {
+                continue;
+            }
             BorrowedEquipmentHistoryDto dto = new BorrowedEquipmentHistoryDto();
             dto.setEquipmentCode("TB-" + detail.getEquipment().getId());
             dto.setEquipmentName(detail.getEquipment().getName());
             dto.setBorrowedAt(detail.getRecord().getCreatedAt());
             dto.setReturnedAt(resolveReturnedAt(detail));
-            dto.setStatus(detail.getRecord().getStatus().name());
+            dto.setStatus(status.name());
             dto.setNote(detail.getRecord().getSession() != null
                     ? detail.getRecord().getSession().getNote()
                     : null);

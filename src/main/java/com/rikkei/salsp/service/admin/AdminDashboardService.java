@@ -45,13 +45,18 @@ public class AdminDashboardService {
         AdminDashboardDto dto = new AdminDashboardDto();
 
         long borrowedCount = borrowingRecordRepository.countByStatus(BorrowingStatus.DISPATCHED);
+        borrowedCount += borrowingRecordRepository.countByStatus(BorrowingStatus.OVERDUE);
         dto.setBorrowedCount(borrowedCount);
 
-        long pendingDispatchCount = borrowingRecordRepository.countByStatus(BorrowingStatus.PENDING_DISPATCH);
+        long pendingDispatchCount = borrowingRecordRepository.countByStatusIn(
+            List.of(BorrowingStatus.PENDING_ADMIN_APPROVAL, BorrowingStatus.PENDING_DISPATCH)
+        );
         dto.setPendingDispatchCount(pendingDispatchCount);
 
         long completedCount = sessionRepository.countByStatus(SessionStatus.COMPLETED);
         dto.setCompletedCount(completedCount);
+        dto.setTotalUsers(userRepository.count());
+        dto.setActiveUsers(userRepository.countByActiveTrue());
 
         List<Equipment> lowStockItems = equipmentRepository.findLowStock(LOW_STOCK_THRESHOLD);
         dto.setLowStockCount(lowStockItems.size());
@@ -80,13 +85,7 @@ public class AdminDashboardService {
 
         List<TopLecturerDto> topLecturers = new ArrayList<>();
         List<Object[]> raw = sessionRepository.findTopLecturers(PageRequest.of(0, 5));
-        if (raw.isEmpty()) {
-            List<User> lecturers = userRepository.findByRole(UserRole.LECTURER, PageRequest.of(0, 5)).getContent();
-            for (User lec : lecturers) {
-                String name = (lec.getProfile() != null) ? lec.getProfile().getFullName() : lec.getEmail();
-                topLecturers.add(createTopLecturer(name, 0, 0));
-            }
-        } else {
+        if (!raw.isEmpty()) {
             long maxCount = raw.isEmpty() ? 1 : ((Number) raw.get(0)[1]).longValue();
             for (Object[] row : raw) {
                 Long lecturerId = (Long) row[0];

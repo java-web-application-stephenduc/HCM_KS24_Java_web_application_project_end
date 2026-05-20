@@ -209,7 +209,6 @@ public class EvaluationService {
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy buổi tư vấn"));
         validateLecturerPermission(session, lecturerEmail);
         validateSessionNotCancelled(session);
-        validateSessionStarted(session);
 
         BorrowingRecord record = borrowingRecordRepository.findBySessionIdWithDetails(sessionId)
                 .orElseThrow(() -> new BusinessException("Chưa có yêu cầu mượn thiết bị"));
@@ -262,8 +261,11 @@ public class EvaluationService {
         MentoringSession session = sessionRepository.findByIdWithStudentAndLecturer(sessionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy buổi tư vấn"));
         validateLecturerPermission(session, lecturerEmail);
-        if (session.getStatus() == SessionStatus.COMPLETED) {
-            throw new BusinessException("Buổi tư vấn đã hoàn thành, không thể từ chối");
+        if (session.getStatus() == SessionStatus.COMPLETED
+                || session.getStatus() == SessionStatus.REJECTED
+                || session.getStatus() == SessionStatus.CANCELLED
+                || session.getStatus() == SessionStatus.CANCELED_BY_STUDENT) {
+            throw new BusinessException("Buổi tư vấn không ở trạng thái có thể từ chối");
         }
 
         session.setStatus(SessionStatus.REJECTED);

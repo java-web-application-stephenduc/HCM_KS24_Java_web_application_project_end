@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/main-layout :: layout(~{::#main-content})}" th:with="pageTitle='Quản lý thiết bị'">
 <body>
@@ -60,7 +60,7 @@
                             <a th:href="@{/admin/equipment/{id}/edit(id=${equip.id})}" class="text-slate-500 hover:text-blue-600 transition-colors" title="Chỉnh sửa">
                                 <span class="material-symbols-outlined text-[20px]">edit</span>
                             </a>
-                            <form th:action="@{/admin/equipment/{id}/delete(id=${equip.id})}" method="post" class="inline m-0" onsubmit="return confirm('Xóa thiết bị này vĩnh viễn?');">
+                            <form th:action="@{/admin/equipment/{id}/delete(id=${equip.id})}" method="post" class="inline m-0">
                                 <button type="submit" class="text-slate-500 hover:text-red-600 transition-colors bg-transparent border-none p-0 cursor-pointer" title="Xóa">
                                     <span class="material-symbols-outlined text-[20px]">delete</span>
                                 </button>

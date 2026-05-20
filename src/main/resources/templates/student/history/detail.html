@@ -186,7 +186,7 @@
             </div>
 
             <!-- Hủy lịch -->
-            <div th:if="${record.status == 'PENDING'}" class="bg-surface rounded-2xl p-6 shadow-sm border border-outline-variant/40">
+            <div th:if="${record.status == 'PENDING' and record.cancellable}" class="bg-surface rounded-2xl p-6 shadow-sm border border-outline-variant/40">
                 <div class="flex items-center gap-3 mb-4 pb-3 border-b border-outline-variant/40">
                     <div class="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
                         <span class="material-symbols-outlined text-red-700">cancel</span>
@@ -197,14 +197,23 @@
                     Nếu bạn không thể tham gia, bạn có thể hủy buổi tư vấn này. Hành động này không thể hoàn tác.
                 </p>
                 <form th:action="@{/student/booking/{id}/cancel(id=${record.sessionId})}"
-                      method="post"
-                      onsubmit="return confirm('Bạn có chắc chắn muốn hủy lịch hẹn này?');">
+                      method="post">
                     <button type="submit"
                             class="w-full flex items-center justify-center gap-2 bg-error text-on-error hover:bg-red-700 rounded-xl px-4 py-3 font-semibold transition-colors">
                         <span class="material-symbols-outlined text-lg">close</span>
                         Hủy đặt lịch
                     </button>
                 </form>
+            </div>
+
+            <div th:if="${record.status == 'PENDING' and !record.cancellable}" class="bg-surface rounded-2xl p-6 shadow-sm border border-outline-variant/40">
+                <div class="flex items-center gap-3 mb-2">
+                    <span class="material-symbols-outlined text-amber-700">info</span>
+                    <h5 class="text-lg font-bold text-primary">Không thể hủy lịch lúc này</h5>
+                </div>
+                <p class="text-sm text-on-surface-variant">
+                    Bạn chỉ có thể hủy lịch trước ít nhất 24 giờ so với thời gian bắt đầu buổi tư vấn.
+                </p>
             </div>
 
         </div>

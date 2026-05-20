@@ -2,11 +2,13 @@ package com.rikkei.salsp;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
  * Lớp `Application` thuộc hệ thống Smart Academic Lab Support Platform (SALSP).
  */
 @SpringBootApplication
+@EnableScheduling
 public class Application {
 
     public /**

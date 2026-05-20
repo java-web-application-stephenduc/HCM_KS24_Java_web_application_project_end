@@ -2,7 +2,6 @@ package com.rikkei.salsp.controller.common;
 
 import com.rikkei.salsp.service.admin.AdminDashboardService;
 import com.rikkei.salsp.service.lecturer.LecturerDashboardService;
-import com.rikkei.salsp.service.common.ProfileService;
 import com.rikkei.salsp.service.student.StudentDashboardService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
@@ -18,7 +17,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 @RequiredArgsConstructor
 public class DashboardController {
 
-    private final ProfileService profileService;
     private final StudentDashboardService dashboardService;
     private final LecturerDashboardService lecturerDashboardService;
     private final AdminDashboardService adminDashboardService;
@@ -55,8 +53,7 @@ public class DashboardController {
         if (authentication == null || authentication.getName() == null) {
             return "redirect:/auth/login";
         }
-        Long studentId = profileService.findUserByEmail(authentication.getName()).getId();
-        model.addAttribute("dashboard", dashboardService.getDashboardData(studentId));
+        model.addAttribute("dashboard", dashboardService.getDashboardData(authentication.getName()));
         return "student/dashboard";
     }
 

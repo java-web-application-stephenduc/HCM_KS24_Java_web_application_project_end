@@ -46,12 +46,24 @@ public class DispatchService {
                 .map(record -> {
                     DispatchQueueItemDto dto = new DispatchQueueItemDto();
                     dto.setRecordId(record.getId());
-                    dto.setStudentName(record.getSession().getStudent().getProfile().getFullName());
-                    dto.setSessionDate(record.getSession().getSessionDate());
+                    String studentName = "Không rõ";
+                    if (record.getSession() != null
+                            && record.getSession().getStudent() != null
+                            && record.getSession().getStudent().getProfile() != null
+                            && record.getSession().getStudent().getProfile().getFullName() != null) {
+                        studentName = record.getSession().getStudent().getProfile().getFullName();
+                    }
+                    dto.setStudentName(studentName);
+                    dto.setSessionDate(record.getSession() != null ? record.getSession().getSessionDate() : null);
                     dto.setStatus(record.getStatus().name());
                     dto.setLecturerNote(record.getLecturerNote());
                     List<String> summary = record.getDetails().stream()
-                            .map(detail -> detail.getEquipment().getName() + " x" + detail.getQuantity())
+                            .map(detail -> {
+                                String equipmentName = detail.getEquipment() != null
+                                        ? detail.getEquipment().getName()
+                                        : "Thiết bị đã xóa";
+                                return equipmentName + " x" + detail.getQuantity();
+                            })
                             .collect(Collectors.toList());
                     dto.setEquipmentSummary(summary);
                     return dto;

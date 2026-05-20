@@ -128,7 +128,7 @@ public class EquipmentService {
     @Transactional
     public void delete(Long id) {
         // Xóa mềm để đảm bảo lịch sử mượn.
-        Equipment equipment = equipmentRepository.findById(id)
+        Equipment equipment = equipmentRepository.findByIdWithLock(id)
             .filter(eq -> !eq.isDeleted())
             .orElseThrow(() -> new ResourceNotFoundException("Equipment not found"));
         if (isInActiveBorrowing(id)) {

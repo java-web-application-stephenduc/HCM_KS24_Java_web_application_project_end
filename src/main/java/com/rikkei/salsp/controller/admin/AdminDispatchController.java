@@ -1,5 +1,7 @@
 package com.rikkei.salsp.controller.admin;
 
+import com.rikkei.salsp.exception.BusinessException;
+import com.rikkei.salsp.exception.ResourceNotFoundException;
 import com.rikkei.salsp.service.admin.DispatchService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
@@ -55,8 +57,12 @@ public class AdminDispatchController {
      */
     @PostMapping("/{id}/confirm")
     public String confirm(@PathVariable Long id, String adminNote, RedirectAttributes flash) {
-        dispatchService.dispatchEquipment(id, adminNote);
-        flash.addFlashAttribute("success", "Đã xác nhận cấp phát");
+        try {
+            dispatchService.dispatchEquipment(id, adminNote);
+            flash.addFlashAttribute("success", "Đã xác nhận cấp phát");
+        } catch (BusinessException | ResourceNotFoundException e) {
+            flash.addFlashAttribute("error", e.getMessage());
+        }
         return "redirect:/admin/dispatch";
     }
 
@@ -70,8 +76,12 @@ public class AdminDispatchController {
      */
     @PostMapping("/{id}/reject")
     public String reject(@PathVariable Long id, String adminNote, RedirectAttributes flash) {
-        dispatchService.rejectDispatch(id, adminNote);
-        flash.addFlashAttribute("success", "Đã từ chối yêu cầu mượn thiết bị");
+        try {
+            dispatchService.rejectDispatch(id, adminNote);
+            flash.addFlashAttribute("success", "Đã từ chối yêu cầu mượn thiết bị");
+        } catch (BusinessException | ResourceNotFoundException e) {
+            flash.addFlashAttribute("error", e.getMessage());
+        }
         return "redirect:/admin/dispatch";
     }
 
@@ -84,8 +94,12 @@ public class AdminDispatchController {
      */
     @PostMapping("/{id}/return")
     public String returnEquipment(@PathVariable Long id, RedirectAttributes flash) {
-        dispatchService.returnEquipment(id);
-        flash.addFlashAttribute("success", "Đã hoàn trả thiết bị");
+        try {
+            dispatchService.returnEquipment(id);
+            flash.addFlashAttribute("success", "Đã hoàn trả thiết bị");
+        } catch (BusinessException | ResourceNotFoundException e) {
+            flash.addFlashAttribute("error", e.getMessage());
+        }
         return "redirect:/admin/dispatch";
     }
 }

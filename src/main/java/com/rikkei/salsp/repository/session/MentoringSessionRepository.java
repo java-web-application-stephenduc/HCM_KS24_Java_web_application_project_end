@@ -6,16 +6,20 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-
-import org.springframework.data.domain.Pageable;
 
 /**
  * Repository quản lý truy vấn dữ liệu thực thể MentoringSession.
  */
 public interface MentoringSessionRepository extends JpaRepository<MentoringSession, Long> {
+    @Override
+    @EntityGraph(attributePaths = {"student", "student.profile", "lecturer", "lecturer.profile"})
+    Page<MentoringSession> findAll(Pageable pageable);
 
     @Query("""
                 SELECT COUNT(ms) > 0 FROM MentoringSession ms
@@ -51,6 +55,8 @@ public interface MentoringSessionRepository extends JpaRepository<MentoringSessi
      * @return Kết quả trả về của phương thức
      */
     List<MentoringSession> findByStudentIdOrderBySessionDateDesc(Long studentId);
+
+    boolean existsByIdAndStudentId(Long id, Long studentId);
 
     @Query("SELECT COUNT(ms) FROM MentoringSession ms WHERE ms.student.id = :studentId AND ms.status IN :statuses")
     long countByStudentIdAndStatusIn(@Param("studentId") Long studentId,

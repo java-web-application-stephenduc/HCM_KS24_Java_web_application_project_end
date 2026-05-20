@@ -87,9 +87,11 @@
                                        title="Xác nhận">
                                         <span class="material-symbols-outlined text-[18px]">check</span>
                                     </a>
-                                    <button class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-error-container hover:opacity-80 text-on-error-container transition-opacity" title="Từ chối">
+                                    <a th:href="@{/lecturer/session/{id}/evaluate(id=${student.sessionId})}"
+                                       class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-error-container hover:opacity-80 text-on-error-container transition-opacity"
+                                       title="Từ chối">
                                         <span class="material-symbols-outlined text-[18px]">close</span>
-                                    </button>
+                                    </a>
                                 </td>
                             </tr>
                         </tbody>

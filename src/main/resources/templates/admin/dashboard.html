@@ -44,6 +44,8 @@
             <div>
                 <p class="font-body-md text-body-md text-on-surface-variant mb-1">Lịch tư vấn hoàn thành</p>
                 <h3 class="font-headline-lg text-headline-lg text-primary" th:text="${dashboard.completedCount}">450</h3>
+                <p class="font-label-md text-label-md text-on-surface-variant mt-2"
+                   th:text="|Người dùng: ${dashboard.totalUsers} (active: ${dashboard.activeUsers})|">Người dùng: 0 (active: 0)</p>
             </div>
         </div>
 

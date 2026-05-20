@@ -62,15 +62,15 @@
 
         <!-- Action buttons -->
         <div class="flex gap-3 pt-4 border-t border-slate-100" th:if="${record.status == 'PENDING_ADMIN_APPROVAL' or record.status == 'PENDING_DISPATCH' or record.status == 'DISPATCHED' or record.status == 'OVERDUE'}">
-            <form th:if="${record.status == 'PENDING_ADMIN_APPROVAL' or record.status == 'PENDING_DISPATCH'}" th:action="@{/admin/dispatch/{id}/confirm(id=${record.recordId})}" method="post" onsubmit="return confirm('Xác nhận cấp phát thiết bị cho sinh viên?');" class="flex items-center gap-2">
+            <form th:if="${record.status == 'PENDING_ADMIN_APPROVAL' or record.status == 'PENDING_DISPATCH'}" th:action="@{/admin/dispatch/{id}/confirm(id=${record.recordId})}" method="post" class="flex items-center gap-2">
                 <input type="text" name="adminNote" placeholder="Ghi chú duyệt..." class="px-3 py-2 text-sm border border-slate-200 rounded-lg w-48" />
                 <button type="submit" class="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 font-medium text-sm transition-colors">Duyệt cấp phát</button>
             </form>
-            <form th:if="${record.status == 'PENDING_ADMIN_APPROVAL' or record.status == 'PENDING_DISPATCH'}" th:action="@{/admin/dispatch/{id}/reject(id=${record.recordId})}" method="post" onsubmit="return confirm('Xác nhận từ chối cấp phát?');" class="flex items-center gap-2">
+            <form th:if="${record.status == 'PENDING_ADMIN_APPROVAL' or record.status == 'PENDING_DISPATCH'}" th:action="@{/admin/dispatch/{id}/reject(id=${record.recordId})}" method="post" class="flex items-center gap-2">
                 <input type="text" name="adminNote" placeholder="Lý do từ chối..." class="px-3 py-2 text-sm border border-slate-200 rounded-lg w-48" />
                 <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium text-sm transition-colors">Từ chối</button>
             </form>
-            <form th:if="${record.status == 'DISPATCHED' or record.status == 'OVERDUE'}" th:action="@{/admin/dispatch/{id}/return(id=${record.recordId})}" method="post" onsubmit="return confirm('Xác nhận thu hồi thiết bị?');">
+            <form th:if="${record.status == 'DISPATCHED' or record.status == 'OVERDUE'}" th:action="@{/admin/dispatch/{id}/return(id=${record.recordId})}" method="post">
                 <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium text-sm transition-colors">Thu hồi thiết bị</button>
             </form>
         </div>

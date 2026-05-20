@@ -3,6 +3,8 @@ package com.rikkei.salsp.controller.lecturer;
 import com.rikkei.salsp.dto.lecturer.BorrowApprovalDto;
 import com.rikkei.salsp.dto.lecturer.EvaluationFormDto;
 import com.rikkei.salsp.dto.lecturer.SessionRejectionDto;
+import com.rikkei.salsp.exception.BusinessException;
+import com.rikkei.salsp.exception.ResourceNotFoundException;
 import com.rikkei.salsp.service.admin.EquipmentService;
 import com.rikkei.salsp.service.lecturer.EvaluationService;
 import jakarta.validation.Valid;
@@ -130,9 +132,13 @@ public class LecturerController {
         if (authentication == null || authentication.getName() == null) {
             return "redirect:/auth/login";
         }
-        dto.setSessionId(id);
-        evaluationService.approveBorrowRequest(id, dto, authentication.getName());
-        flash.addFlashAttribute("success", "Đã duyệt yêu cầu mượn thiết bị");
+        try {
+            dto.setSessionId(id);
+            evaluationService.approveBorrowRequest(id, dto, authentication.getName());
+            flash.addFlashAttribute("success", "Đã duyệt yêu cầu mượn thiết bị");
+        } catch (BusinessException | ResourceNotFoundException e) {
+            flash.addFlashAttribute("error", e.getMessage());
+        }
         return "redirect:/lecturer/session/" + id + "/evaluate";
     }
 
@@ -147,9 +153,13 @@ public class LecturerController {
         if (authentication == null || authentication.getName() == null) {
             return "redirect:/auth/login";
         }
-        dto.setSessionId(id);
-        evaluationService.rejectBorrowRequest(id, dto, authentication.getName());
-        flash.addFlashAttribute("success", "Đã từ chối yêu cầu mượn thiết bị");
+        try {
+            dto.setSessionId(id);
+            evaluationService.rejectBorrowRequest(id, dto, authentication.getName());
+            flash.addFlashAttribute("success", "Đã từ chối yêu cầu mượn thiết bị");
+        } catch (BusinessException | ResourceNotFoundException e) {
+            flash.addFlashAttribute("error", e.getMessage());
+        }
         return "redirect:/lecturer/session/" + id + "/evaluate";
     }
 
@@ -175,11 +185,18 @@ public class LecturerController {
             BorrowApprovalDto borrowForm = new BorrowApprovalDto();
             borrowForm.setSessionId(id);
             model.addAttribute("borrowApproval", borrowForm);
+            dto.setSessionId(id);
+            model.addAttribute("sessionReject", dto);
             return "lecturer/evaluation-form";
         }
-        dto.setSessionId(id);
-        evaluationService.rejectSession(id, dto, authentication.getName());
-        flash.addFlashAttribute("success", "Đã từ chối buổi hẹn");
+        try {
+            dto.setSessionId(id);
+            evaluationService.rejectSession(id, dto, authentication.getName());
+            flash.addFlashAttribute("success", "Đã từ chối buổi hẹn");
+        } catch (BusinessException | ResourceNotFoundException e) {
+            flash.addFlashAttribute("error", e.getMessage());
+            return "redirect:/lecturer/session/" + id + "/evaluate";
+        }
         return "redirect:/lecturer/queue";
     }
 }

@@ -8,6 +8,7 @@ import com.rikkei.salsp.exception.ResourceNotFoundException;
 import com.rikkei.salsp.exception.SlotConflictException;
 import com.rikkei.salsp.service.student.BookingService;
 import com.rikkei.salsp.service.student.CancellationService;
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import java.time.LocalDate;
 import java.util.List;
@@ -34,6 +35,9 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @RequestMapping("/student/booking")
 public class StudentBookingController {
 
+    private static final String BOOKING_DEPARTMENT_ID = "booking.departmentId";
+    private static final String BOOKING_LECTURER_ID = "booking.lecturerId";
+
     private final BookingService bookingService;
     private final CancellationService cancellationService;
 
@@ -44,7 +48,9 @@ public class StudentBookingController {
      * @return Template chọn phòng ban
      */
     @GetMapping("/step1")
-    public String step1(Model model) {
+    public String step1(Model model, HttpSession session) {
+        session.removeAttribute(BOOKING_DEPARTMENT_ID);
+        session.removeAttribute(BOOKING_LECTURER_ID);
         model.addAttribute("departments", bookingService.getDepartments());
         return "student/booking/step1-department";
     }
@@ -59,11 +65,19 @@ public class StudentBookingController {
     @GetMapping("/step2")
     public String step2(@RequestParam(required = false) Long departmentId,
                         Model model,
-                        RedirectAttributes flash) {
+                        RedirectAttributes flash,
+                        HttpSession session) {
+        if (departmentId == null) {
+            Object savedDepartmentId = session.getAttribute(BOOKING_DEPARTMENT_ID);
+            if (savedDepartmentId instanceof Long id) {
+                departmentId = id;
+            }
+        }
         if (departmentId == null) {
             flash.addFlashAttribute("error", "Vui lòng chọn khoa trước khi tiếp tục.");
             return "redirect:/student/booking/step1";
         }
+        session.setAttribute(BOOKING_DEPARTMENT_ID, departmentId);
         model.addAttribute("lecturers", bookingService.getLecturersByDepartment(departmentId));
         model.addAttribute("departmentId", departmentId);
         return "student/booking/step2-lecturer";
@@ -79,11 +93,19 @@ public class StudentBookingController {
     @GetMapping("/step3")
     public String step3(@RequestParam(required = false) Long lecturerId,
                         Model model,
-                        RedirectAttributes flash) {
+                        RedirectAttributes flash,
+                        HttpSession session) {
+        if (lecturerId == null) {
+            Object savedLecturerId = session.getAttribute(BOOKING_LECTURER_ID);
+            if (savedLecturerId instanceof Long id) {
+                lecturerId = id;
+            }
+        }
         if (lecturerId == null) {
             flash.addFlashAttribute("error", "Vui lòng chọn giảng viên trước khi tiếp tục.");
             return "redirect:/student/booking/step1";
         }
+        session.setAttribute(BOOKING_LECTURER_ID, lecturerId);
         BookingRequestDto dto = new BookingRequestDto();
         dto.setLecturerId(lecturerId);
         model.addAttribute("booking", dto);
@@ -158,7 +180,8 @@ public class StudentBookingController {
                           BindingResult errors,
                           Authentication authentication,
                           RedirectAttributes flash,
-                          Model model) {
+                          Model model,
+                          HttpSession session) {
         // Null guard cho authentication (Bug #16)
         if (authentication == null || authentication.getName() == null) {
             return "redirect:/auth/login";
@@ -171,6 +194,8 @@ public class StudentBookingController {
         }
         try {
             bookingService.createBooking(dto, authentication.getName());
+            session.removeAttribute(BOOKING_DEPARTMENT_ID);
+            session.removeAttribute(BOOKING_LECTURER_ID);
         } catch (BusinessException ex) {
             // Bắt cả BusinessException và SlotConflictException để hiển thị inline (Bug #17)
             model.addAttribute("error", ex.getMessage());

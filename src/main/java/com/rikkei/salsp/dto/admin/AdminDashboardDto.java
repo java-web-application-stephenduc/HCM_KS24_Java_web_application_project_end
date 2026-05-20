@@ -17,6 +17,8 @@ public class AdminDashboardDto {
     private long borrowedCount;
     private long pendingDispatchCount;
     private long completedCount;
+    private long totalUsers;
+    private long activeUsers;
     private long lowStockCount;
     private List<LowStockEquipmentDto> lowStockEquipments = new ArrayList<>();
     private List<MonthlyStatDto> monthlyStats = new ArrayList<>();

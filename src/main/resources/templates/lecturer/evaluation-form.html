@@ -3,6 +3,15 @@
       th:replace="~{layout/main-layout :: layout(~{::#main-content})}" th:with="pageTitle='Đánh giá buổi tư vấn'">
 <body>
 <div id="main-content" class="w-full max-w-7xl mx-auto space-y-6">
+    <div th:if="${success}" class="p-4 bg-emerald-50 text-emerald-700 rounded-lg border border-emerald-200 flex items-center gap-2">
+        <span class="material-symbols-outlined">check_circle</span>
+        <span th:text="${success}"></span>
+    </div>
+    <div th:if="${error}" class="p-4 bg-red-50 text-red-700 rounded-lg border border-red-200 flex items-center gap-2">
+        <span class="material-symbols-outlined">error</span>
+        <span th:text="${error}"></span>
+    </div>
+
     <!-- Page Header -->
     <div class="flex items-center justify-between mb-6">
         <div>
