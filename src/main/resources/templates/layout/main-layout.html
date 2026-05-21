@@ -136,5 +136,74 @@
             <div class="max-w-container-max mx-auto w-full flex flex-col gap-6" th:replace="${content}"></div>
         </main>
     </div>
+    
+    <!-- Circular Countdown Timer Script -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            function updateCountdowns() {
+                const countdownElements = document.querySelectorAll(".appointment-countdown");
+                const now = new Date();
+                
+                countdownElements.forEach(el => {
+                    const dtStr = el.getAttribute("data-datetime");
+                    if (!dtStr) return;
+                    
+                    const appointmentTime = new Date(dtStr);
+                    const diffMs = appointmentTime - now;
+                    const oneDayMs = 24 * 60 * 60 * 1000;
+                    
+                    if (diffMs <= 0) {
+                        // Already started or past
+                        el.innerHTML = `
+                            <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-indigo-50 border border-indigo-200 text-indigo-800 animate-pulse">
+                                Đang diễn ra
+                            </span>
+                        `;
+                        return;
+                    }
+                    
+                    if (diffMs > oneDayMs) {
+                        // More than 24 hours remaining - hide timer
+                        el.innerHTML = "";
+                        return;
+                    }
+                    
+                    // Inside the 24h window - display the circular countdown timer
+                    const totalSecs = Math.floor(diffMs / 1000);
+                    const hours = Math.floor(totalSecs / 3600);
+                    const minutes = Math.floor((totalSecs % 3600) / 60);
+                    
+                    const pct = diffMs / oneDayMs;
+                    const r = 14;
+                    const c = 2 * Math.PI * r; // ~87.96
+                    const offset = c - (pct * c);
+                    
+                    let text = "";
+                    if (hours > 0) {
+                        text = `${hours}h`;
+                    } else {
+                        text = `${minutes}m`;
+                    }
+                    
+                    el.innerHTML = `
+                        <div class="relative w-8 h-8 flex items-center justify-center" style="content-visibility: auto;">
+                            <svg class="w-full h-full transform -rotate-90">
+                                <circle cx="16" cy="16" r="${r}" stroke="currentColor" class="text-slate-100" stroke-width="2" fill="transparent" />
+                                <circle cx="16" cy="16" r="${r}" stroke="currentColor" class="text-indigo-600 transition-all duration-300 ease-in-out" stroke-width="2" fill="transparent"
+                                        stroke-dasharray="${c}" stroke-dashoffset="${offset}" />
+                            </svg>
+                            <div class="absolute text-[8px] font-black text-indigo-700 flex items-center justify-center leading-none text-center">
+                                ${text}
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+            
+            // Run initially and then every 30 seconds
+            updateCountdowns();
+            setInterval(updateCountdowns, 30000);
+        });
+    </script>
 </body>
 </html>

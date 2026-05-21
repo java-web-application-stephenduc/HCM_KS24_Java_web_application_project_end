@@ -78,6 +78,57 @@ public class EvaluationService {
     }
 
     /**
+     * Lấy các buổi tư vấn đang hoạt động (PENDING, CONFIRMED) của giảng viên.
+     */
+    public List<SessionSummaryDto> getActiveSessions(String lecturerEmail) {
+        User lecturer = userRepository.findByEmail(lecturerEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy giảng viên"));
+
+        List<SessionStatus> activeStatuses = List.of(SessionStatus.PENDING, SessionStatus.CONFIRMED);
+        return sessionRepository.findSessionsByLecturerIdAndStatuses(lecturer.getId(), activeStatuses).stream()
+                .map(session -> {
+                    SessionSummaryDto dto = new SessionSummaryDto();
+                    dto.setSessionId(session.getId());
+                    dto.setStudentName(session.getStudent().getProfile().getFullName());
+                    dto.setSessionDate(session.getSessionDate());
+                    dto.setStartTime(session.getStartTime());
+                    dto.setEndTime(session.getEndTime());
+                    dto.setStatus(session.getStatus().name());
+                    dto.setNote(session.getNote());
+                    return dto;
+                })
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Lấy lịch sử các buổi tư vấn đã qua (COMPLETED, REJECTED, CANCELLED, CANCELED_BY_STUDENT) của giảng viên.
+     */
+    public List<SessionSummaryDto> getHistorySessions(String lecturerEmail) {
+        User lecturer = userRepository.findByEmail(lecturerEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy giảng viên"));
+
+        List<SessionStatus> historyStatuses = List.of(
+                SessionStatus.COMPLETED,
+                SessionStatus.REJECTED,
+                SessionStatus.CANCELLED,
+                SessionStatus.CANCELED_BY_STUDENT
+        );
+        return sessionRepository.findSessionsByLecturerIdAndStatuses(lecturer.getId(), historyStatuses).stream()
+                .map(session -> {
+                    SessionSummaryDto dto = new SessionSummaryDto();
+                    dto.setSessionId(session.getId());
+                    dto.setStudentName(session.getStudent().getProfile().getFullName());
+                    dto.setSessionDate(session.getSessionDate());
+                    dto.setStartTime(session.getStartTime());
+                    dto.setEndTime(session.getEndTime());
+                    dto.setStatus(session.getStatus().name());
+                    dto.setNote(session.getNote());
+                    return dto;
+                })
+                .collect(Collectors.toList());
+    }
+
+    /**
      * Lấy thông tin buổi cố vấn học thuật.
      * 
      * <p>
@@ -116,6 +167,9 @@ public class EvaluationService {
         dto.setNote(session.getNote());
         dto.setStatus(session.getStatus().name());
         dto.setRejectionReason(session.getRejectionReason());
+
+        LocalDateTime sessionDateTime = LocalDateTime.of(session.getSessionDate(), session.getStartTime());
+        dto.setCancellable(sessionDateTime.isAfter(LocalDateTime.now().plusHours(24)));
 
         if (session.getStudent().getProfile() != null) {
             dto.setStudentAvatarUrl(session.getStudent().getProfile().getAvatarUrl());
@@ -261,6 +315,12 @@ public class EvaluationService {
         MentoringSession session = sessionRepository.findByIdWithStudentAndLecturer(sessionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy buổi tư vấn"));
         validateLecturerPermission(session, lecturerEmail);
+        
+        LocalDateTime sessionDateTime = LocalDateTime.of(session.getSessionDate(), session.getStartTime());
+        if (!sessionDateTime.isAfter(LocalDateTime.now().plusHours(24))) {
+            throw new BusinessException("Chỉ được hủy/từ chối lịch hẹn trước 24 giờ.");
+        }
+
         if (session.getStatus() == SessionStatus.COMPLETED
                 || session.getStatus() == SessionStatus.REJECTED
                 || session.getStatus() == SessionStatus.CANCELLED

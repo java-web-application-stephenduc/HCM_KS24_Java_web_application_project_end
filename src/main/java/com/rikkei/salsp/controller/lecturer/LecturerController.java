@@ -44,7 +44,8 @@ public class LecturerController {
         if (authentication == null || authentication.getName() == null) {
             return "redirect:/auth/login";
         }
-        model.addAttribute("sessions", evaluationService.getPendingSessions(authentication.getName()));
+        model.addAttribute("sessions", evaluationService.getActiveSessions(authentication.getName()));
+        model.addAttribute("historySessions", evaluationService.getHistorySessions(authentication.getName()));
         return "lecturer/queue";
     }
 

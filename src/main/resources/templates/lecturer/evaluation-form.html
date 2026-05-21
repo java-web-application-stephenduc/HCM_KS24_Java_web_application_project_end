@@ -264,33 +264,47 @@
             </div>
         </form>
 
-        <!-- Reject Appointment Form -->
-        <form th:unless="${sessionDetail.status == 'REJECTED' or sessionDetail.status == 'CANCELED_BY_STUDENT' or sessionDetail.status == 'CANCELLED'}"
-              th:action="@{/lecturer/session/{id}/reject(id=${sessionDetail.sessionId})}"
-              th:object="${sessionReject}"
-              method="post"
-              class="mt-4">
-            <div class="bg-surface rounded-2xl p-6 shadow-sm border border-outline-variant/40">
-                <h3 class="text-lg font-bold text-primary mb-4 flex items-center gap-2">
-                    <span class="material-symbols-outlined text-error">block</span>
-                    Từ chối buổi hẹn
-                </h3>
-                <div class="mb-4">
-                    <label class="block font-label-md text-label-md text-on-surface mb-2">Lý do từ chối buổi hẹn</label>
-                    <textarea th:field="*{rejectionReason}"
-                              class="w-full bg-surface border border-outline-variant rounded-lg px-4 py-3 text-body-md text-on-surface focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary"
-                              placeholder="Nhập lý do từ chối buổi hẹn..." required></textarea>
-                    <p th:if="${#fields.hasErrors('rejectionReason')}" th:errors="*{rejectionReason}" class="font-label-md text-label-md text-error mt-1"></p>
-                </div>
-                <div class="flex gap-3">
-                    <button type="submit"
-                            class="px-6 py-3 rounded-xl bg-red-700 text-white font-label-md text-label-md font-bold hover:bg-red-800 transition-colors shadow-sm inline-flex items-center gap-2">
-                        <span class="material-symbols-outlined text-lg">block</span>
+        <!-- Reject Appointment Form / 24h Block Warning -->
+        <div th:unless="${sessionDetail.status == 'REJECTED' or sessionDetail.status == 'CANCELED_BY_STUDENT' or sessionDetail.status == 'CANCELLED'}" class="mt-4">
+            <!-- If cancellable, display the reject form -->
+            <form th:if="${sessionDetail.cancellable}"
+                  th:action="@{/lecturer/session/{id}/reject(id=${sessionDetail.sessionId})}"
+                  th:object="${sessionReject}"
+                  method="post">
+                <div class="bg-surface rounded-2xl p-6 shadow-sm border border-outline-variant/40">
+                    <h3 class="text-lg font-bold text-primary mb-4 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-error">block</span>
                         Từ chối buổi hẹn
-                    </button>
+                    </h3>
+                    <div class="mb-4">
+                        <label class="block font-label-md text-label-md text-on-surface mb-2">Lý do từ chối buổi hẹn</label>
+                        <textarea th:field="*{rejectionReason}"
+                                  class="w-full bg-surface border border-outline-variant rounded-lg px-4 py-3 text-body-md text-on-surface focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary"
+                                  placeholder="Nhập lý do từ chối buổi hẹn..." required></textarea>
+                        <p th:if="${#fields.hasErrors('rejectionReason')}" th:errors="*{rejectionReason}" class="font-label-md text-label-md text-error mt-1"></p>
+                    </div>
+                    <div class="flex gap-3">
+                        <button type="submit"
+                                class="px-6 py-3 rounded-xl bg-red-700 text-white font-label-md text-label-md font-bold hover:bg-red-800 transition-colors shadow-sm inline-flex items-center gap-2">
+                            <span class="material-symbols-outlined text-lg">block</span>
+                            Từ chối buổi hẹn
+                        </button>
+                    </div>
+                </div>
+            </form>
+            
+            <!-- If not cancellable, display an elegant warning/alert card -->
+            <div th:unless="${sessionDetail.cancellable}"
+                 class="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/50 rounded-2xl p-6 shadow-sm flex flex-col sm:flex-row items-start gap-4">
+                <span class="material-symbols-outlined text-amber-600 text-3xl shrink-0 mt-0.5">warning_amber</span>
+                <div class="space-y-1">
+                    <h4 class="text-base font-bold text-amber-900 dark:text-amber-200">Không thể hủy hoặc từ chối lịch hẹn</h4>
+                    <p class="text-sm text-amber-800 dark:text-amber-300 leading-relaxed font-medium">
+                        Bạn chỉ có thể từ chối hoặc hủy lịch hẹn trước khi diễn ra 24 giờ. Hiện tại, thời gian đến buổi hẹn đã dưới 24 giờ, tính năng hủy bị khóa để đảm bảo quyền lợi của sinh viên.
+                    </p>
                 </div>
             </div>
-        </form>
+        </div>
     </div>
 </div>
 

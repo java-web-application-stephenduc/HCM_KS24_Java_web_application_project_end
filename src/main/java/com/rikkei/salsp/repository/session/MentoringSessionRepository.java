@@ -96,6 +96,17 @@ public interface MentoringSessionRepository extends JpaRepository<MentoringSessi
                 JOIN FETCH ms.student st
                 LEFT JOIN FETCH st.profile p
                 WHERE ms.lecturer.id = :lecturerId
+                  AND ms.status IN :statuses
+                ORDER BY ms.sessionDate DESC, ms.startTime DESC
+            """)
+    List<MentoringSession> findSessionsByLecturerIdAndStatuses(@Param("lecturerId") Long lecturerId,
+            @Param("statuses") List<SessionStatus> statuses);
+
+    @Query("""
+                SELECT ms FROM MentoringSession ms
+                JOIN FETCH ms.student st
+                LEFT JOIN FETCH st.profile p
+                WHERE ms.lecturer.id = :lecturerId
                   AND ms.sessionDate = :date
                                     AND ms.status NOT IN (
                                             com.rikkei.salsp.entity.session.SessionStatus.CANCELLED,

@@ -48,25 +48,21 @@ public class AdminUserService {
         user.setRole(newRole);
         userRepository.save(user);
 
-        // Nếu vai trò mới là LECTURER, yêu cầu khoa hợp lệ từ admin.
+        // Nếu vai trò mới là LECTURER, tự động thiết lập hoặc bảo lưu khoa
         if (newRole == UserRole.LECTURER) {
-            if (departmentId == null) {
-                throw new BusinessException("Vui lòng chọn khoa khi chuyển sang vai trò LECTURER");
-            }
-            Department targetDept = departmentRepository.findById(departmentId)
-                    .orElseThrow(() -> new BusinessException("Khoa không tồn tại"));
             Lecturer existingLecturer = lecturerRepository.findByUserId(id).orElse(null);
             if (existingLecturer == null) {
+                Department defaultDept = departmentRepository.findAll().stream()
+                        .findFirst()
+                        .orElseThrow(() -> new BusinessException("Hệ thống chưa cấu hình khoa nào làm mặc định."));
                 Lecturer lecturer = new Lecturer();
                 lecturer.setUser(user);
-                lecturer.setDepartment(targetDept);
+                lecturer.setDepartment(defaultDept);
                 lecturer.setTitle("Giảng viên");
                 lecturer.setBio("Chưa cập nhật giới thiệu");
                 lecturerRepository.save(lecturer);
-            } else {
-                existingLecturer.setDepartment(targetDept);
-                lecturerRepository.save(existingLecturer);
             }
+            // Nếu đã có profile giảng viên từ trước, bảo lưu khoa hiện tại của họ
         } else {
             // Nếu chuyển đổi từ LECTURER sang vai trò khác, cần xóa thông tin Lecturer
             lecturerRepository.findByUserId(id).ifPresent(lecturerRepository::delete);

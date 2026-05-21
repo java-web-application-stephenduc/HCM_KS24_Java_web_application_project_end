@@ -157,12 +157,13 @@
                         <tr class="bg-surface-container-low text-on-surface-variant font-label-md text-label-md uppercase">
                             <th class="py-3 px-5 border-b border-outline-variant font-semibold">Giảng viên</th>
                             <th class="py-3 px-5 border-b border-outline-variant font-semibold">Ngày &amp; Giờ</th>
+                            <th class="py-3 px-5 border-b border-outline-variant font-semibold">Đến hẹn</th>
                             <th class="py-3 px-5 border-b border-outline-variant font-semibold">Trạng thái</th>
                         </tr>
                     </thead>
                     <tbody class="font-body-md text-body-md">
                         <tr th:if="${dashboard.recentSessions == null or #lists.isEmpty(dashboard.recentSessions)}">
-                            <td colspan="3" class="py-8 px-5 text-center text-on-surface-variant">
+                            <td colspan="4" class="py-8 px-5 text-center text-on-surface-variant">
                                 <span class="material-symbols-outlined text-4xl text-on-surface-variant block mb-2">event_busy</span>
                                 Chưa có lịch hẹn nào.
                             </td>
@@ -181,6 +182,14 @@
                                 <span th:text="${#temporals.format(sess.sessionDate, 'dd/MM/yyyy')}"></span>
                                 <br/>
                                 <span class="font-label-md text-label-md" th:text="${#temporals.format(sess.startTime, 'HH:mm')}"></span>
+                            </td>
+                            <td class="py-4 px-5">
+                                <div th:if="${sess.status == 'PENDING' or sess.status == 'CONFIRMED'}"
+                                     class="appointment-countdown shrink-0 flex items-center justify-start"
+                                     th:data-datetime="${sess.sessionDate + 'T' + sess.startTime}"
+                                     th:title="|Đếm ngược đến lịch hẹn: ${#temporals.format(sess.sessionDate, 'dd/MM/yyyy')} ${#temporals.format(sess.startTime, 'HH:mm')}|">
+                                </div>
+                                <span th:unless="${sess.status == 'PENDING' or sess.status == 'CONFIRMED'}">-</span>
                             </td>
                             <td class="py-4 px-5">
                                 <span th:if="${sess.status == 'PENDING'}" class="inline-flex items-center px-2.5 py-0.5 rounded-full font-label-md text-label-md bg-tertiary-fixed text-tertiary-container">Chờ duyệt</span>

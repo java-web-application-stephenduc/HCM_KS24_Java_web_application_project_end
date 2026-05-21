@@ -46,6 +46,7 @@
                         <th class="py-3 px-5 border-b border-outline-variant font-semibold">Giảng viên</th>
                         <th class="py-3 px-5 border-b border-outline-variant font-semibold">Ngày</th>
                         <th class="py-3 px-5 border-b border-outline-variant font-semibold">Giờ</th>
+                        <th class="py-3 px-5 border-b border-outline-variant font-semibold">Đến hẹn</th>
                         <th class="py-3 px-5 border-b border-outline-variant font-semibold">Trạng thái</th>
                         <th class="py-3 px-5 border-b border-outline-variant font-semibold text-right">Hành động</th>
                     </tr>
@@ -53,7 +54,7 @@
                 <tbody class="font-body-md text-body-md">
                     <!-- Trạng thái rỗng -->
                     <tr th:if="${records == null or #lists.isEmpty(records)}">
-                        <td colspan="5" class="py-10 px-5 text-center text-on-surface-variant">
+                        <td colspan="6" class="py-10 px-5 text-center text-on-surface-variant">
                             <span class="material-symbols-outlined text-4xl block mb-2 text-on-surface-variant">event_busy</span>
                             Bạn chưa có lịch sử tư vấn nào.
                         </td>
@@ -72,6 +73,14 @@
                             <span th:text="${#temporals.format(record.startTime, 'HH:mm')}"></span>
                             &ndash;
                             <span th:text="${#temporals.format(record.endTime, 'HH:mm')}"></span>
+                        </td>
+                        <td class="py-4 px-5">
+                            <div th:if="${record.status == 'PENDING' or record.status == 'CONFIRMED'}"
+                                 class="appointment-countdown shrink-0 flex items-center justify-start"
+                                 th:data-datetime="${record.sessionDate + 'T' + record.startTime}"
+                                 th:title="|Đếm ngược đến lịch hẹn: ${#temporals.format(record.sessionDate, 'dd/MM/yyyy')} ${#temporals.format(record.startTime, 'HH:mm')}|">
+                            </div>
+                            <span th:unless="${record.status == 'PENDING' or record.status == 'CONFIRMED'}">-</span>
                         </td>
                         <td class="py-4 px-5">
                             <span th:if="${record.status == 'PENDING'}"

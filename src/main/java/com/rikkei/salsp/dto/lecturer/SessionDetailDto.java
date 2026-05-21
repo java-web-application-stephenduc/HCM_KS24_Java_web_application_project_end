@@ -36,5 +36,6 @@ public class SessionDetailDto {
     private Integer score;
     private String feedback;
     private String studentAvatarUrl;
+    private boolean cancellable;
 }
 

@@ -3,61 +3,182 @@
       th:replace="~{layout/main-layout :: layout(~{::#main-content})}" th:with="pageTitle='Hàng đợi tư vấn'">
 <body>
 <div id="main-content" class="w-full max-w-7xl mx-auto space-y-6">
-    <div class="flex items-center justify-between mb-2">
-        <h2 class="text-2xl font-bold text-slate-800">Hàng đợi & Cần đánh giá</h2>
+    <!-- Header Section -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+        <div>
+            <h2 class="text-2xl font-bold text-slate-800">Quản lý lịch hẹn tư vấn</h2>
+            <p class="text-sm text-slate-500 mt-1">Xem danh sách lịch hẹn cần xử lý và lịch sử duyệt, từ chối hoặc đánh giá.</p>
+        </div>
     </div>
 
     <!-- Flash Messages -->
-    <div th:if="${success}" class="p-4 bg-emerald-50 text-emerald-700 rounded-lg border border-emerald-200 flex items-center gap-2 mb-6">
-        <span class="material-symbols-outlined">check_circle</span><span th:text="${success}"></span>
+    <div th:if="${success}" class="p-4 bg-emerald-50 text-emerald-700 rounded-lg border border-emerald-200 flex items-center gap-2">
+        <span class="material-symbols-outlined">check_circle</span>
+        <span th:text="${success}"></span>
     </div>
-    <div th:if="${error}" class="p-4 bg-red-50 text-red-700 rounded-lg border border-red-200 flex items-center gap-2 mb-6">
-        <span class="material-symbols-outlined">error</span><span th:text="${error}"></span>
+    <div th:if="${error}" class="p-4 bg-red-50 text-red-700 rounded-lg border border-red-200 flex items-center gap-2">
+        <span class="material-symbols-outlined">error</span>
+        <span th:text="${error}"></span>
     </div>
 
-    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-        <div class="overflow-x-auto w-full">
-            <table class="w-full whitespace-nowrap">
-                <thead class="bg-slate-50 border-b border-slate-200">
-                    <tr>
-                        <th class="px-5 py-3 text-left font-semibold uppercase text-xs text-slate-500 tracking-wider">Sinh viên</th>
-                        <th class="px-5 py-3 text-left font-semibold uppercase text-xs text-slate-500 tracking-wider">Ngày</th>
-                        <th class="px-5 py-3 text-left font-semibold uppercase text-xs text-slate-500 tracking-wider">Giờ</th>
-                        <th class="px-5 py-3 text-left font-semibold uppercase text-xs text-slate-500 tracking-wider">Ghi chú</th>
-                        <th class="px-5 py-3 text-left font-semibold uppercase text-xs text-slate-500 tracking-wider">Trạng thái</th>
-                        <th class="px-5 py-3 text-right font-semibold uppercase text-xs text-slate-500 tracking-wider">Hành động</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-100 text-sm">
-                    <tr th:if="${sessions == null or #lists.isEmpty(sessions)}">
-                        <td colspan="6" class="px-5 py-8 text-center text-slate-500">Không có buổi tư vấn nào cần xử lý.</td>
-                    </tr>
-                    <tr th:each="ses : ${sessions}"
-                        th:unless="${sessions == null or #lists.isEmpty(sessions)}"
-                        class="hover:bg-slate-50/50 transition-colors">
-                        <td class="px-5 py-4 font-medium text-slate-800" th:text="${ses.studentName}">Tên SV</td>
-                        <td class="px-5 py-4 text-slate-600" th:text="${#temporals.format(ses.sessionDate, 'dd/MM/yyyy')}">12/12/2026</td>
-                        <td class="px-5 py-4 text-slate-600">
-                            <span th:text="${#temporals.format(ses.startTime, 'HH:mm')}"></span> - <span th:text="${#temporals.format(ses.endTime, 'HH:mm')}"></span>
-                        </td>
-                        <td class="px-5 py-4 text-slate-500 max-w-xs truncate" th:title="${ses.note}" th:text="${ses.note != null && !ses.note.isEmpty() ? ses.note : '-'}">Ghi chú</td>
-                        <td class="px-5 py-4">
-                            <!-- ses.status là String, không cần .name() (Bug #23) -->
-                            <span th:if="${ses.status == 'PENDING'}" class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800">Chờ duyệt</span>
-                            <span th:if="${ses.status == 'CONFIRMED'}" class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">Đã xác nhận</span>
-                            <span th:if="${ses.status == 'COMPLETED'}" class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">Hoàn thành</span>
-                            <span th:if="${ses.status == 'CANCELLED'}" class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-600">Đã hủy</span>
-                        </td>
-                        <td class="px-5 py-4 text-right">
-                            <a th:if="${ses.status == 'CONFIRMED' or ses.status == 'PENDING'}" th:href="@{/lecturer/session/{id}/evaluate(id=${ses.sessionId})}" class="bg-secondary hover:bg-secondary-container text-white rounded-lg px-4 py-2 font-medium transition-colors">
-                                Đánh giá / Cấp phát
-                            </a>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+    <!-- Sleek Tab Controls -->
+    <div class="border-b border-slate-200">
+        <nav class="flex space-x-8" aria-label="Tabs">
+            <button onclick="switchTab('active-sessions-tab', 'history-sessions-tab', this)" 
+                    class="tab-btn py-4 px-1 border-b-2 font-semibold text-sm border-indigo-600 text-indigo-600 whitespace-nowrap flex items-center gap-2 focus:outline-none">
+                <span class="material-symbols-outlined text-lg">schedule</span>
+                Lịch hẹn chờ xử lý
+                <span class="bg-indigo-100 text-indigo-800 py-0.5 px-2.5 rounded-full text-xs font-semibold" th:text="${#lists.size(sessions)}">0</span>
+            </button>
+            <button onclick="switchTab('history-sessions-tab', 'active-sessions-tab', this)" 
+                    class="tab-btn py-4 px-1 border-b-2 font-semibold text-sm border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 whitespace-nowrap flex items-center gap-2 focus:outline-none">
+                <span class="material-symbols-outlined text-lg">history</span>
+                Lịch sử duyệt/từ chối
+                <span class="bg-slate-100 text-slate-800 py-0.5 px-2.5 rounded-full text-xs font-semibold" th:text="${#lists.size(historySessions)}">0</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- Tab Panels -->
+    <div class="space-y-6">
+        <!-- 1. Active Sessions Tab -->
+        <div id="active-sessions-tab" class="space-y-4">
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+                <div class="overflow-x-auto w-full">
+                    <table class="w-full whitespace-nowrap">
+                        <thead class="bg-slate-50 border-b border-slate-200">
+                            <tr>
+                                <th class="px-6 py-4 text-left font-semibold uppercase text-xs text-slate-500 tracking-wider">Sinh viên</th>
+                                <th class="px-6 py-4 text-left font-semibold uppercase text-xs text-slate-500 tracking-wider">Ngày hẹn</th>
+                                <th class="px-6 py-4 text-left font-semibold uppercase text-xs text-slate-500 tracking-wider">Thời gian</th>
+                                <th class="px-6 py-4 text-left font-semibold uppercase text-xs text-slate-500 tracking-wider">Đếm ngược</th>
+                                <th class="px-6 py-4 text-left font-semibold uppercase text-xs text-slate-500 tracking-wider">Ghi chú</th>
+                                <th class="px-6 py-4 text-left font-semibold uppercase text-xs text-slate-500 tracking-wider">Trạng thái</th>
+                                <th class="px-6 py-4 text-right font-semibold uppercase text-xs text-slate-500 tracking-wider">Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 text-sm">
+                            <tr th:if="${sessions == null or #lists.isEmpty(sessions)}">
+                                <td colspan="7" class="px-6 py-12 text-center text-slate-400">
+                                    <span class="material-symbols-outlined text-4xl mb-2 text-slate-300 block">event_busy</span>
+                                    Không có lịch hẹn nào đang hoạt động cần xử lý.
+                                </td>
+                            </tr>
+                            <tr th:each="ses : ${sessions}"
+                                th:unless="${sessions == null or #lists.isEmpty(sessions)}"
+                                class="hover:bg-slate-50/50 transition-colors">
+                                <td class="px-6 py-4 font-semibold text-slate-800" th:text="${ses.studentName}">Sinh viên</td>
+                                <td class="px-6 py-4 text-slate-600" th:text="${#temporals.format(ses.sessionDate, 'dd/MM/yyyy')}">12/12/2026</td>
+                                <td class="px-6 py-4 text-slate-600 font-medium">
+                                    <span th:text="${#temporals.format(ses.startTime, 'HH:mm')}"></span> - <span th:text="${#temporals.format(ses.endTime, 'HH:mm')}"></span>
+                                </td>
+                                <!-- Countdown Widget Column -->
+                                <td class="px-6 py-4">
+                                    <div class="appointment-countdown shrink-0 flex items-center justify-start"
+                                         th:data-datetime="${ses.sessionDate + 'T' + ses.startTime}"
+                                         th:title="|Đếm ngược đến lịch hẹn: ${#temporals.format(ses.sessionDate, 'dd/MM/yyyy')} ${#temporals.format(ses.startTime, 'HH:mm')}|">
+                                         <!-- JS will render circle here if starting within 24h -->
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 text-slate-500 max-w-xs truncate" th:title="${ses.note}" th:text="${ses.note != null && !ses.note.isEmpty() ? ses.note : '-'}">Ghi chú</td>
+                                <td class="px-6 py-4">
+                                    <span th:if="${ses.status == 'PENDING'}" class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 border border-amber-200 text-amber-800">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500 mr-1.5"></span>Chờ duyệt
+                                    </span>
+                                    <span th:if="${ses.status == 'CONFIRMED'}" class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-50 border border-blue-200 text-blue-800">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-blue-500 mr-1.5"></span>Đã xác nhận
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 text-right">
+                                    <a th:href="@{/lecturer/session/{id}/evaluate(id=${ses.sessionId})}" 
+                                       class="bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg px-4 py-2 font-medium transition-colors shadow-sm text-xs inline-flex items-center gap-1.5">
+                                        <span class="material-symbols-outlined text-sm">assignment_turned_in</span>
+                                        Đánh giá / Cấp phát
+                                    </a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. History Sessions Tab (Hidden by default) -->
+        <div id="history-sessions-tab" class="space-y-4 hidden">
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+                <div class="overflow-x-auto w-full">
+                    <table class="w-full whitespace-nowrap">
+                        <thead class="bg-slate-50 border-b border-slate-200">
+                            <tr>
+                                <th class="px-6 py-4 text-left font-semibold uppercase text-xs text-slate-500 tracking-wider">Sinh viên</th>
+                                <th class="px-6 py-4 text-left font-semibold uppercase text-xs text-slate-500 tracking-wider">Ngày hẹn</th>
+                                <th class="px-6 py-4 text-left font-semibold uppercase text-xs text-slate-500 tracking-wider">Thời gian</th>
+                                <th class="px-6 py-4 text-left font-semibold uppercase text-xs text-slate-500 tracking-wider">Ghi chú</th>
+                                <th class="px-6 py-4 text-left font-semibold uppercase text-xs text-slate-500 tracking-wider">Trạng thái</th>
+                                <th class="px-6 py-4 text-right font-semibold uppercase text-xs text-slate-500 tracking-wider">Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 text-sm">
+                            <tr th:if="${historySessions == null or #lists.isEmpty(historySessions)}">
+                                <td colspan="6" class="px-6 py-12 text-center text-slate-400">
+                                    <span class="material-symbols-outlined text-4xl mb-2 text-slate-300 block">history</span>
+                                    Chưa có lịch sử duyệt hoặc đánh giá nào.
+                                </td>
+                            </tr>
+                            <tr th:each="ses : ${historySessions}"
+                                th:unless="${historySessions == null or #lists.isEmpty(historySessions)}"
+                                class="hover:bg-slate-50/50 transition-colors">
+                                <td class="px-6 py-4 font-semibold text-slate-800" th:text="${ses.studentName}">Sinh viên</td>
+                                <td class="px-6 py-4 text-slate-600" th:text="${#temporals.format(ses.sessionDate, 'dd/MM/yyyy')}">12/12/2026</td>
+                                <td class="px-6 py-4 text-slate-600 font-medium">
+                                    <span th:text="${#temporals.format(ses.startTime, 'HH:mm')}"></span> - <span th:text="${#temporals.format(ses.endTime, 'HH:mm')}"></span>
+                                </td>
+                                <td class="px-6 py-4 text-slate-500 max-w-xs truncate" th:title="${ses.note}" th:text="${ses.note != null && !ses.note.isEmpty() ? ses.note : '-'}">Ghi chú</td>
+                                <td class="px-6 py-4">
+                                    <span th:if="${ses.status == 'COMPLETED'}" class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 border border-emerald-200 text-emerald-800">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5"></span>Hoàn thành
+                                    </span>
+                                    <span th:if="${ses.status == 'REJECTED'}" class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-50 border border-rose-200 text-rose-800">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-rose-500 mr-1.5"></span>Đã từ chối
+                                    </span>
+                                    <span th:if="${ses.status == 'CANCELLED'}" class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-50 border border-slate-200 text-slate-600">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-slate-500 mr-1.5"></span>Giảng viên hủy
+                                    </span>
+                                    <span th:if="${ses.status == 'CANCELED_BY_STUDENT'}" class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-pink-50 border border-pink-200 text-pink-700">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-pink-500 mr-1.5"></span>Sinh viên hủy
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 text-right">
+                                    <a th:href="@{/lecturer/session/{id}/evaluate(id=${ses.sessionId})}" 
+                                       class="bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg px-4 py-2 font-medium transition-colors text-xs inline-flex items-center gap-1.5">
+                                        <span class="material-symbols-outlined text-sm">visibility</span>
+                                        Xem chi tiết / Nhận xét
+                                    </a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
 </div>
+
+<script>
+    function switchTab(showId, hideId, btn) {
+        document.getElementById(showId).classList.remove('hidden');
+        document.getElementById(hideId).classList.add('hidden');
+        
+        // Update tab button styles
+        const buttons = btn.parentElement.querySelectorAll('.tab-btn');
+        buttons.forEach(b => {
+            b.classList.remove('border-indigo-600', 'text-indigo-600');
+            b.classList.add('border-transparent', 'text-slate-500', 'hover:text-slate-700', 'hover:border-slate-300');
+        });
+        
+        btn.classList.add('border-indigo-600', 'text-indigo-600');
+        btn.classList.remove('border-transparent', 'text-slate-500', 'hover:text-slate-700', 'hover:border-slate-300');
+    }
+</script>
 </body>
 </html>

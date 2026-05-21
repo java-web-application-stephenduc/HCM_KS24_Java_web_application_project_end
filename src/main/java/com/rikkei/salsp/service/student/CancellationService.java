@@ -69,11 +69,9 @@ public class CancellationService {
         session.setStatus(SessionStatus.CANCELED_BY_STUDENT);
         sessionRepository.save(session);
 
-        // Đồng bộ hủy phiếu mượn thiết bị nếu có liên kết và đang ở trạng thái chờ duyệt/chờ cấp phát
+        // Đồng bộ hủy phiếu mượn thiết bị nếu có liên kết (ngoại trừ trường hợp đã trả thiết bị)
         borrowingRecordRepository.findBySessionId(sessionId).ifPresent(record -> {
-            if (record.getStatus() == BorrowingStatus.PENDING_LECTURER_APPROVAL
-                    || record.getStatus() == BorrowingStatus.PENDING_ADMIN_APPROVAL
-                    || record.getStatus() == BorrowingStatus.PENDING_DISPATCH) {
+            if (record.getStatus() != BorrowingStatus.RETURNED) {
                 record.setStatus(BorrowingStatus.REJECTED_BY_LECTURER);
                 record.setLecturerNote("Buổi tư vấn học tập liên kết đã bị hủy bởi Sinh viên.");
                 borrowingRecordRepository.save(record);
