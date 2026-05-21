@@ -3,7 +3,7 @@
   <p><i>Nền tảng tập trung quản lý cố vấn học tập và thiết bị phòng thí nghiệm thông minh</i></p>
   
   ![Java](https://img.shields.io/badge/Java-21-ED8B00?style=for-the-badge&logo=java&logoColor=white)
-  ![Spring Boot](https://img.shields.io/badge/Spring_Boot-4.x-6DB33F?style=for-the-badge&logo=spring-boot&logoColor=white)
+  ![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.x-6DB33F?style=for-the-badge&logo=spring-boot&logoColor=white)
   ![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?style=for-the-badge&logo=mysql&logoColor=white)
   ![Hibernate](https://img.shields.io/badge/Hibernate-6.x-59666C?style=for-the-badge&logo=hibernate&logoColor=white)
   ![Status](https://img.shields.io/badge/Code_Review-Complete-success?style=for-the-badge)
@@ -172,9 +172,9 @@ Dự án áp dụng kiến trúc **Spring Boot Monolithic** theo mô hình **3-T
   - PENDING → CONFIRMED → COMPLETED → Giảng viên enter score/feedback
 
 ### **Phân hệ 5: Borrowing & Equipment Request**
-- **Mục đích**: Quản lý phiếu mươn thiết bị + trả kho
+- **Mục đích**: Quản lý phiếu mượn thiết bị + trả kho
 - **Key Components**:
-  - `BorrowingRecord`: Header (phiếu mươn)
+  - `BorrowingRecord`: Header (phiếu mượn)
   - `BorrowingDetail`: Line items (chi tiết từng thiết bị)
   - `BorrowingStatus`: PENDING → APPROVED → BORROWED → RETURNED / OVERDUE
   - `BorrowingOverdueScheduler`: Daily task check quá hạn
@@ -194,7 +194,7 @@ Dự án áp dụng kiến trúc **Spring Boot Monolithic** theo mô hình **3-T
   - Top giảng viên (nhiều buổi hoàn thành nhất)
 
 ### **Phân hệ 7: Student Dashboard & History**
-- **Mục đức**: Sinh viên xem lịch sử học tập + mươn trả
+- **Mục đích**: Sinh viên xem lịch sử học tập + mượn trả
 - **Key Components**:
   - `StudentDashboardService`: Thống kê sinh viên
   - `StudentHistoryService`: Lịch sử chi tiết
@@ -203,10 +203,10 @@ Dự án áp dụng kiến trúc **Spring Boot Monolithic** theo mô hình **3-T
   - Mentoring sessions + evaluation score + borrowing details + equipment names
 
 ### **Phân hệ 8: Admin Dashboard & Dispatch**
-- **Mục đích**: Thống kê hệ thống, phê duyệt phiếu mươn
+- **Mục đích**: Thống kê hệ thống, phê duyệt phiếu mượn
 - **Key Components**:
   - `AdminDashboardService`: Tổng hợp statistics
-  - `DispatchService`: Queue quản lý phiếu mươn
+  - `DispatchService`: Queue quản lý phiếu mượn
   - `AdminDispatchController`: UI phê duyệt, từ chối
 - **Statistics**:
   - Tổng user, buổi, thiết bị
@@ -246,9 +246,9 @@ Dự án áp dụng kiến trúc **Spring Boot Monolithic** theo mô hình **3-T
 |-----------|---------|--------|
 | Đăng ký tài khoản | Email, password, profile | ✅ |
 | Đặt lịch cố vấn | Chọn khoa, giảng viên, khung giờ | ✅ |
-| Xem khum giờ trống | Gợi ý slot sáng chiều | ✅ |
+| Xem khung giờ trống | Gợi ý slot sáng chiều | ✅ |
 | Hủy lịch hẹn | Hủy trước buổi (status PENDING) | ✅ |
-| Yêu cầu mươn thiết bị | Liên kết với session CONFIRMED | ✅ |
+| Yêu cầu mượn thiết bị | Liên kết với session CONFIRMED | ✅ |
 | Xem lịch sử học tập | All sessions + evaluations | ✅ |
 | Xem lịch sử mượn trả | Tất cả borrowing records | ✅ |
 | Xem hồ sơ cá nhân | Update thông tin profile | ✅ |
@@ -262,9 +262,9 @@ Dự án áp dụng kiến trúc **Spring Boot Monolithic** theo mô hình **3-T
 | Phê duyệt / Từ chối | Status: CONFIRMED / REJECTED | ✅ |
 | Ghi chú chuyên môn | Update note/feedback | ✅ |
 | Đánh giá học tập | Score (0-100) + feedback | ✅ |
-| Dashboard lịch sư | Buổi hôm nay, tháng này | ✅ |
+| Dashboard lịch sử | Buổi hôm nay, tháng này | ✅ |
 | Xem chi tiết session | Student name, note, evaluation | ✅ |
-| Quản lý phiếu mươn | View requests from sessions | ⚠️ |
+| Quản lý phiếu mượn | View requests from sessions | ⚠️ |
 
 ### 🛡️ **Quản trị viên (ADMIN)**
 | Tính năng | Chi tiết | Status |
@@ -272,7 +272,7 @@ Dự án áp dụng kiến trúc **Spring Boot Monolithic** theo mô hình **3-T
 | Quản lý user | Create/edit/delete (CRD) | ✅ |
 | Quản lý bộ phận | CRUD department | ⚠️ |
 | Quản lý thiết bị | Add/edit/delete, qty | ✅ |
-| Phê duyệt phiếu mươn | Queue + approve/reject | ✅ |
+| Phê duyệt phiếu mượn | Queue + approve/reject | ✅ |
 | Xem báo cáo thống kê | Dashboard numbers | ✅ |
 | Khóa tài khoản user | Set active = false | ✅ |
 | Xem log hành động | Audit trail (created_at, updated_at) | ⚠️ |
@@ -615,7 +615,7 @@ Smart_Academic_Lab_Support_Platform/
 
 ### **Layer 1: Controller (HTTP Handler & Request Routing)**
 
-**Trách niệm:**
+**Trách nhiệm:**
 - Nhận HTTP request từ Thymeleaf form hoặc AJAX
 - Validate input (@Valid, BindingResult)
 - Gọi Service để xử lý nghiệp vụ
@@ -693,7 +693,7 @@ public MentoringSession createBooking(BookingRequestDto dto, String studentEmail
 
 ### **Layer 3: Repository (Data Access & Query Optimization)**
 
-**Trách niệm:**
+**Trách nhiệm:**
 - CRUD operations (Spring Data JPA auto-implement)
 - Custom queries (JPQL, Native SQL)
 - Query optimization (@EntityGraph, JOIN FETCH)
@@ -713,12 +713,11 @@ public interface EquipmentRepository extends JpaRepository<Equipment, Long> {
     """)
     List<Equipment> findLowStock(@Param("threshold") int threshold);
     
-    // Pessimistic lock para concurrent updates
+    // Pessimistic lock cho concurrent updates
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT e FROM Equipment e WHERE e.id = :id")
     Optional<Equipment> findByIdWithLock(@Param("id") Long id);
 }
-```
 
 **N+1 Problem & Solution:**
 ```

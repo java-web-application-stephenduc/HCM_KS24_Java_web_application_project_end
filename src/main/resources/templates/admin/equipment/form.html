@@ -14,8 +14,7 @@
     </div>
 
     <div class="bg-white rounded-2xl p-8 shadow-sm border border-slate-100 max-w-3xl mx-auto">
-        <!-- Dùng @{} expression để Thymeleaf tự xử lý context path và URL encoding (Bug #9) -->
-        <form th:action="${mode == 'edit' ? @{/admin/equipment/{id}/edit(id=${equipment.id})} : @{/admin/equipment}}" th:object="${equipment}" method="post" class="space-y-6">
+        <form th:action="${mode == 'edit' ? '/admin/equipment/' + equipment.id + '/edit' : '/admin/equipment'}" th:object="${equipment}" method="post" class="space-y-6">
             <input type="hidden" th:if="${mode == 'edit'}" th:field="*{id}" />
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
