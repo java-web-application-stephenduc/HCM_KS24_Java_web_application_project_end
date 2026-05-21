@@ -14,13 +14,20 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 /**
- * Repository quản lý truy vấn dữ liệu thực thể MentoringSession.
+ * Repository quản lý truy vấn dữ liệu thực thể MentoringSession (buổi cố vấn).
+ * Các truy vấn phức tạp đều dùng JOIN FETCH để giải quyết N+1,
+ * và native query để phục vụ báo cáo tổng hợp đa bảng.
  */
 public interface MentoringSessionRepository extends JpaRepository<MentoringSession, Long> {
     @Override
     @EntityGraph(attributePaths = {"student", "student.profile", "lecturer", "lecturer.profile"})
     Page<MentoringSession> findAll(Pageable pageable);
 
+    /*
+     * Kiểm tra xung đột lịch giảng viên: so sánh khoảng thời gian (start-end)
+     * với các buổi đã tồn tại trong cùng ngày, loại trừ các trạng thái đã hủy.
+     * Dùng JPQL subquery COUNT > 0 thay vì truy vấn toàn bộ record.
+     */
     @Query("""
                 SELECT COUNT(ms) > 0 FROM MentoringSession ms
                 WHERE ms.lecturer.id = :lecturerId
@@ -38,6 +45,11 @@ public interface MentoringSessionRepository extends JpaRepository<MentoringSessi
             @Param("startTime") LocalTime startTime,
             @Param("endTime") LocalTime endTime);
 
+    /*
+     * Truy vấn buổi cố vấn kèm student + profile + lecturer trong một câu JPQL.
+     * JOIN FETCH giải quyết triệt để N+1 khi controller/service gọi
+     * getStudent().getProfile().getFullName().
+     */
     @Query("""
                 SELECT ms FROM MentoringSession ms
                 JOIN FETCH ms.student st
@@ -47,21 +59,17 @@ public interface MentoringSessionRepository extends JpaRepository<MentoringSessi
             """)
     Optional<MentoringSession> findByIdWithStudentAndLecturer(@Param("id") Long id);
 
-    /**
-     * Tìm kiếm buổi cố vấn học thuật.
-     * 
-     * @param studentId Tham số đầu vào studentId
-     * 
-     * @return Kết quả trả về của phương thức
-     */
+    /* Sinh viên xem danh sách buổi cố vấn đã đặt, sắp xếp mới nhất xuống dưới */
     List<MentoringSession> findByStudentIdOrderBySessionDateDesc(Long studentId);
 
+    /* Kiểm tra sinh viên có quyền truy cập buổi cố vấn không (dùng trong CancellationService) */
     boolean existsByIdAndStudentId(Long id, Long studentId);
 
     @Query("SELECT COUNT(ms) FROM MentoringSession ms WHERE ms.student.id = :studentId AND ms.status IN :statuses")
     long countByStudentIdAndStatusIn(@Param("studentId") Long studentId,
             @Param("statuses") List<SessionStatus> statuses);
 
+    /* Sinh viên xem danh sách buổi cố vấn kèm thông tin giảng viên (JOIN FETCH chống N+1) */
     @Query("""
                 SELECT ms FROM MentoringSession ms
                 JOIN FETCH ms.lecturer
@@ -70,16 +78,13 @@ public interface MentoringSessionRepository extends JpaRepository<MentoringSessi
             """)
     List<MentoringSession> findByStudentIdWithLecturerProfile(@Param("studentId") Long studentId);
 
-    /**
-     * Tìm kiếm giảng viên.
-     * 
-     * @param lecturerId Tham số đầu vào lecturerId
-     * @param status     Tham số đầu vào status
-     * 
-     * @return Kết quả trả về của phương thức
-     */
+    /* Giảng viên lọc danh sách buổi cố vấn theo trạng thái (VD: PENDING — chờ xử lý) */
     List<MentoringSession> findByLecturerIdAndStatus(Long lecturerId, SessionStatus status);
 
+    /*
+     * Giảng viên xem hàng đợi (queue) sinh viên chờ xử lý theo một trạng thái cụ thể.
+     * JOIN FETCH student + profile để render tên và avatar sinh viên mà không gây N+1.
+     */
     @Query("""
                 SELECT ms FROM MentoringSession ms
                 JOIN FETCH ms.student st
@@ -91,6 +96,11 @@ public interface MentoringSessionRepository extends JpaRepository<MentoringSessi
     List<MentoringSession> findQueueWithStudent(@Param("lecturerId") Long lecturerId,
             @Param("status") SessionStatus status);
 
+    /*
+     * Giảng viên xem danh sách buổi cố vấn theo nhiều trạng thái cùng lúc.
+     * Dùng IN :statuses + JOIN FETCH giúp nạp student + profile trong một query.
+     * Được dùng để phân tách tab "đang hoạt động" và "lịch sử" trên giao diện.
+     */
     @Query("""
                 SELECT ms FROM MentoringSession ms
                 JOIN FETCH ms.student st
@@ -102,6 +112,11 @@ public interface MentoringSessionRepository extends JpaRepository<MentoringSessi
     List<MentoringSession> findSessionsByLecturerIdAndStatuses(@Param("lecturerId") Long lecturerId,
             @Param("statuses") List<SessionStatus> statuses);
 
+    /*
+     * Giảng viên xem lịch hẹn trong ngày, loại trừ các trạng thái đã hủy.
+     * JOIN FETCH student + profile, sắp xếp theo giờ bắt đầu để hiển thị timeline.
+     * Dùng cho Dashboard "Lịch hẹn hôm nay".
+     */
     @Query("""
                 SELECT ms FROM MentoringSession ms
                 JOIN FETCH ms.student st
@@ -118,6 +133,10 @@ public interface MentoringSessionRepository extends JpaRepository<MentoringSessi
     List<MentoringSession> findByLecturerIdAndDateWithStudent(@Param("lecturerId") Long lecturerId,
             @Param("date") LocalDate date);
 
+    /*
+     * Đếm số buổi cố vấn hợp lệ (không bị hủy) của giảng viên trong khoảng thời gian.
+     * Dùng COUNT với BETWEEN để lấy thống kê Dashboard (tháng này).
+     */
     @Query("""
                 SELECT COUNT(ms) FROM MentoringSession ms
                 WHERE ms.lecturer.id = :lecturerId
@@ -132,6 +151,7 @@ public interface MentoringSessionRepository extends JpaRepository<MentoringSessi
             @Param("startDate") LocalDate startDate,
             @Param("endDate") LocalDate endDate);
 
+    /* Đếm tổng số buổi cố vấn theo trạng thái (dùng cho Admin Dashboard) */
     @Query("SELECT COUNT(ms) FROM MentoringSession ms WHERE ms.status = :status")
     long countByStatus(@Param("status") SessionStatus status);
 
@@ -142,15 +162,19 @@ public interface MentoringSessionRepository extends JpaRepository<MentoringSessi
                 GROUP BY ms.lecturer.id
                 ORDER BY cnt DESC
             """)
-    /**
-     * Tìm kiếm giảng viên.
-     * 
-     * @param pageable Tham số đầu vào pageable
-     * 
-     * @return Kết quả trả về của phương thức
+    /*
+     * Top giảng viên có nhiều buổi COMPLETED nhất — dùng cho Admin Dashboard.
+     * Group by + Order by + Pageable phân trang kết quả hiệu quả.
      */
     List<Object[]> findTopLecturers(Pageable pageable);
 
+    /*
+     * Native query tổng hợp lịch sử học tập của sinh viên: join 6 bảng
+     * (mentoring_sessions + users + user_profiles + lecturers + departments
+     * + academic_evaluations + borrowing_records + borrowing_details + equipments)
+     * trong một lần truy vấn duy nhất, trả về projection.
+     * Dùng LEFT JOIN cho evaluation và borrow (có thể null).
+     */
     @Query(value = """
                 SELECT
                     ms.id AS sessionId,
@@ -182,6 +206,10 @@ public interface MentoringSessionRepository extends JpaRepository<MentoringSessi
             """, nativeQuery = true)
     List<AcademicHistoryProjection> findAcademicHistory(@Param("studentId") Long studentId);
 
+    /*
+     * Native query chi tiết một buổi cố vấn, join đầy đủ các bảng liên quan.
+     * Dùng cho trang xem chi tiết lịch sử sinh viên.
+     */
     @Query(value = """
                 SELECT
                     ms.id AS sessionId,
@@ -213,6 +241,10 @@ public interface MentoringSessionRepository extends JpaRepository<MentoringSessi
             """, nativeQuery = true)
     List<AcademicHistoryProjection> findAcademicHistoryBySessionId(@Param("sessionId") Long sessionId);
 
+    /*
+     * Đếm số buổi hoàn thành trong tháng — dùng cho thống kê Admin Dashboard
+     * (biểu đồ xu hướng theo tháng).
+     */
     @Query("""
         SELECT COUNT(ms) FROM MentoringSession ms
         WHERE ms.status = com.rikkei.salsp.entity.session.SessionStatus.COMPLETED
@@ -222,100 +254,24 @@ public interface MentoringSessionRepository extends JpaRepository<MentoringSessi
     long countCompletedSessionsByMonthAndYear(@Param("month") int month, @Param("year") int year);
 
 
-    /**
-     * Giao diện projection cho kết quả lịch sử học tập.
-     * Dùng java.time thay vì java.sql để tương thích Hibernate 6.
+    /*
+     * Projection interface cho native query lịch sử học tập (findAcademicHistory).
+     * Dùng java.time (LocalDate, LocalTime) thay vì java.sql để tương thích Hibernate 6.
+     * Native query join 6 bảng trả về dữ liệu gộp trong một lần truy vấn duy nhất.
      */
     interface AcademicHistoryProjection {
-        /**
-         * Lấy thông tin buổi cố vấn học thuật.
-         * 
-         * @return Kết quả trả về của phương thức
-         */
         Long getSessionId();
-
-        /**
-         * Lấy thông tin buổi cố vấn học thuật.
-         * 
-         * @return Kết quả trả về của phương thức
-         */
         java.time.LocalDate getSessionDate();
-
-        /**
-         * Lấy thông tin.
-         * 
-         * @return Kết quả trả về của phương thức
-         */
         java.time.LocalTime getStartTime();
-
-        /**
-         * Lấy thông tin.
-         * 
-         * @return Kết quả trả về của phương thức
-         */
         java.time.LocalTime getEndTime();
-
-        /**
-         * Lấy thông tin.
-         * 
-         * @return Kết quả trả về của phương thức
-         */
         String getStatus();
-
-        /**
-         * Lấy thông tin giảng viên.
-         * 
-         * @return Kết quả trả về của phương thức
-         */
         String getLecturerName();
-
-        /**
-         * Lấy thông tin khoa/ban chuyên môn.
-         * 
-         * @return Kết quả trả về của phương thức
-         */
         String getDepartmentName();
-
-        /**
-         * Lấy thông tin.
-         * 
-         * @return Kết quả trả về của phương thức
-         */
         Integer getScore();
-
-        /**
-         * Lấy thông tin.
-         * 
-         * @return Kết quả trả về của phương thức
-         */
         String getFeedback();
-
-        /**
-         * Lấy thông tin.
-         * 
-         * @return Kết quả trả về của phương thức
-         */
         String getNote();
-
-        /**
-         * Lấy lý do từ chối (nếu có).
-         *
-         * @return Kết quả trả về của phương thức
-         */
         String getRejectionReason();
-
-        /**
-         * Lấy thông tin thiết bị phòng Lab.
-         * 
-         * @return Kết quả trả về của phương thức
-         */
         String getEquipmentName();
-
-        /**
-         * Lấy thông tin.
-         * 
-         * @return Kết quả trả về của phương thức
-         */
         Integer getQuantity();
     }
 }

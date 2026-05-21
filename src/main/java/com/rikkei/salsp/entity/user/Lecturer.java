@@ -17,7 +17,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * Thực thể mở rộng đại diện cho thông tin chuyên môn của giảng viên.
+ * Thực thể mở rộng chứa thông tin chuyên môn của giảng viên
+ * (chức danh, tiểu sử, khoa trực thuộc), liên kết 1-1 với tài khoản User.
  */
 @Entity
 @Table(name = "lecturers")
@@ -32,10 +33,12 @@ public class Lecturer {
     @EqualsAndHashCode.Include
     private Long id;
 
+    /* Liên kết 1-1 với tài khoản đăng nhập; LAZY tránh truy vấn dư thừa */
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false, unique = true)
     private User user;
 
+    /* Mỗi giảng viên thuộc một Khoa / Bộ môn */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "department_id", nullable = false)
     private Department department;

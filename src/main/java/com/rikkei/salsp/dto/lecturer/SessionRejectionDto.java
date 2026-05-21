@@ -7,8 +7,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * Lớp `SessionRejectionDto` thuộc hệ thống Smart Academic Lab Support Platform
- * (SALSP).
+ * DTO form nhập — giảng viên từ chối buổi hẹn kèm lý do bắt buộc.
+ * Cả hai trường đều được validate: sessionId không null, rejectionReason không rỗng.
  */
 @Getter
 @Setter

@@ -10,8 +10,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * Lớp `SessionDetailDto` thuộc hệ thống Smart Academic Lab Support Platform
- * (SALSP).
+ * DTO chi tiết buổi cố vấn — dùng cho trang đánh giá của giảng viên (evaluation-form).
+ * Chứa thông tin sinh viên, kết quả đánh giá, trạng thái mượn thiết bị v.v.
  */
 @Getter
 @Setter
@@ -33,9 +33,12 @@ public class SessionDetailDto {
     private String lecturerNote;
     private String adminNote;
     private List<EquipmentRequestDto> requestedEquipments = new ArrayList<>();
+    /* Điểm đánh giá (null nếu chưa được đánh giá) */
     private Integer score;
+    /* Nhận xét của giảng viên (null nếu chưa có) */
     private String feedback;
     private String studentAvatarUrl;
+    /* Cho phép giảng viên hủy/từ chối nếu còn > 24h so với giờ hẹn */
     private boolean cancellable;
 }
 

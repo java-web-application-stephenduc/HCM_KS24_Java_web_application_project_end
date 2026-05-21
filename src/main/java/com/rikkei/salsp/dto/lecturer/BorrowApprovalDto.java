@@ -9,8 +9,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * Lớp `BorrowApprovalDto` thuộc hệ thống Smart Academic Lab Support Platform
- * (SALSP).
+ * DTO form gửi lên khi giảng viên duyệt/từ chối yêu cầu mượn thiết bị.
+ * Có thể kèm danh sách thiết bị bổ sung và ghi chú.
  */
 @Getter
 @Setter

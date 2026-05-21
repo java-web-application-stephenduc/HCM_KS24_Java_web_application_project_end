@@ -236,12 +236,12 @@
          *   - Phân chia sáng/chiều cho dễ nhìn
          */
         function fetchAvailableSlots() {
-            var dateEl = document.getElementById('sessionDate');
-            var date = dateEl ? dateEl.value : '';
-            var lecturerId = document.getElementById('lecturerId').value;
-            var container = document.getElementById('slots-container');
-            var submitBtn = document.getElementById('submitBtn');
-            var endpoint = document.getElementById('slotsEndpoint').value;
+            const dateEl = document.getElementById('sessionDate');
+            const date = dateEl ? dateEl.value : '';
+            const lecturerId = document.getElementById('lecturerId').value;
+            const container = document.getElementById('slots-container');
+            const submitBtn = document.getElementById('submitBtn');
+            const endpoint = document.getElementById('slotsEndpoint').value;
 
             // Reset trạng thái lựa chọn cũ
             document.getElementById('startTime').value = '';
@@ -260,7 +260,7 @@
             container.innerHTML = '<p class="font-body-md text-body-md text-on-surface-variant col-span-full">Đang tải khung giờ...</p>';
 
             // Gọi API lấy danh sách slot
-            var url = endpoint + '?lecturerId=' + encodeURIComponent(lecturerId) + '&date=' + encodeURIComponent(date);
+            const url = endpoint + '?lecturerId=' + encodeURIComponent(lecturerId) + '&date=' + encodeURIComponent(date);
 
             fetch(url, {
                 method: 'GET',
@@ -286,7 +286,7 @@
                 }
 
                 // Lọc chỉ lấy slot còn trống
-                var available = data.filter(function (s) { return s.available === true; });
+                const available = data.filter(function (s) { return s.available === true; });
 
                 if (available.length === 0) {
                     container.innerHTML = '<p class="font-body-md text-body-md text-on-surface-variant col-span-full">Không có khung giờ trống trong ngày này. Vui lòng chọn ngày khác.</p>';
@@ -321,7 +321,7 @@
 
         // Khởi tạo sự kiện sau khi DOM sẵn sàng
         document.addEventListener('DOMContentLoaded', function () {
-            var dateInput = document.getElementById('sessionDate');
+            const dateInput = document.getElementById('sessionDate');
             if (!dateInput) return;
 
             /*
@@ -329,7 +329,7 @@
              * đồng thời được kích hoạt (xảy ra trên một số trình duyệt).
              * Timeout 80ms là đủ để bao phủ cả hai sự kiện mà không ảnh hưởng trải nghiệm.
              */
-            var debounceTimer = null;
+            let debounceTimer = null;
             function debouncedFetch() {
                 clearTimeout(debounceTimer);
                 debounceTimer = setTimeout(fetchAvailableSlots, 80);

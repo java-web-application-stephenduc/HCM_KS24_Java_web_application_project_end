@@ -32,10 +32,12 @@ public class AcademicEvaluation {
     @EqualsAndHashCode.Include
     private Long id;
 
+    /* Liên kết 1-1 với buổi cố vấn (unique = true đảm bảo mỗi session chỉ được đánh giá một lần) */
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "session_id", nullable = false, unique = true)
     private MentoringSession session;
 
+    /* Điểm đánh giá từ giảng viên, thang 0-10 (ràng buộc ở tầng service/dto) */
     @Column(nullable = false)
     private Integer score;
 

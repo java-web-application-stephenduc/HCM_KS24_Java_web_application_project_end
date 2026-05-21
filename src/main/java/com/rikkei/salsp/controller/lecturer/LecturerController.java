@@ -32,12 +32,9 @@ public class LecturerController {
     private final EvaluationService evaluationService;
     private final EquipmentService equipmentService;
 
-    /**
-     * Hiển thị danh sách các buổi cố vấn đang chờ giảng viên xử lý.
-     * 
-     * @param authentication Thông tin xác thực giảng viên
-     * @param model          Model truyền danh sách buổi hẹn
-     * @return Template hàng đợi cố vấn
+    /*
+     * GET /lecturer/queue — Trang danh sách buổi cố vấn chờ xử lý (queue).
+     * load 2 danh sách: sessions (PENDING + CONFIRMED) và historySessions (COMPLETED, REJECTED...)
      */
     @GetMapping("/queue")
     public String queue(Authentication authentication, Model model) {

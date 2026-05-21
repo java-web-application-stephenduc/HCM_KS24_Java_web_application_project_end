@@ -5,7 +5,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * Lớp `LecturerSummaryDto` thuộc hệ thống Smart Academic Lab Support Platform (SALSP).
+ * DTO tóm tắt thông tin giảng viên — dùng cho dropdown chọn giảng viên
+ * hoặc hiển thị danh sách giảng viên trong booking form.
  */
 @Getter
 @Setter

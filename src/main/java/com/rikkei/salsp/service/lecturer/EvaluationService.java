@@ -49,12 +49,9 @@ public class EvaluationService {
     private final UserRepository userRepository;
     private final LecturerRepository lecturerRepository;
 
-    /**
-     * Lấy thông tin buổi cố vấn học thuật.
-     * 
-     * @param lecturerEmail Tham số đầu vào lecturerEmail
-     * 
-     * @return Kết quả trả về của phương thức
+    /*
+     * Lấy danh sách buổi cố vấn đang ở trạng thái PENDING của giảng viên
+     * (chờ duyệt / đánh giá).
      */
     public List<SessionSummaryDto> getPendingSessions(String lecturerEmail) {
         // Tải danh sách buổi chờ tư vấn của giảng viên.
@@ -128,18 +125,11 @@ public class EvaluationService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Lấy thông tin buổi cố vấn học thuật.
-     * 
-     * <p>
-     * <strong>Lưu ý sửa lỗi (Bug #19: Dùng findByIdWithStudentAndLecturer tránh N+1
-     * khi gọi getStudent().getProfile())</strong>
-     * </p>
-     * 
-     * @param sessionId     Tham số đầu vào sessionId
-     * @param lecturerEmail Tham số đầu vào lecturerEmail
-     * 
-     * @return Kết quả trả về của phương thức
+    /*
+     * Lấy chi tiết một buổi cố vấn (kèm evaluation, borrow record, thiết bị).
+     * Sử dụng findByIdWithStudentAndLecturer (Bug #19) — JOIN FETCH tránh N+1
+     * khi truy cập getStudent().getProfile().
+     * Kiểm tra quyền sở hữu: chỉ giảng viên phụ trách buổi đó mới được xem.
      */
     public SessionDetailDto getSessionDetail(Long sessionId, String lecturerEmail) {
         // Bug #19: Dùng findByIdWithStudentAndLecturer tránh N+1 khi gọi

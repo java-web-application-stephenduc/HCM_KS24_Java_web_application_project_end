@@ -5,23 +5,13 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 /**
- * Repository quản lý truy vấn dữ liệu thực thể AcademicEvaluation.
+ * Repository cung cấp truy vấn cho thực thể AcademicEvaluation (điểm đánh giá buổi cố vấn).
  */
 public interface AcademicEvaluationRepository extends JpaRepository<AcademicEvaluation, Long> {
-    /**
-     * Kiểm tra tồn tại của buổi cố vấn học thuật.
-     * @param sessionId Tham số đầu vào sessionId
-
-     * @return Kết quả trả về của phương thức
-     */
+    /* Kiểm tra buổi cố vấn đã được giảng viên đánh giá hay chưa (dùng để chống duplicate evaluation) */
     boolean existsBySessionId(Long sessionId);
 
-    /**
-     * Tìm kiếm buổi cố vấn học thuật.
-     * @param sessionId Tham số đầu vào sessionId
-
-     * @return Kết quả trả về của phương thức
-     */
+    /* Truy xuất kết quả đánh giá (điểm + feedback) của một buổi cố vấn */
     Optional<AcademicEvaluation> findBySessionId(Long sessionId);
 }
 

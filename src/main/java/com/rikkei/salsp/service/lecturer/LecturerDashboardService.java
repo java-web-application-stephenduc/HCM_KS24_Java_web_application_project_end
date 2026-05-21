@@ -28,11 +28,9 @@ public class LecturerDashboardService {
     private final MentoringSessionRepository sessionRepository;
     private final UserRepository userRepository;
 
-    /**
-     * Lấy thông tin bảng điều khiển.
-     * @param lecturerEmail Tham số đầu vào lecturerEmail
-
-     * @return Kết quả trả về của phương thức
+    /*
+     * Xây dựng dữ liệu Dashboard cho giảng viên: thống kê hôm nay, tháng này,
+     * danh sách sinh viên PENDING và lịch hẹn hôm nay.
      */
     public LecturerDashboardDto getDashboardData(String lecturerEmail) {
         User lecturer = userRepository.findByEmail(lecturerEmail)

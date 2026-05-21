@@ -7,7 +7,26 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * Lớp `AdminDashboardDto` thuộc hệ thống Smart Academic Lab Support Platform (SALSP).
+ * DTO chứa dữ liệu thống kê dashboard cho Admin.
+ *
+ * MỤC ĐÍCH: Tổng hợp các KPI (Key Performance Indicators) của hệ thống.
+ *
+ * CÁC METRICS:
+ * - borrowedCount: Số phiếu mượn hiện đang hoạt động (status = BORROWED)
+ * - pendingDispatchCount: Số phiếu chờ phê duyệt xuất kho (status = PENDING)
+ * - completedCount: Số buổi cố vấn hoàn thành trong tháng
+ * - totalUsers: Tổng số user hệ thống (cả active/inactive)
+ * - activeUsers: Số tài khoản đang hoạt động (active = true)
+ * - lowStockCount: Số loại thiết bị tồn kho thấp (< threshold)
+ *
+ * SUB-DTO STRUCTURES:
+ * - LowStockEquipmentDto[]: Danh sách chi tiết thiết bị cảnh báo
+ * - MonthlyStatDto[]: Biểu đồ xu hướng theo tháng (tháng này, tháng trước, ...)
+ * - TopLecturerDto[]: Top 10 giảng viên có buổi COMPLETED nhiều nhất
+ *
+ * FLOW:
+ * AdminDashboardService.getDashboardStats() → collect từ N queries → build DTO
+ * → Controller render Thymeleaf template với dữ liệu dashboard
  */
 @Getter
 @Setter

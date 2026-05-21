@@ -8,7 +8,28 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * Lớp `StudentDashboardDto` thuộc hệ thống Smart Academic Lab Support Platform (SALSP).
+ * DTO chứa dữ liệu cá nhân dashboard sinh viên.
+ *
+ * MỤC ĐÍCH: Tổng hợp các KPI (Key Performance Indicators) riêng của sinh viên.
+ *
+ * CÁC METRICS:
+ * - upcomingCount: Số buổi cố vấn sắp tới (PENDING hoặc CONFIRMED)
+ * - completedCount: Số buổi hoàn thành (COMPLETED)
+ * - borrowedCount: Số phiếu mượn hiện đang active (BORROWED)
+ * - studentName: Tên hiển thị của sinh viên
+ * - latestSession: Buổi gần nhất (để hiển thị "Buổi tiếp theo")
+ * - recentSessions: Danh sách 5-10 buổi gần nhất
+ * - recentEquipments: Danh sách thiết bị vừa mượn
+ *
+ * FLOW:
+ * Student login → GET /student/dashboard
+ * → StudentDashboardService.getDashboardData(studentId)
+ * → Collect từ 3-4 queries (MentoringSession, BorrowingRecord)
+ * → Build DTO → Render Thymeleaf template
+ *
+ * UI USAGE:
+ * - Hiển thị card: "X buổi sắp tới", "Y buổi hoàn thành"
+ * - Quick links: Xem buổi tiếp theo, mượn thiết bị lần cuối
  */
 @Getter
 @Setter

@@ -9,17 +9,23 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * Lớp `LecturerDashboardDto` thuộc hệ thống Smart Academic Lab Support Platform (SALSP).
+ * DTO phản hồi cho Lecturer Dashboard — gồm thống kê tổng quan và danh sách chi tiết.
+ * Chứa các lớp tĩnh bên trong cho dữ liệu phụ (pending students, today appointments).
  */
 @Getter
 @Setter
 @NoArgsConstructor
 public class LecturerDashboardDto {
 
+    /* Số lượng sinh viên chờ giảng viên xác nhận (SessionStatus.PENDING) */
     private long pendingCount;
+    /* Số lịch hẹn trong ngày hôm nay (không bao gồm các buổi đã hủy) */
     private long todayCount;
+    /* Tổng số buổi cố vấn trong tháng hiện tại */
     private long monthlyCount;
+    /* Danh sách sinh viên đang chờ xử lý (PENDING) */
     private List<PendingStudentDto> pendingStudents = new ArrayList<>();
+    /* Danh sách lịch hẹn hôm nay, sắp xếp theo giờ */
     private List<TodayAppointmentDto> todayAppointments = new ArrayList<>();
 
     @Getter

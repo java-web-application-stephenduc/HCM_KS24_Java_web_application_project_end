@@ -37,7 +37,7 @@
                                 <div class="w-24 h-24 rounded-full overflow-hidden border-2 border-surface-container-high bg-surface-container flex items-center justify-center relative">
                                     <span th:if="${user.profile.avatarUrl == null}" id="avatarIcon" class="material-symbols-outlined text-5xl text-on-surface-variant">person</span>
                                     <img th:if="${user.profile.avatarUrl != null}" id="avatarPreview" th:src="${user.profile.avatarUrl}" alt="Avatar" class="w-full h-full object-cover"/>
-                                    <img th:if="${user.profile.avatarUrl == null}" id="avatarPreview" class="w-full h-full object-cover hidden" alt="Avatar"/>
+                                    <img th:if="${user.profile.avatarUrl == null}" id="avatarPreview2" class="w-full h-full object-cover hidden" alt="Avatar"/>
                                 </div>
                                 <input type="file" id="avatarFile" name="avatarFile" class="hidden" accept="image/*"/>
                                 <button type="button" onclick="document.getElementById('avatarFile').click();" class="absolute bottom-0 right-0 w-8 h-8 bg-surface text-on-surface rounded-full shadow border border-outline-variant flex items-center justify-center hover:bg-surface-container-low transition-colors cursor-pointer">
@@ -48,40 +48,40 @@
                         </div>
                         
                         <!-- Form Fields -->
-                        <div class="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
-                            <div class="space-y-1 md:col-span-2">
-                                <label class="font-label-md text-label-md text-on-surface">Email (Không thể đổi)</label>
-                                <input type="text" th:value="${user.email}" disabled class="w-full bg-surface-container-low border border-outline-variant rounded-lg px-3 py-2 text-body-md text-on-surface-variant cursor-not-allowed"/>
-                            </div>
-                            <div class="space-y-1 md:col-span-2">
-                                <label for="fullName" class="font-label-md text-label-md text-on-surface">Họ và tên</label>
-                                <input type="text" th:field="*{fullName}" id="fullName" class="w-full bg-surface border border-outline-variant rounded-lg px-3 py-2 text-body-md text-on-surface focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary" required/>
-                                <p th:if="${#fields.hasErrors('fullName')}" th:errors="*{fullName}" class="font-label-md text-label-md text-error mt-1"></p>
-                            </div>
-                            <div class="space-y-1">
-                                <label for="phone" class="font-label-md text-label-md text-on-surface">Số điện thoại</label>
-                                <input type="tel" th:field="*{phone}" id="phone" class="w-full bg-surface border border-outline-variant rounded-lg px-3 py-2 text-body-md text-on-surface focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary"/>
-                                <p th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}" class="font-label-md text-label-md text-error mt-1"></p>
-                            </div>
-                            <div class="space-y-1">
-                                <label for="departmentId" class="font-label-md text-label-md text-on-surface">Khoa trực thuộc</label>
-                                <select th:field="*{departmentId}" id="departmentId" class="w-full bg-surface border border-outline-variant rounded-lg px-3 py-2 text-body-md text-on-surface focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary appearance-none" required>
-                                    <option value="" disabled>-- Chọn khoa --</option>
-                                    <option th:each="dept : ${departments}" th:value="${dept.id}" th:text="${dept.name}"></option>
-                                </select>
-                                <p th:if="${#fields.hasErrors('departmentId')}" th:errors="*{departmentId}" class="font-label-md text-label-md text-error mt-1"></p>
-                            </div>
-                            <div class="space-y-1 md:col-span-2">
-                                <label for="title" class="font-label-md text-label-md text-on-surface">Chức danh / Học hàm, học vị</label>
-                                <input type="text" th:field="*{title}" id="title" class="w-full bg-surface border border-outline-variant rounded-lg px-3 py-2 text-body-md text-on-surface focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary" placeholder="VD: TS., ThS., ..."/>
-                                <p th:if="${#fields.hasErrors('title')}" th:errors="*{title}" class="font-label-md text-label-md text-error mt-1"></p>
-                            </div>
-                            <div class="space-y-1 md:col-span-2">
-                                <label for="bio" class="font-label-md text-label-md text-on-surface">Giới thiệu bản thân (Tiểu sử)</label>
-                                <textarea th:field="*{bio}" id="bio" rows="4" class="w-full bg-surface border border-outline-variant rounded-lg px-3 py-2 text-body-md text-on-surface focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary" placeholder="Nhập tiểu sử, hướng nghiên cứu..."></textarea>
-                                <p th:if="${#fields.hasErrors('bio')}" th:errors="*{bio}" class="font-label-md text-label-md text-error mt-1"></p>
-                            </div>
-                        </div>
+<!--                        <div class="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4 w-full">-->
+<!--                            <div class="space-y-1 md:col-span-2">-->
+<!--                                <label class="font-label-md text-label-md text-on-surface">Email (Không thể đổi)</label>-->
+<!--                                <input type="text" th:value="${user.email}" disabled class="w-full bg-surface-container-low border border-outline-variant rounded-lg px-3 py-2 text-body-md text-on-surface-variant cursor-not-allowed"/>-->
+<!--                            </div>-->
+<!--                            <div class="space-y-1 md:col-span-2">-->
+<!--                                <label for="fullName" class="font-label-md text-label-md text-on-surface">Họ và tên</label>-->
+<!--                                <input type="text" th:field="*{fullName}" id="fullName" class="w-full bg-surface border border-outline-variant rounded-lg px-3 py-2 text-body-md text-on-surface focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary" required/>-->
+<!--                                <p th:if="${#fields.hasErrors('fullName')}" th:errors="*{fullName}" class="font-label-md text-label-md text-error mt-1"></p>-->
+<!--                            </div>-->
+<!--                            <div class="space-y-1">-->
+<!--                                <label for="phone" class="font-label-md text-label-md text-on-surface">Số điện thoại</label>-->
+<!--                                <input type="tel" th:field="*{phone}" id="phone" class="w-full bg-surface border border-outline-variant rounded-lg px-3 py-2 text-body-md text-on-surface focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary"/>-->
+<!--                                <p th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}" class="font-label-md text-label-md text-error mt-1"></p>-->
+<!--                            </div>-->
+<!--                            <div class="space-y-1">-->
+<!--                                <label for="departmentId" class="font-label-md text-label-md text-on-surface">Khoa trực thuộc</label>-->
+<!--                                <select th:field="*{departmentId}" id="departmentId" class="w-full bg-surface border border-outline-variant rounded-lg px-3 py-2 text-body-md text-on-surface focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary appearance-none" required>-->
+<!--                                    <option value="" disabled>&#45;&#45; Chọn khoa &#45;&#45;</option>-->
+<!--                                    <option th:each="dept : ${departments}" th:value="${dept.id}" th:text="${dept.name}"></option>-->
+<!--                                </select>-->
+<!--                                <p th:if="${#fields.hasErrors('departmentId')}" th:errors="*{departmentId}" class="font-label-md text-label-md text-error mt-1"></p>-->
+<!--                            </div>-->
+<!--                            <div class="space-y-1 md:col-span-2">-->
+<!--                                <label for="title" class="font-label-md text-label-md text-on-surface">Chức danh / Học hàm, học vị</label>-->
+<!--                                <input type="text" th:field="*{title}" id="title" class="w-full bg-surface border border-outline-variant rounded-lg px-3 py-2 text-body-md text-on-surface focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary" placeholder="VD: TS., ThS., ..."/>-->
+<!--                                <p th:if="${#fields.hasErrors('title')}" th:errors="*{title}" class="font-label-md text-label-md text-error mt-1"></p>-->
+<!--                            </div>-->
+<!--                            <div class="space-y-1 md:col-span-2">-->
+<!--                                <label for="bio" class="font-label-md text-label-md text-on-surface">Giới thiệu bản thân (Tiểu sử)</label>-->
+<!--                                <textarea th:field="*{bio}" id="bio" rows="4" class="w-full bg-surface border border-outline-variant rounded-lg px-3 py-2 text-body-md text-on-surface focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary" placeholder="Nhập tiểu sử, hướng nghiên cứu..."></textarea>-->
+<!--                                <p th:if="${#fields.hasErrors('bio')}" th:errors="*{bio}" class="font-label-md text-label-md text-error mt-1"></p>-->
+<!--                            </div>-->
+<!--                        </div>-->
                     </div>
                     <!-- Submit -->
                     <div class="flex justify-end gap-3 pt-4 border-t border-surface-variant">
@@ -145,7 +145,7 @@
             reader.onload = function(event) {
                 const preview = document.getElementById('avatarPreview');
                 const icon = document.getElementById('avatarIcon');
-                
+
                 preview.src = event.target.result;
                 preview.classList.remove('hidden');
                 if (icon) {

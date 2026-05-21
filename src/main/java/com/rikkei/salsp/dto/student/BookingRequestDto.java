@@ -9,7 +9,28 @@ import lombok.Setter;
 import org.springframework.format.annotation.DateTimeFormat;
 
 /**
- * Lớp `BookingRequestDto` thuộc hệ thống Smart Academic Lab Support Platform (SALSP).
+ * DTO nhận dữ liệu từ form đặt lịch cố vấn (sinh viên).
+ *
+ * MỤC ĐÍCH: Bind data từ form HTML 3-bước xác nhận booking.
+ *
+ * VALIDATION:
+ * - lecturerId: @NotNull (phải chọn giảng viên)
+ * - sessionDate: @NotNull + @DateTimeFormat (ngày hợp lệ)
+ * - startTime, endTime: @NotNull + @DateTimeFormat (giờ hợp lệ)
+ * - note: Optional (ghi chú tùy ý)
+ *
+ * FLOW:
+ * Bước 1: Chọn khoa + giảng viên
+ * Bước 2: Chọn ngày + khung giờ (gợi ý từ BookingService.getAvailableSlots)
+ * Bước 3: Nhập ghi chú + Xác nhận → POST /student/booking/create
+ * → StudentBookingController.create() → BookingService.createBooking(dto, email)
+ *
+ * SERVER-SIDE CHECKS (ở BookingService):
+ * - startTime < endTime (logic check)
+ * - Không ở quá khứ (time check)
+ * - Không xung đột giảng viên (conflict check)
+ *
+ * @DateTimeFormat: Chuyển string HTML input → LocalDate/LocalTime
  */
 @Getter
 @Setter

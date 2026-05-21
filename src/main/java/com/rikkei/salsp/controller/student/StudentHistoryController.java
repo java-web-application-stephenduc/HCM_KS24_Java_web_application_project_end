@@ -130,8 +130,8 @@ public class StudentHistoryController {
     /**
      * Xử lý gửi form.
      * 
-     * @param id                       Tham số đầu vào id
-     * @param ModelAttributeborrowForm Tham số đầu vào ModelAttributeborrowForm
+     * @param id Tham số đầu vào id
+     * @param "ModelAttributeborrowForm" Tham số đầu vào ModelAttributeborrowForm
      * 
      * @return Kết quả trả về của phương thức
      */

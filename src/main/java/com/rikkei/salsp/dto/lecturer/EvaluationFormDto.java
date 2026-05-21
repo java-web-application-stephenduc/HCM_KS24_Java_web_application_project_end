@@ -8,8 +8,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * Lớp `EvaluationFormDto` thuộc hệ thống Smart Academic Lab Support Platform
- * (SALSP).
+ * DTO form gửi lên khi giảng viên đánh giá buổi cố vấn.
+ * score bắt buộc, thang 0-10 (@Min/@Max); feedback dạng text tùy chọn.
  */
 @Getter
 @Setter

@@ -20,7 +20,28 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 /**
- * Lớp `DataSeeder` thuộc hệ thống Smart Academic Lab Support Platform (SALSP).
+ * Khởi tạo dữ liệu demo (seed data) khi ứng dụng startup.
+ *
+ * MỤC ĐÍCH: Populate database với demo accounts, departments, equipment cho testing.
+ *
+ * FLOW:
+ * Spring Boot startup → CommandLineRunner beans được tự động gọi
+ * → run() method được execute → Insert demo data
+ *
+ * WHEN TO USE:
+ * - Development environment: Auto-seed demo data để test nhanh
+ * - Production environment: Disable bằng profile (không chạy seeder)
+ *
+ * DEMO DATA ĐƯỢC TẠO:
+ * - Departments: IT, EE, ME
+ * - Users:
+ *   * admin@salsp.edu.vn (ADMIN) - password: admin123
+ *   * lecturer01@salsp.edu.vn (LECTURER) - password: 123456
+ *   * student01/02/03 (STUDENT) - password: 123456
+ * - Equipments: Oscilloscope, Multimeter, Soldering Iron (với qty)
+ * - Lecturers: Link với department
+ *
+ * IDEMPOTENT: Checker existence trước khi insert (không duplicate)
  */
 @Component
 @RequiredArgsConstructor

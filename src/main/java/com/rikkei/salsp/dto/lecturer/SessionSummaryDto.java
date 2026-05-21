@@ -7,7 +7,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * Lớp `SessionSummaryDto` thuộc hệ thống Smart Academic Lab Support Platform (SALSP).
+ * DTO tóm tắt buổi cố vấn — dùng để hiển thị danh sách trong các tab
+ * "Lịch hẹn chờ xử lý" và "Lịch sử" trên giao diện giảng viên.
  */
 @Getter
 @Setter

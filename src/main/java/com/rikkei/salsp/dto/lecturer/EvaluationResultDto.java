@@ -5,7 +5,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * Lớp `EvaluationResultDto` thuộc hệ thống Smart Academic Lab Support Platform (SALSP).
+ * DTO phản hồi sau khi lưu đánh giá thành công — trả về sessionId vừa đánh giá.
  */
 @Getter
 @Setter

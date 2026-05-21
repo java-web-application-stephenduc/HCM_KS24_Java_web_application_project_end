@@ -37,7 +37,7 @@
                                 <div class="w-24 h-24 rounded-full overflow-hidden border-2 border-surface-container-high bg-surface-container flex items-center justify-center relative">
                                     <span th:if="${user.profile.avatarUrl == null}" id="avatarIcon" class="material-symbols-outlined text-5xl text-on-surface-variant">person</span>
                                     <img th:if="${user.profile.avatarUrl != null}" id="avatarPreview" th:src="${user.profile.avatarUrl}" alt="Avatar" class="w-full h-full object-cover"/>
-                                    <img th:if="${user.profile.avatarUrl == null}" id="avatarPreview" class="w-full h-full object-cover hidden" alt="Avatar"/>
+                                    <img th:if="${user.profile.avatarUrl == null}" id="avatarPreview2" class="w-full h-full object-cover hidden" alt="Avatar"/>
                                 </div>
                                 <input type="file" id="avatarFile" name="avatarFile" class="hidden" accept="image/*"/>
                                 <button type="button" onclick="document.getElementById('avatarFile').click();" class="absolute bottom-0 right-0 w-8 h-8 bg-surface text-on-surface rounded-full shadow border border-outline-variant flex items-center justify-center hover:bg-surface-container-low transition-colors cursor-pointer">
